@@ -9,3 +9,4 @@ uv.lock
 
 outputs/
 openapi_letta.json
+out/
