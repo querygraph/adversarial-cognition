@@ -5,3 +5,4 @@ adapters/*/.venv/
 adapters/*/data/
 *.log
 .DS_Store
+uv.lock
