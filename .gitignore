@@ -10,3 +10,5 @@ uv.lock
 outputs/
 openapi_letta.json
 out/
+docs/book/dist/
+docs/book/build/
