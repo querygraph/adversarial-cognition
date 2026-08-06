@@ -18,8 +18,8 @@ supported cases.
 | Marciana (reference) | 18 | 18 | 100% | 0 | All nine hard gates zero |
 | Akka + Fluree | 16 | 16 | 100% | 2 | Every claimed capability holds; no clearance/purpose engine |
 | Letta 0.16.8 | 9 | 7 | 78% | 9 | No input-robustness boundary (see below) |
-| Mem0 (OSS) | — | — | — | — | Run in progress |
-| Graphiti (Kuzu) | — | — | — | — | Run in progress |
+| Mem0 (OSS) | 9 | 6 | 67% | 9 | Leaks private memory to a same-tenant lower-clearance principal; no input bound |
+| Graphiti (Kuzu) | 8 | 6 | 75% | 10 | Retrieval not token-order stable; no input bound |
 | Cognee (OSS) | — | — | — | — | Run in progress |
 
 The reference and Akka+Fluree runs are deterministic. The LLM-backed systems
@@ -66,6 +66,58 @@ scored — and Letta has no input-robustness boundary at the memory layer.
 nearest neighbors, no relevance threshold), clearance, purpose, provenance,
 replay, idempotency, and forget-with-derived — none of which Letta's memory
 API enforces.
+
+## Mem0 (OSS) — 6/9 supported correct
+
+Mem0's open-source library stores per-`user_id` memories over a local Chroma
+store with Ollama embeddings. Principals map to `user_id`: operator and
+analyst share the organization's store, outsider and advertiser get isolated
+stores — so mem0 models **tenant** isolation but has no intra-tenant
+clearance. Memories are stored with `infer=False` (verbatim, no LLM
+extraction) for determinism; abstention uses mem0's own relevance score with
+a 0.55 cutoff (genuine matches score ≥ 0.6, an unrelated query tops out below
+0.5 with nomic-embed-text).
+
+Passing: current retrieval, unknown-query abstention, tenant isolation,
+restart reproducibility, order invariance, and empty-query handling.
+
+**Three failures — real findings, not adapter bugs:**
+
+- `confusable-query` and `injection-contained`: the analyst — same tenant as
+  the operator, lower clearance — retrieves the operator's `private-farm`
+  memory. Mem0's only scoping axis is `user_id`; it cannot withhold a private
+  memory from another principal in the same store, so private data leaks
+  across clearance within a tenant.
+- `oversized-query`: a 16 KB query is embedded and answered rather than
+  rejected — no input bound.
+
+**Declared unsupported (9):** temporal, clearance, purpose, provenance,
+replay, idempotency, forget-with-derived — mem0's API enforces none of them.
+
+## Graphiti (OSS, Kuzu) — 6/8 supported correct
+
+Graphiti runs over its embedded Kuzu driver with Ollama for entity
+extraction (llama3.1) and embeddings (nomic-embed-text). Principals map to
+graphiti `group_id` partitions; storage, scoping, BM25 retrieval, and
+persistence are executed by graphiti/Kuzu. Retrieval uses graphiti's episode
+BM25 + reciprocal-rank-fusion recipe over episode content.
+
+Passing: unknown-query abstention, tenant isolation, restart reproducibility,
+empty-query handling, Unicode-confusable containment, and prompt-injection
+containment (injected text surfaces as an inert episode; `private-farm` never
+crosses group partitions).
+
+**Two failures — real findings:**
+
+- `order-invariant`: reordering the query tokens changes the ranked result
+  (`coffee Honduras price` and `price Honduras coffee` rank differently).
+  Graphiti's BM25 + RRF scoring is not token-order stable.
+- `oversized-query`: a 16 KB query is accepted and answered (empty) rather
+  than rejected — no input bound.
+
+**Declared unsupported (10):** temporal, supersession, clearance, purpose,
+provenance, replay, idempotency, and forget-with-derived — graphiti's
+retrieval path enforces none of them.
 
 ## Reproducing
 
