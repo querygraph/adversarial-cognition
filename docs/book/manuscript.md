@@ -2,6 +2,8 @@
 % Alexy Khrabrov
 % First Pair Press, 2026
 
+![Plato disputing with Diogenes over the rug at an Academy symposium — the original adversarial gesture, and the frontispiece of a book about attacking a boundary on purpose.](cover/adversarial-cognition-headboard.png)
+
 # Preface — When memory becomes a liability
 
 There is a moment, early in every enterprise's encounter with agentic AI, when
