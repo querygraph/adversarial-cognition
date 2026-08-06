@@ -6,3 +6,5 @@ adapters/*/data/
 *.log
 .DS_Store
 uv.lock
+
+outputs/
