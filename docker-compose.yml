@@ -1,0 +1,22 @@
+# Infrastructure for the OSS system adapters. The benchmark core needs none
+# of this; `docker compose up -d` only when running adapters/graphiti or
+# adapters/akka_fluree.
+services:
+  neo4j:
+    image: neo4j:5.26
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/adversarial
+    volumes:
+      - neo4j-data:/data
+  fluree:
+    image: fluree/server:latest
+    ports:
+      - "58090:8090"
+    volumes:
+      - fluree-data:/opt/fluree-server/data
+volumes:
+  neo4j-data:
+  fluree-data:
