@@ -18,15 +18,21 @@ docker run -d --name "$CONTAINER" \
   -p "$PORT:8283" \
   -e OLLAMA_BASE_URL="http://host.docker.internal:11434" \
   "$IMAGE" >data/boot.log 2>&1
-trap 'docker rm -f "$CONTAINER" >/dev/null 2>&1 || true' EXIT
+trap 'docker rm -f "$CONTAINER" >/dev/null 2>&1 || true' EXIT INT TERM
 
+# Health can flip green before the API is steady; require the archives
+# endpoint to answer twice, a second apart, before starting the adapter.
+ready=0
 for _ in $(seq 1 180); do
-  if curl -sf "http://localhost:$PORT/v1/health/" >/dev/null 2>&1; then
-    break
+  if curl -sf "http://localhost:$PORT/v1/archives/" >/dev/null 2>&1; then
+    ready=$((ready + 1))
+    [ "$ready" -ge 2 ] && break
+  else
+    ready=0
   fi
   sleep 1
 done
-curl -sf "http://localhost:$PORT/v1/health/" >/dev/null
+curl -sf "http://localhost:$PORT/v1/archives/" >/dev/null
 
 MARCIANA_LETTA_URL="http://localhost:$PORT" \
   uv run --python 3.12 --with letta-client==1.12.1 python adapter.py

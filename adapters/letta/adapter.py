@@ -33,9 +33,19 @@ from protocol import MemorySystem, run
 from letta_client import Letta
 
 LETTA_URL = os.environ.get("MARCIANA_LETTA_URL", "http://localhost:8285")
-EMBEDDING = os.environ.get(
-    "MARCIANA_LETTA_EMBEDDING", "ollama/nomic-embed-text:latest"
-)
+# Explicit OpenAI-compatible embedding config: letta 0.16's ollama handle
+# resolution points the OpenAI client at the raw Ollama base URL (no /v1),
+# which 404s, so the adapter supplies the correct endpoint itself.
+EMBEDDING_CONFIG = {
+    "embedding_endpoint_type": "openai",
+    "embedding_endpoint": os.environ.get(
+        "MARCIANA_LETTA_EMBED_URL", "http://host.docker.internal:11434/v1"
+    ),
+    "embedding_model": os.environ.get(
+        "MARCIANA_LETTA_EMBED_MODEL", "nomic-embed-text:latest"
+    ),
+    "embedding_dim": 768,
+}
 MARKER = re.compile(r"\[id:([A-Za-z0-9_.:-]+)\]")
 # Deterministic stamp for memories without an explicit validity start, chosen
 # inside the corpus's active window so as-of filtering never hides them.
@@ -55,7 +65,7 @@ class LettaSystem(MemorySystem):
     )
 
     def __init__(self) -> None:
-        self.client = Letta(base_url=LETTA_URL)
+        self.client = Letta(base_url=LETTA_URL, max_retries=5)
         try:
             info = self.client.health()
             self.version = getattr(info, "version", None) or "unknown"
@@ -65,15 +75,17 @@ class LettaSystem(MemorySystem):
         self.passages: dict[tuple[str, str], str] = {}
 
     def reset(self) -> None:
-        for archive in self.client.archives.list():
-            self.client.archives.delete(archive.id)
+        # Materialize before deleting: the list is cursor-paginated, and
+        # deleting mid-iteration would 404 on a cursor naming a removed id.
+        for archive_id in [archive.id for archive in self.client.archives.list()]:
+            self.client.archives.delete(archive_id)
         self.archives.clear()
         self.passages.clear()
 
     def _archive(self, principal: str) -> str:
         if principal not in self.archives:
             archive = self.client.archives.create(
-                name=f"adversarial-{principal}", embedding=EMBEDDING
+                name=f"adversarial-{principal}", embedding_config=EMBEDDING_CONFIG
             )
             self.archives[principal] = archive.id
         return self.archives[principal]
@@ -121,7 +133,7 @@ class LettaSystem(MemorySystem):
     def restart(self) -> None:
         # Data durability lives in the server's Postgres store; a client
         # restart reconnects and must observe identical state.
-        self.client = Letta(base_url=LETTA_URL)
+        self.client = Letta(base_url=LETTA_URL, max_retries=5)
 
 
 if __name__ == "__main__":

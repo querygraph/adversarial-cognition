@@ -8,3 +8,4 @@ adapters/*/data/
 uv.lock
 
 outputs/
+openapi_letta.json
