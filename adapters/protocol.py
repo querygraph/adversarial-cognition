@@ -24,6 +24,8 @@ AS_OF_NOW = date(2026, 2, 1)
 AS_OF_PAST = date(2025, 12, 1)
 MAX_IDS = 8
 MAX_ID_CHARS = 64
+ATTEMPTS = 3
+RETRY_BACKOFF_SECONDS = 2.0
 
 SEED = (
     ("price-old", "Honduras coffee price was 3.80 USD per kg at San Pedro Sula",
@@ -297,29 +299,51 @@ def run(system: MemorySystem) -> None:
 
     request = json.load(sys.stdin)
     temporal = "temporal" in system.capabilities
-    rows = []
-    for case in request["cases"]:
-        case_id = case["case_id"]
-        if not supported(system, case_id):
-            rows.append({"case_id": case_id, "correct": False, "allowed": False,
-                         "returned_ids": [], "receipt": "", "latency_us": 0.0,
-                         "supported": False})
-            continue
-        system.reset()
-        seed(system, temporal)
-        started = time.perf_counter_ns()
-        try:
-            outcome = _scenarios(system, temporal)[case_id]()
-        except Unsupported:
-            rows.append({"case_id": case_id, "correct": False, "allowed": False,
-                         "returned_ids": [], "receipt": "", "latency_us": 0.0,
-                         "supported": False})
-            continue
-        latency_us = (time.perf_counter_ns() - started) / 1_000
-        ids = tuple(str(item)[:MAX_ID_CHARS] for item in outcome.ids[:MAX_IDS])
-        rows.append({"case_id": case_id, "correct": evaluate(case, Outcome(outcome.allowed, ids)),
-                     "allowed": outcome.allowed, "returned_ids": list(ids),
-                     "receipt": "", "latency_us": round(latency_us, 3),
-                     "supported": True})
+    rows = [_run_case(system, case, temporal) for case in request["cases"]]
     print(json.dumps({"adapter_version": f"{system.name}-{system.version}",
                       "cases": rows}))
+
+
+def _unsupported_row(case_id: str) -> dict:
+    return {"case_id": case_id, "correct": False, "allowed": False,
+            "returned_ids": [], "receipt": "", "latency_us": 0.0,
+            "supported": False}
+
+
+def _run_case(system: MemorySystem, case: dict, temporal: bool) -> dict:
+    """Run one case, retrying transient infrastructure errors.
+
+    A dropped connection to a local model or server is infrastructure noise,
+    not a benchmark result. Each supported case is attempted up to
+    ``ATTEMPTS`` times with backoff; a case that never completes is reported
+    as an incorrect supported result (``error`` marked), never crashing the
+    run or being silently dropped. A capability the system does not claim
+    (:class:`Unsupported`) is authoritative on the first raise — never
+    retried, never scored.
+    """
+
+    case_id = case["case_id"]
+    if not supported(system, case_id):
+        return _unsupported_row(case_id)
+    last_error = ""
+    for attempt in range(ATTEMPTS):
+        try:
+            system.reset()
+            seed(system, temporal)
+            started = time.perf_counter_ns()
+            outcome = _scenarios(system, temporal)[case_id]()
+            latency_us = (time.perf_counter_ns() - started) / 1_000
+            ids = tuple(str(item)[:MAX_ID_CHARS] for item in outcome.ids[:MAX_IDS])
+            return {"case_id": case_id,
+                    "correct": evaluate(case, Outcome(outcome.allowed, ids)),
+                    "allowed": outcome.allowed, "returned_ids": list(ids),
+                    "receipt": "", "latency_us": round(latency_us, 3),
+                    "supported": True}
+        except Unsupported:
+            return _unsupported_row(case_id)
+        except Exception as error:  # noqa: BLE001 - transient infra, retried
+            last_error = f"{type(error).__name__}: {error}"[:200]
+            time.sleep(RETRY_BACKOFF_SECONDS * (attempt + 1))
+    return {"case_id": case_id, "correct": False, "allowed": False,
+            "returned_ids": [], "receipt": "", "latency_us": 0.0,
+            "supported": True, "error": last_error}
