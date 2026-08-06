@@ -40,14 +40,14 @@ def _configure() -> None:
     # embedding connection test fails before any pipeline runs.
     os.environ.setdefault("ENABLE_BACKEND_ACCESS_CONTROL", "false")
     os.environ.setdefault("CACHING", "false")
+    _ollama = os.environ.get("MARCIANA_OLLAMA_URL", "http://localhost:11434").rstrip("/").removesuffix("/v1")
     os.environ.setdefault("LLM_PROVIDER", "ollama")
     os.environ.setdefault("LLM_MODEL", os.environ.get("MARCIANA_OLLAMA_MODEL", "gpt-oss:20b"))
-    os.environ.setdefault("LLM_ENDPOINT", os.environ.get("MARCIANA_OLLAMA_URL",
-                                                          "http://localhost:11434/v1"))
+    os.environ.setdefault("LLM_ENDPOINT", f"{_ollama}/v1")
     os.environ.setdefault("LLM_API_KEY", "ollama")
     os.environ.setdefault("EMBEDDING_PROVIDER", "ollama")
     os.environ.setdefault("EMBEDDING_MODEL", "nomic-embed-text")
-    os.environ.setdefault("EMBEDDING_ENDPOINT", "http://localhost:11434/api/embed")
+    os.environ.setdefault("EMBEDDING_ENDPOINT", f"{_ollama}/api/embed")
     os.environ.setdefault("EMBEDDING_DIMENSIONS", "768")
     os.environ.setdefault("HUGGINGFACE_TOKENIZER", "nomic-ai/nomic-embed-text-v1.5")
     import cognee

@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from protocol import MemorySystem, Unsupported, run
 
 OLLAMA = os.environ.get("MARCIANA_OLLAMA_URL", "http://localhost:11434")
+RELEVANCE_THRESHOLD = float(os.environ.get("MARCIANA_MEM0_THRESHOLD", "0.55"))
 
 
 def _client():
@@ -71,8 +72,13 @@ class Mem0System(MemorySystem):
                  derived_from=()) -> bool:
         if nonce is not None:
             raise Unsupported("nonce replay protection")
+        # infer=False stores the memory verbatim instead of routing it through
+        # the LLM fact-extractor; the extractor (local llama3.1) mangles and
+        # drops facts non-deterministically, which is a property of that model,
+        # not of the benchmark. Raw storage keeps retrieval deterministic and
+        # embeddings-only.
         result = self.memory.add(text, user_id=self._user(principal),
-                                 metadata={"benchmark_id": memory_id})
+                                 metadata={"benchmark_id": memory_id}, infer=False)
         entries = result.get("results", result) if isinstance(result, dict) else result
         if entries:
             self._ids[memory_id] = entries[0].get("id", memory_id)
@@ -85,10 +91,19 @@ class Mem0System(MemorySystem):
             raise Unsupported("temporal as-of query")
         if not query.strip():
             return ()
-        hits = self.memory.search(query, user_id=self._user(principal), limit=8)
+        # mem0ai 2.x requires scoping through filters=; a top-level user_id is
+        # rejected by search().
+        hits = self.memory.search(
+            query, filters={"user_id": self._user(principal)}, limit=8
+        )
         entries = hits.get("results", hits) if isinstance(hits, dict) else hits
         ordered = []
         for entry in entries:
+            # Abstention uses mem0's own relevance score with a calibrated
+            # cutoff: genuine matches score >= 0.6, an unrelated query tops out
+            # below 0.5 with nomic-embed-text, so 0.55 separates them cleanly.
+            if entry.get("score", 1.0) < RELEVANCE_THRESHOLD:
+                continue
             benchmark_id = (entry.get("metadata") or {}).get("benchmark_id")
             if benchmark_id:
                 ordered.append(benchmark_id)

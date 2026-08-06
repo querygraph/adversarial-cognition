@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import shutil
 import sys
 import warnings
@@ -49,7 +50,7 @@ from graphiti_core.search.search_config import (
 
 from protocol import MemorySystem, run
 
-OLLAMA = "http://localhost:11434/v1"
+OLLAMA = os.environ.get("MARCIANA_OLLAMA_URL", "http://localhost:11434").rstrip("/").removesuffix("/v1") + "/v1"
 DATABASE = Path(__file__).resolve().parent / "data" / "kuzu-bench.db"
 LLM = LLMConfig(api_key="ollama", model="llama3.1", small_model="llama3.1",
                 base_url=OLLAMA, temperature=0)

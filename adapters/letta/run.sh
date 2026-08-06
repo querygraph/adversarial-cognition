@@ -8,6 +8,12 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+# Compose mode: the Letta server runs as a sibling service and MARCIANA_LETTA_URL
+# already points at it, so connect directly and manage no container here.
+if [ -n "${LETTA_EXTERNAL:-}" ]; then
+  exec uv run --python 3.12 --with letta-client==1.12.1 python adapter.py
+fi
+
 PORT="${LETTA_PORT:-8285}"
 CONTAINER="adversarial-letta"
 IMAGE="${LETTA_IMAGE:-letta/letta:0.16.8}"

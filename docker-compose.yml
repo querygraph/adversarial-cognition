@@ -1,22 +1,59 @@
-# Infrastructure for the OSS system adapters. The benchmark core needs none
-# of this; `docker compose up -d` only when running adapters/graphiti or
-# adapters/akka_fluree.
+# MARCIANA-ADVERSARIAL-v1 — full reproducible benchmark stack.
+#
+#   docker compose build
+#   docker compose run --rm benchmark            # runs all systems, writes ./out
+#
+# The LLM backend is Ollama. By default the stack uses an Ollama already
+# running on the host (fast, GPU-accelerated on macOS/Windows). To run a fully
+# self-contained stack on a Linux GPU host instead, start the bundled Ollama:
+#
+#   docker compose --profile bundled-ollama up -d ollama
+#   MARCIANA_OLLAMA_URL=http://ollama:11434 docker compose run --rm benchmark
+#
+# Pull the models first (host Ollama): ollama pull gpt-oss:20b nomic-embed-text
 services:
-  neo4j:
-    image: neo4j:5.26
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    environment:
-      NEO4J_AUTH: neo4j/adversarial
-    volumes:
-      - neo4j-data:/data
   fluree:
     image: fluree/server:latest
     ports:
       - "58090:8090"
     volumes:
       - fluree-data:/opt/fluree-server/data
+
+  letta:
+    image: letta/letta:0.16.8
+    ports:
+      - "8283:8283"
+    environment:
+      OLLAMA_BASE_URL: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["bundled-ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+
+  benchmark:
+    build: .
+    depends_on:
+      - fluree
+      - letta
+    environment:
+      MARCIANA_OLLAMA_URL: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}
+      MARCIANA_OLLAMA_MODEL: ${MARCIANA_OLLAMA_MODEL:-}
+      MARCIANA_FLUREE_URL: http://fluree:8090/v1/fluree
+      MARCIANA_LETTA_URL: http://letta:8283
+      MARCIANA_LETTA_EMBED_URL: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}/v1
+      LETTA_EXTERNAL: "1"
+      MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS: ${MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS:-3600}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./out:/benchmark/out
+
 volumes:
-  neo4j-data:
   fluree-data:
+  ollama-models:

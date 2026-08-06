@@ -39,6 +39,36 @@ regenerated with `--pin-corpus`), runs the deterministic reference backend
 twice to gate receipt determinism, and exits non-zero unless every hard gate
 is zero.
 
+## Reproduce the full benchmark in Docker
+
+The whole comparative benchmark — every system, wired to its own service — is
+packaged as a Docker stack. On a host with [Ollama](https://ollama.com)
+running and the models pulled:
+
+```sh
+ollama pull gpt-oss:20b nomic-embed-text   # cognee needs the 20B model
+docker compose build
+docker compose run --rm benchmark          # runs all systems → ./out/RESULTS.md
+```
+
+`docker compose` brings up Fluree and Letta as services; the `benchmark`
+container resolves each adapter's pinned dependencies (baked into the image),
+runs every system against the corpus, and writes the report and
+`RESULTS.md` into `./out`. By default it uses the host's Ollama (fast, GPU
+accelerated on macOS/Windows). For a fully self-contained stack on a Linux
+GPU host, start the bundled Ollama instead:
+
+```sh
+docker compose --profile bundled-ollama up -d ollama
+docker compose exec ollama ollama pull gpt-oss:20b nomic-embed-text
+MARCIANA_OLLAMA_URL=http://ollama:11434 docker compose run --rm benchmark
+```
+
+Run a subset by passing the `--systems` value: `docker compose run --rm
+benchmark marciana,akka-fluree`. The LLM-backed systems (Mem0, Graphiti,
+Cognee, Letta) depend on the local model and hardware, so their numbers vary
+by host; the reference and Akka+Fluree runs are deterministic.
+
 ## The corpus
 
 Eighteen cases across eleven categories — retrieval, temporal, abstention,
