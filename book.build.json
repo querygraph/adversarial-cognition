@@ -6,6 +6,7 @@
   "cover": "docs/book/cover.md",
   "css": "docs/book/epub.css",
   "stem": "adversarial-cognition",
+  "headboardImage": "docs/book/cover/adversarial-cognition-headboard.png",
   "version": { "source": "literal", "value": "0.1.0" },
   "kindleName": "${stem} (${versionStamp})",
   "dist": "docs/book/dist",
