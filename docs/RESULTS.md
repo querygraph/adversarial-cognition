@@ -20,7 +20,7 @@ supported cases.
 | Letta 0.16.8 | 9 | 7 | 78% | 9 | No input-robustness boundary (see below) |
 | Mem0 (OSS) | 9 | 6 | 67% | 9 | Leaks private memory to a same-tenant lower-clearance principal; no input bound |
 | Graphiti (Kuzu) | 8 | 6 | 75% | 10 | Retrieval not token-order stable; no input bound |
-| Cognee (OSS) | — | — | — | — | Run in progress |
+| Cognee (OSS) | 8 | 5 | 63% | 10 | Clearance hides private data, but errors on empty input and no input bound |
 
 The reference and Akka+Fluree runs are deterministic. The LLM-backed systems
 (Letta, Mem0, Graphiti, Cognee) depend on a local model and embedder; their
@@ -119,7 +119,48 @@ crosses group partitions).
 provenance, replay, idempotency, and forget-with-derived — graphiti's
 retrieval path enforces none of them.
 
+## Cognee (OSS) — 5/8 supported correct
+
+Cognee builds a knowledge graph through its `cognify` pipeline (LLM-bound;
+`gpt-oss:20b`, as `llama3.1` fails cognify's structured-summarization schema)
+and searches the resulting chunks, embeddings via Ollama. Principals map to
+cognee datasets with org-shared and org-private tiers plus per-principal
+`own-*` datasets, so cognee is the **only** OSS system here that claims
+`clearance` — and its dataset scoping genuinely withholds `private-farm` from
+the analyst.
+
+Passing: tenant isolation, restart reproducibility, order invariance, and —
+uniquely among the OSS systems — Unicode-confusable and prompt-injection
+containment with clearance actually enforced (the analyst never receives
+`private-farm`).
+
+**Three failures — real findings:**
+
+- `isolation-clearance`: clearance holds (no `private-farm` leak), but with no
+  temporal or supersession the superseded `price-old` ranks ahead of
+  `price-current`, so the expected current-first result is not produced.
+- `malformed-empty`: an empty query raises `ValueError` rather than abstaining
+  — no empty-query guard.
+- `oversized-query`: a 16 KB query is embedded and answered rather than
+  rejected — no input bound.
+
+**Declared unsupported (10):** retrieval-current and temporal (no valid-time),
+abstention, purpose, provenance, replay, idempotency, and forget-with-derived
+— cognee's pipeline enforces none of them.
+
 ## Reproducing
+
+The full stack — every system wired to its service — reproduces in Docker:
+
+```sh
+ollama pull gpt-oss:20b nomic-embed-text
+docker compose build
+docker compose run --rm benchmark          # all systems → out/RESULTS.md
+```
+
+Or run a system directly on the host through its adapter command:
+
+
 
 ```sh
 docker compose up -d                     # Fluree (and Neo4j if used)
