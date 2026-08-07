@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add a companion panoramic headboard inspired by the adversari.al About animation,
+  depicting governed requests crossing membranes into a chained receipt ledger.
+
 - Begin MARCIANA-ADVERSARIAL-v2 (issue #3): design doc plus the `track`
   model (`adversarial_cognition/tracks.py`) separating a memory-store track
   from an agent-memory track, compared only within a track. Additive scaffold;
