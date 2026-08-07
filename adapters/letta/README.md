@@ -1,8 +1,10 @@
-# Letta adapter
+# Letta 0.16 legacy archive-search adapter
 
-Runs MARCIANA-ADVERSARIAL-v1 against self-hosted OSS
-[Letta](https://github.com/letta-ai/letta) (formerly MemGPT), entirely
-locally: Ollama embeddings, no LLM agent loop, no cloud keys.
+Runs a limited MARCIANA-ADVERSARIAL-v1 integration against the legacy
+archive/passage API in `letta/letta:0.16.8`, entirely locally. It pins
+`letta-client==1.12.1` and deliberately bypasses the agent loop. It is **not**
+representative of Letta's current app server, agent loop, or memory behavior.
+For current self-hosting, see [Letta's app-server documentation](https://docs.letta.com/self-hosting).
 
 ## Setup
 
@@ -33,9 +35,11 @@ the image (~3 GB). Steady-state boot is ~25–40 s; the full suite takes
 
 ## Mapping
 
-One **archive per principal** — Letta's own scoping boundary — with
-passages inserted and searched through the archival API only, so results
-are as deterministic as the embedder. Bench IDs ride in a `[id:…]` text
+The adapter creates one archive per benchmark principal and chooses the
+corresponding `archive_id` before each search. This is adapter-side routing,
+not differential authorization enforced by Letta, and therefore does not
+claim or test the benchmark's isolation capability. Passages are inserted and
+searched through the archival API only. Bench IDs ride in a `[id:…]` text
 marker plus passage metadata. `valid_from` becomes the passage
 `created_at`; an as-of recall becomes a search `end_date`. The archive
 embedding is configured explicitly as an OpenAI-compatible endpoint
@@ -47,20 +51,22 @@ OpenAI client at the raw Ollama base URL, which 404s.
 | Capability | Why |
 |---|---|
 | `retrieval` | Archival semantic search, ranked |
-| `isolation` | Archives are server-enforced scopes; cross-archive reads are impossible |
 | `temporal` | `created_at` + search `start_date`/`end_date` windows (validity **end** is inexpressible — a superseded fact stays searchable at later as-of dates, so `retrieval-current` genuinely tests ranking with both facts present) |
 | `forget` | Passage deletion |
 | `persistence` | Server-side Postgres; client reconnect must observe identical state |
 
-Unclaimed (declared unsupported, 9 cases): abstention (no relevance
-threshold in the search API), clearance, purpose, provenance digests,
-nonce replay protection, idempotency keys, derived-memory tracking.
+Unclaimed (declared unsupported, 12 cases): isolation and authorization,
+abstention (no relevance threshold in the search API), clearance, purpose,
+provenance digests, nonce replay protection, idempotency keys, and
+derived-memory tracking.
 
-## Recorded result (2026-08-06, letta 0.16.8)
+## Historical observation (not a published comparative score)
 
-9 supported cases, **7 correct**. Passing: retrieval-current (ranking
-preferred the current fact with the superseded one present),
-temporal-history, isolation-tenant, restart-reproducible, order-invariant,
-confusable-query, injection-contained. Honest failures: `malformed-empty`
-and `oversized-query` — Letta embeds an empty and a 24 KB query and returns
-ranked results instead of rejecting either.
+An earlier local run of the legacy path reported four correct results among
+the six cases it can legitimately claim: current and historical retrieval,
+restart reproducibility, and order invariance. The two misses were
+`malformed-empty` and `oversized-query`: the endpoint accepted an empty query
+and the benchmark's 24 KiB (`"price " * 4096`) query. These are input-validation
+observations only, not memory-disclosure or authorization findings. The raw
+Letta output was not committed, so this observation is not included in the
+published comparative results pending a fresh, auditable capture.

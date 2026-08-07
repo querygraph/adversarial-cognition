@@ -1,11 +1,11 @@
 """Letta adapter for MARCIANA-ADVERSARIAL-v1.
 
-Letta (formerly MemGPT) is a stateful-agent memory server. This adapter uses
-its archival-memory path directly — archives and passages with Ollama
-embeddings, no LLM agent loop — so results are as deterministic as the
-embedder. One archive per principal is Letta's own scoping boundary:
-``operator`` (who alone holds the private memory), ``analyst``,
-``outsider``, and ``advertiser`` each search only their archive.
+This is a legacy archive-search integration, not an evaluation of Letta's
+current app server or agent loop. It pins the V1 Python client and uses the
+0.16 archive/passage API directly with Ollama embeddings. The adapter chooses
+an archive ID from its own principal-to-archive mapping before every request;
+that translation is not a Letta authorization boundary, so this adapter does
+not claim the benchmark's isolation capability.
 
 Temporal mapping (documented limitation): a memory's ``valid_from`` becomes
 the passage ``created_at`` and an as-of recall becomes a search
@@ -61,7 +61,7 @@ class LettaSystem(MemorySystem):
     name = "letta"
     version = "unknown"
     capabilities = frozenset(
-        {"retrieval", "isolation", "temporal", "forget", "persistence"}
+        {"retrieval", "temporal", "forget", "persistence"}
     )
 
     def __init__(self) -> None:
@@ -95,8 +95,8 @@ class LettaSystem(MemorySystem):
                  derived_from=()) -> bool:
         # nonce/supersedes/derived_from and valid_until have no Letta
         # equivalent; the matching capabilities are unclaimed, so the driver
-        # never relies on them here. Privacy is archive scoping: the memory
-        # lives only in its principal's archive.
+        # never relies on them here. Principal-to-archive selection is adapter
+        # routing only and is deliberately not reported as authorization.
         passage = self.client.archives.passages.create(
             self._archive(principal),
             text=f"[id:{memory_id}] {text}",

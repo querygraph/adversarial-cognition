@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Adapter command for MARCIANA_ADVERSARIAL_LETTA_CMD.
 #
-# Letta >= 0.13 requires Postgres — a bare `letta server` from pip cannot
+# Legacy archive-search fixture. This does not exercise the current Letta app
+# server or agent loop. Letta >= 0.13 requires Postgres; a bare server from pip cannot
 # run against SQLite — so this boots the official letta/letta container
 # (server + bundled Postgres), waits for readiness, runs the adapter, and
 # removes the container. Stdout carries only the adapter's JSON.

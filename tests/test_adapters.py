@@ -10,6 +10,7 @@ from pathlib import Path
 
 from adversarial_cognition.adapters import (
     EXTERNAL_SYSTEMS,
+    _parse_external_outcomes,
     execute_external,
     execute_marciana,
     execute_systems,
@@ -96,6 +97,32 @@ class SystemInventoryTests(unittest.TestCase):
     def test_unknown_system_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
             execute_systems(("marciana", "surprise"), cases(), 1, {})
+
+
+class RecordedAdapterOutputTests(unittest.TestCase):
+    def test_every_committed_output_is_complete_bounded_protocol_data(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        paths = sorted((root / "outputs").glob("*.json"))
+        self.assertTrue(paths)
+        suite = cases()
+        for path in paths:
+            payload = path.read_text(encoding="utf-8")
+            _parse_external_outcomes(payload, suite)
+            parsed = json.loads(payload)
+
+            def assert_bounded(value) -> None:
+                if isinstance(value, str):
+                    self.assertLessEqual(len(value), 256, path.name)
+                    self.assertNotIn("\n", value, path.name)
+                elif isinstance(value, dict):
+                    for key, item in value.items():
+                        assert_bounded(key)
+                        assert_bounded(item)
+                elif isinstance(value, list):
+                    for item in value:
+                        assert_bounded(item)
+
+            assert_bounded(parsed)
 
 
 if __name__ == "__main__":

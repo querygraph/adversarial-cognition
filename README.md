@@ -90,7 +90,7 @@ commands:
 |--------|------------------|-------------|
 | Mem0 | `MARCIANA_ADVERSARIAL_MEM0_CMD` | [`adapters/mem0/`](adapters/mem0/) |
 | Zep | `MARCIANA_ADVERSARIAL_ZEP_CMD` | — (hosted; bring your own) |
-| Letta | `MARCIANA_ADVERSARIAL_LETTA_CMD` | [`adapters/letta/`](adapters/letta/) |
+| Letta 0.16 legacy archive search | `MARCIANA_ADVERSARIAL_LETTA_CMD` | [`adapters/letta/`](adapters/letta/) |
 | Cognee | `MARCIANA_ADVERSARIAL_COGNEE_CMD` | [`adapters/cognee/`](adapters/cognee/) |
 | Graphiti | `MARCIANA_ADVERSARIAL_GRAPHITI_CMD` | [`adapters/graphiti/`](adapters/graphiti/) |
 | Akka + Fluree | `MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD` | [`adapters/akka_fluree/`](adapters/akka_fluree/) |
@@ -103,6 +103,12 @@ violations. The OSS adapters here run entirely locally: LLM and embedding
 calls go to [Ollama](https://ollama.com) (`llama3.1`, `nomic-embed-text`),
 and infrastructure (Neo4j for Graphiti, Fluree for the Akka adapter) comes
 from `docker compose up -d`. Setup details live in each adapter's README.
+The bundled Letta adapter is explicitly limited to the 0.16 archive/passage
+API; it bypasses the agent loop and must not be read as a result for current
+Letta.
+Bounded raw outputs underlying published comparative results are committed in
+[`outputs/`](outputs/). A system without a retained output is not assigned a
+published score.
 `MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS` overrides the per-adapter timeout
 (default 600) for slow local models.
 

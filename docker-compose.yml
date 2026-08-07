@@ -20,6 +20,7 @@ services:
       - fluree-data:/opt/fluree-server/data
 
   letta:
+    # Legacy archive-search fixture only; not the current Letta app server.
     image: letta/letta:0.16.8
     ports:
       - "8283:8283"

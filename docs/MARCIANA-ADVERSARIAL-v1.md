@@ -374,6 +374,12 @@ protocol is versioned, the adapter's self-reported version is recorded in
 the report, and the intended path to comparative numbers is that each
 vendor supplies and tunes its own adapter command.
 
+Published comparative numbers additionally require the bounded raw adapter
+output used to assemble the report to be committed. A prose-only recorded
+result is not independently auditable and must not appear as a score. Adapter
+scope is part of the result: a direct legacy endpoint integration may not be
+described as representative of a current agent or application server.
+
 **"In-process microsecond latencies versus our hosted service is not a fair
 comparison."** Agreed, and the report never makes it. Performance is
 reported per system from that system's own runs and is never

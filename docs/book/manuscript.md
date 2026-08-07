@@ -605,8 +605,8 @@ embedded graph store) brought up locally, no cloud keys anywhere. The systems:
 - **Marciana** — the governed reference, exercising the full boundary.
 - **Akka + Fluree** — a semantic-ledger design in which Fluree is the
   query/policy authority and the actor tier is the adapter process.
-- **Letta** (0.16.8) — a stateful-agent memory server, driven through its
-  archival-memory path.
+- **Letta 0.16 legacy archive search** — a direct archive/passage integration
+  that bypasses the agent loop; it is not representative of current Letta.
 - **Mem0** — an open-source retrieval-and-update memory over a local vector store.
 - **Graphiti** — a knowledge-graph memory over an embedded Kuzu backend.
 - **Cognee** — a knowledge-graph pipeline that builds and searches a graph.
@@ -617,7 +617,7 @@ The results, recorded on a single local host, scored only on supported cases:
 |---|:---:|:---:|---|
 | **Marciana** (reference) | 18 | 18 | The full governed boundary. Every case correct; every hard gate zero. |
 | **Akka + Fluree** | 16 | 16 | Every claimed capability is executed by the Fluree ledger. Declines clearance and purpose rather than faking a policy engine. |
-| **Letta 0.16.8** | 9 | 7 | Fine at recall — but no input-robustness boundary at the memory layer. |
+| **Letta 0.16 legacy archive search** | — | — | Score withdrawn because the raw adapter output was not retained. |
 | **Graphiti** | 8 | 6 | Retrieval ranking is not stable under query-token reordering; no input bound. |
 | **Mem0** | 9 | 6 | Its only scoping axis is `user_id`: a lower-clearance principal in the same tenant reads private memory. |
 | **Cognee** | 8 | 5 | Its clearance tiers genuinely withhold private data — yet it errors on an empty query and bounds no input. |
@@ -645,13 +645,12 @@ build ships no policy engine and the adapter refuses to fake one. This is the
 benchmark working as intended: a system that enforces a real boundary is
 credited for it, and one that lacks a boundary says so rather than pretending.
 
-**Letta** is fine at recall and fails two robustness cases: an empty query
-returns every memory instead of abstaining, and a 16-kilobyte query is embedded
-and answered rather than rejected. Both cases require only the `retrieval`
-capability Letta claims, so both are scored — and both surface the same finding:
-Letta's memory API has no guard against malformed or oversized input. That is not
-"Letta is bad at recall." It is a precise, actionable statement about where a
-governed deployment would need to add a boundary Letta does not provide.
+**The legacy Letta archive-search integration** produced two input-validation
+observations in an earlier local run: an empty query returned memories and a
+24-KiB query (`"price " * 4096`) was accepted. They are not memory-disclosure
+or authorization findings. The adapter itself selects the archive ID, so it
+cannot claim Letta-enforced isolation. Because the raw output was not retained,
+the old score is withdrawn rather than presented as a reproducible comparison.
 
 **Mem0** produces the most consequential enterprise finding in the set. Its only
 scoping axis is `user_id`: principals in the same organization share a store.

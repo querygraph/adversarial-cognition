@@ -17,7 +17,7 @@ supported cases.
 |--------|:---------:|:-------:|:--------------------:|:-----------:|---------|
 | Marciana (reference) | 18 | 18 | 100% | 0 | All nine hard gates zero |
 | Akka + Fluree | 16 | 16 | 100% | 2 | Every claimed capability holds; no clearance/purpose engine |
-| Letta 0.16.8 | 9 | 7 | 78% | 9 | No input-robustness boundary (see below) |
+| Letta 0.16 legacy archive search | — | — | — | — | Not published: original raw output was not retained |
 | Mem0 (OSS) | 9 | 6 | 67% | 9 | Leaks private memory to a same-tenant lower-clearance principal; no input bound |
 | Graphiti (Kuzu) | 8 | 6 | 75% | 10 | Retrieval not token-order stable; no input bound |
 | Cognee (OSS) | 8 | 5 | 63% | 10 | Clearance hides private data, but errors on empty input and no input bound |
@@ -44,28 +44,28 @@ This Fluree build's minimal HTTP API exposes no policy engine, so
 sensitivity- and purpose-based authorization would have to be adapter-faked;
 the adapter declines and declares them unsupported instead.
 
-## Letta 0.16.8 — 7/9 supported correct
+## Letta 0.16 legacy archive search — score withdrawn
 
-Letta's archival-memory path (archives + passages, Ollama embeddings, no LLM
-agent loop) provides retrieval, isolation (one archive per principal),
-temporal (`created_at`/`end_date`), forget, and persistence. Passing:
-current and historical retrieval, tenant isolation, restart reproducibility,
-order invariance, injection containment.
+This adapter pins `letta/letta:0.16.8` and `letta-client==1.12.1`, calls the
+archive/passage API directly, and bypasses the agent loop. It is a legacy
+archive-search integration, not an evaluation of Letta's current app server.
+Its original raw output was not committed, so the earlier 7/9 comparative
+score is withdrawn pending a fresh, auditable run.
 
-**Two genuine failures — a real finding, not an adapter bug:**
+The earlier local run made two limited input-validation observations:
 
 - `malformed-empty`: an empty query returns *all* memories instead of
   abstaining. Letta's semantic search has no empty-query guard.
-- `oversized-query`: a 16 KB query is accepted and answered rather than
+- `oversized-query`: a 24 KiB query is accepted and answered rather than
   rejected. Letta's archival search has no input bound.
 
-Both cases require only the `retrieval` capability Letta claims, so they are
-scored — and Letta has no input-robustness boundary at the memory layer.
+The oversized input is 24 KiB (`"price " * 4096`). Neither observation is a
+memory-disclosure or authorization finding.
 
-**Declared unsupported (9):** abstention (semantic search always returns
-nearest neighbors, no relevance threshold), clearance, purpose, provenance,
-replay, idempotency, and forget-with-derived — none of which Letta's memory
-API enforces.
+The adapter now also declares isolation unsupported. It chooses an
+`archive_id` from its own principal mapping and supplies it to search, which
+tests adapter routing rather than Letta-enforced differential permissions.
+With isolation removed, the adapter claims only six of the eighteen cases.
 
 ## Mem0 (OSS) — 6/9 supported correct
 

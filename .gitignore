@@ -7,7 +7,6 @@ adapters/*/data/
 .DS_Store
 uv.lock
 
-outputs/
 openapi_letta.json
 out/
 docs/book/dist/

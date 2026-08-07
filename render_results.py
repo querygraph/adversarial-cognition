@@ -42,12 +42,13 @@ def render(report: dict) -> str:
         "(Ollama) and local infrastructure. A cell is ✓ when the system produced "
         "the correct outcome, ✗ when it did not (a finding about that system), and "
         "· when the system honestly declared the case unsupported — never scored "
-        "as a pass or a failure.",
+        "as a pass or a failure. Correctness is shown together with coverage; "
+        "scores over different coverage are not directly comparable.",
         "",
         "## Systems",
         "",
-        "| System | Status | Adapter | Accuracy (supported) | Unsupported |",
-        "|--------|--------|---------|---------------------|-------------|",
+        "| System | Status | Adapter | Coverage | Correctness within coverage |",
+        "|--------|--------|---------|----------|-----------------------------|",
     ]
     for name in present:
         entry = systems[name]
@@ -56,11 +57,10 @@ def render(report: dict) -> str:
             cases = entry["cases"]
             supported = [c for c in cases if c.get("supported", True)]
             acc = sum(c["correct"] for c in supported) / len(supported) if supported else 0.0
-            unsupported = sum(not c.get("supported", True) for c in cases)
             lines.append(
                 f"| {name} | executed | `{entry['adapter_version']}` | "
-                f"{acc:.0%} ({sum(c['correct'] for c in supported)}/{len(supported)}) | "
-                f"{unsupported} |"
+                f"{len(supported)}/{len(cases)} | "
+                f"{acc:.0%} ({sum(c['correct'] for c in supported)}/{len(supported)}) |"
             )
         else:
             missing = ", ".join(entry.get("missing_configuration", ())) or entry.get("error", "")
