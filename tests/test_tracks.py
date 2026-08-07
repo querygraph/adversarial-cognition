@@ -37,3 +37,14 @@ class TrackModelTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LettaInterfaceRegressionTest(unittest.TestCase):
+    def test_letta_declares_agent_loop(self) -> None:
+        # Regression: the Letta adapter must declare the agent-loop interface,
+        # not inherit the direct-api default (it reaches memory through a loop).
+        import importlib.util
+        from pathlib import Path
+        path = Path(__file__).resolve().parents[1] / "adapters" / "letta" / "adapter.py"
+        source = path.read_text(encoding="utf-8")
+        self.assertIn('interface = "agent-loop"', source)

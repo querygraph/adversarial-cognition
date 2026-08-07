@@ -25,6 +25,9 @@ class LettaSystem(MemorySystem):
     name = "letta-app-server"
     version = "agent-sdk-0.6.2/app-server"
     capabilities = frozenset({"retrieval", "temporal", "forget", "persistence"})
+    # Memory is reached through an agent turn, not a direct store call. The
+    # direct-memory mode overrides this to "direct-api" in __init__.
+    interface = "agent-loop"
 
     def __init__(self) -> None:
         # LETTA_ADAPTER_MODE selects how memory is reached. Default is the
