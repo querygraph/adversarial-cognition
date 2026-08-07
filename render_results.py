@@ -46,7 +46,10 @@ def render(report: dict) -> str:
         "",
         "## Systems",
         "",
-        "| System | Status | Adapter | Accuracy (supported) | Unsupported |",
+        "Supported-case results are coverage-scoped diagnostics, not an ordinal "
+        "ranking: denominators and claimed capabilities differ by adapter.",
+        "",
+        "| System | Status | Adapter | Correct / supported | Unsupported |",
         "|--------|--------|---------|---------------------|-------------|",
     ]
     for name in present:
@@ -59,7 +62,7 @@ def render(report: dict) -> str:
             unsupported = sum(not c.get("supported", True) for c in cases)
             lines.append(
                 f"| {name} | executed | `{entry['adapter_version']}` | "
-                f"{acc:.0%} ({sum(c['correct'] for c in supported)}/{len(supported)}) | "
+                f"{sum(c['correct'] for c in supported)}/{len(supported)} ({acc:.0%}) | "
                 f"{unsupported} |"
             )
         else:

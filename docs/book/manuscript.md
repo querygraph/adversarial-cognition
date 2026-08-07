@@ -605,19 +605,21 @@ embedded graph store) brought up locally, no cloud keys anywhere. The systems:
 - **Marciana** — the governed reference, exercising the full boundary.
 - **Akka + Fluree** — a semantic-ledger design in which Fluree is the
   query/policy authority and the actor tier is the adapter process.
-- **Letta** (0.16.8) — a stateful-agent memory server, driven through its
-  archival-memory path.
+- **Legacy Letta V1 archives** (0.16.8) — the previous-generation archival
+  passage API, driven directly without the current agent loop or App Server.
 - **Mem0** — an open-source retrieval-and-update memory over a local vector store.
 - **Graphiti** — a knowledge-graph memory over an embedded Kuzu backend.
 - **Cognee** — a knowledge-graph pipeline that builds and searches a graph.
 
-The results, recorded on a single local host, scored only on supported cases:
+The results, recorded on a single local host, scored only on supported cases.
+These are coverage-scoped diagnostics, not an ordinal ranking: each adapter
+claims different capabilities and therefore has a different denominator.
 
 | System | Supported | Correct | The finding |
 |---|:---:|:---:|---|
 | **Marciana** (reference) | 18 | 18 | The full governed boundary. Every case correct; every hard gate zero. |
 | **Akka + Fluree** | 16 | 16 | Every claimed capability is executed by the Fluree ledger. Declines clearance and purpose rather than faking a policy engine. |
-| **Letta 0.16.8** | 9 | 7 | Fine at recall — but no input-robustness boundary at the memory layer. |
+| **Legacy Letta V1 archives 0.16.8** | 6 | 4 | Direct archival search only; no caller-isolation claim; no input bound. |
 | **Graphiti** | 8 | 6 | Retrieval ranking is not stable under query-token reordering; no input bound. |
 | **Mem0** | 9 | 6 | Its only scoping axis is `user_id`: a lower-clearance principal in the same tenant reads private memory. |
 | **Cognee** | 8 | 5 | Its clearance tiers genuinely withhold private data — yet it errors on an empty query and bounds no input. |
@@ -645,13 +647,17 @@ build ships no policy engine and the adapter refuses to fake one. This is the
 benchmark working as intended: a system that enforces a real boundary is
 credited for it, and one that lacks a boundary says so rather than pretending.
 
-**Letta** is fine at recall and fails two robustness cases: an empty query
-returns every memory instead of abstaining, and a 16-kilobyte query is embedded
-and answered rather than rejected. Both cases require only the `retrieval`
-capability Letta claims, so both are scored — and both surface the same finding:
-Letta's memory API has no guard against malformed or oversized input. That is not
-"Letta is bad at recall." It is a precise, actionable statement about where a
-governed deployment would need to add a boundary Letta does not provide.
+**Legacy Letta V1 archives** are fine at recall and fail two robustness cases:
+an empty query returns every memory instead of abstaining, and a 24-kilobyte
+query is embedded and answered rather than rejected. Both cases require only
+the `retrieval` capability the adapter claims, so both are scored.
+
+The adapter does not claim authorization. It partitions benchmark principals
+into separate archives, but one organization-scoped client can select every
+archive ID; that is data organization, not a caller boundary. These results
+also do not represent current Letta Agent memory, whose MemFS, memory blocks,
+context construction, compaction, and behavior require a native end-to-end
+agent evaluation rather than this direct storage protocol.
 
 **Mem0** produces the most consequential enterprise finding in the set. Its only
 scoping axis is `user_id`: principals in the same organization share a store.
@@ -683,7 +689,7 @@ The intra-tenant clearance leak in Mem0 is the clearest example. An organization
 could run Mem0 for a year, pass every recall benchmark, demo beautifully, and
 never notice that a lower-clearance user could read a higher-clearance user's
 private data — until the day someone does, and it becomes an incident report. The
-missing input bounds in Letta, Graphiti, and Cognee are the same shape of
+missing input bounds in legacy Letta V1 archives, Graphiti, and Cognee are the same shape of
 problem: latent until adversarial, and then suddenly load-bearing.
 
 This is the enterprise case for governed cognition, made not by assertion but by
@@ -712,7 +718,7 @@ docker compose run --rm benchmark      # all systems → out/RESULTS.md
 ```
 
 The compose stack brings up the Fluree and Letta services, resolves each
-adapter's pinned dependencies inside the benchmark image, runs every configured
+adapter's isolated dependencies inside the benchmark image, runs every configured
 system against the corpus, and writes the machine-readable report and a
 human-readable `RESULTS.md`. Every report contains bounded identifiers, digests,
 counts, and timings — **never memory plaintext.** This is enforced structurally,

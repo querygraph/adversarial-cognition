@@ -52,7 +52,7 @@ docker compose run --rm benchmark          # runs all systems → ./out/RESULTS.
 ```
 
 `docker compose` brings up Fluree and Letta as services; the `benchmark`
-container resolves each adapter's pinned dependencies (baked into the image),
+container resolves each adapter's isolated dependencies (baked into the image),
 runs every system against the corpus, and writes the report and
 `RESULTS.md` into `./out`. By default it uses the host's Ollama (fast, GPU
 accelerated on macOS/Windows). For a fully self-contained stack on a Linux
@@ -105,6 +105,13 @@ and infrastructure (Neo4j for Graphiti, Fluree for the Akka adapter) comes
 from `docker compose up -d`. Setup details live in each adapter's README.
 `MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS` overrides the per-adapter timeout
 (default 600) for slow local models.
+
+Supported-case accuracy is a per-adapter diagnostic, not an ordinal product
+ranking. Capability coverage and denominators differ, so compare systems on
+shared cases or inspect the case matrix rather than ordering unlike totals.
+
+CI runs the deterministic reference benchmark. The heavier comparative Docker
+stack is a local, model-dependent run and is not reproduced in CI.
 
 Public corpora (LoCoMo, LongMemEval, BEAM, DMR, Letta-Evals) are
 inventoried at pinned source revisions and normalized offline only from

@@ -1,8 +1,15 @@
-# Letta adapter
+# Legacy Letta V1 archival API adapter
 
-Runs MARCIANA-ADVERSARIAL-v1 against self-hosted OSS
-[Letta](https://github.com/letta-ai/letta) (formerly MemGPT), entirely
-locally: Ollama embeddings, no LLM agent loop, no cloud keys.
+Runs MARCIANA-ADVERSARIAL-v1 against the self-hosted
+[legacy Letta V1 server](https://github.com/letta-ai/letta), entirely locally:
+Ollama embeddings, no LLM agent loop, no cloud keys.
+
+This is not an adapter for the current
+[Letta Agent](https://github.com/letta-ai/letta-code) or
+[App Server](https://docs.letta.com/letta-agent/app-server). The current
+product is a stateful agent runtime. Its memory includes MemFS, memory blocks,
+context construction, compaction, and agent behavior. A native agent evaluation
+must test those semantics.
 
 ## Setup
 
@@ -33,34 +40,35 @@ the image (~3 GB). Steady-state boot is ~25–40 s; the full suite takes
 
 ## Mapping
 
-One **archive per principal** — Letta's own scoping boundary — with
-passages inserted and searched through the archival API only, so results
-are as deterministic as the embedder. Bench IDs ride in a `[id:…]` text
-marker plus passage metadata. `valid_from` becomes the passage
-`created_at`; an as-of recall becomes a search `end_date`. The archive
-embedding is configured explicitly as an OpenAI-compatible endpoint
-(`…:11434/v1`) because letta 0.16's `ollama/…` handle resolution points its
-OpenAI client at the raw Ollama base URL, which 404s.
+One archive per benchmark principal keeps case data partitioned. The adapter
+inserts and searches passages through the archival API. Every request uses the
+same Letta client and organization-scoped actor. This actor can select any
+archive ID. The archive mapping does not enforce caller authorization.
+
+Bench IDs ride in a `[id:…]` text marker plus passage metadata. `valid_from`
+becomes the passage `created_at`; an as-of recall becomes a search `end_date`.
+The archive embedding is configured explicitly as an OpenAI-compatible
+endpoint (`…:11434/v1`) because letta 0.16's `ollama/…` handle resolution
+points its OpenAI client at the raw Ollama base URL, which 404s.
 
 ## Capabilities claimed
 
 | Capability | Why |
 |---|---|
 | `retrieval` | Archival semantic search, ranked |
-| `isolation` | Archives are server-enforced scopes; cross-archive reads are impossible |
 | `temporal` | `created_at` + search `start_date`/`end_date` windows (validity **end** is inexpressible — a superseded fact stays searchable at later as-of dates, so `retrieval-current` genuinely tests ranking with both facts present) |
 | `forget` | Passage deletion |
 | `persistence` | Server-side Postgres; client reconnect must observe identical state |
 
-Unclaimed (declared unsupported, 9 cases): abstention (no relevance
-threshold in the search API), clearance, purpose, provenance digests,
-nonce replay protection, idempotency keys, derived-memory tracking.
+Unclaimed (declared unsupported, 12 cases): caller isolation, abstention (no
+relevance threshold in the search API), clearance, purpose, provenance
+digests, nonce replay protection, idempotency keys, and derived-memory
+tracking.
 
-## Recorded result (2026-08-06, letta 0.16.8)
+## Recorded result (2026-08-06, legacy Letta V1 server 0.16.8)
 
-9 supported cases, **7 correct**. Passing: retrieval-current (ranking
-preferred the current fact with the superseded one present),
-temporal-history, isolation-tenant, restart-reproducible, order-invariant,
-confusable-query, injection-contained. Honest failures: `malformed-empty`
-and `oversized-query` — Letta embeds an empty and a 24 KB query and returns
-ranked results instead of rejecting either.
+6 supported cases, **4 correct**. Passing: retrieval-current (ranking preferred
+the current fact with the superseded one present), temporal-history,
+restart-reproducible, and order-invariant. Honest failures: `malformed-empty`
+and `oversized-query` — the V1 server embeds an empty and a 24 KB query and
+returns ranked results instead of rejecting either.

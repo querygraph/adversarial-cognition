@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Correct the Letta adapter scope: identify it as the legacy V1 archival API,
+  remove adapter-created archive partitioning from the claimed authorization
+  capabilities, and make comparative output explicit that unlike supported-case
+  denominators are not an ordinal product ranking.
 - Add the source-owned *Adversarial Cognition* book: a manuscript that
   introduces the QueryGraph stack from first principles, frames TypeDID
   identity, the TypeSec capability-gated vault, unforgeable lineage, and
@@ -9,11 +13,11 @@
   presents the benchmark, the six-system results, and the reproducible Docker
   stack — with a generated seal cover and the FirstPair build contract.
 - Package the benchmark as a reproducible Docker stack: a Dockerfile baking
-  each adapter's pinned dependency set, a compose stack wiring Fluree and
+  each adapter's isolated dependency set, a compose stack wiring Fluree and
   Letta as services with an optional bundled Ollama, an entrypoint that runs
   every system and writes the report, and a uniform capture script.
 - Record the six-system comparative results (Marciana 18/18, Akka + Fluree
-  16/16, Letta 7/9, Graphiti 6/8, Mem0 6/9, Cognee 5/8) with per-case
+  16/16, legacy Letta V1 archives 4/6, Graphiti 6/8, Mem0 6/9, Cognee 5/8) with per-case
   findings, and add the shared OSS adapter scenario driver.
 - Add a panoramic headboard illustration depicting Plato and Diogenes’ rug dispute
   at an Academy symposium.

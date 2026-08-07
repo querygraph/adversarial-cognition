@@ -1,11 +1,14 @@
-"""Letta adapter for MARCIANA-ADVERSARIAL-v1.
+"""Legacy Letta V1 archival API adapter for MARCIANA-ADVERSARIAL-v1.
 
-Letta (formerly MemGPT) is a stateful-agent memory server. This adapter uses
-its archival-memory path directly — archives and passages with Ollama
-embeddings, no LLM agent loop — so results are as deterministic as the
-embedder. One archive per principal is Letta's own scoping boundary:
-``operator`` (who alone holds the private memory), ``analyst``,
-``outsider``, and ``advertiser`` each search only their archive.
+This adapter uses the legacy Letta server's archival-memory path directly —
+archives and passages with Ollama embeddings, no LLM agent loop — so results
+are as deterministic as the embedder. It does not represent the current Letta
+Agent or App Server product surface.
+
+One archive per benchmark principal keeps test data partitioned, but every
+request uses the same Letta client and organization-scoped actor. That actor
+can select any archive ID, so the mapping is not a server-enforced principal
+authorization boundary and this adapter does not claim ``isolation``.
 
 Temporal mapping (documented limitation): a memory's ``valid_from`` becomes
 the passage ``created_at`` and an as-of recall becomes a search
@@ -59,16 +62,15 @@ def _stamp(value: date) -> str:
 
 class LettaSystem(MemorySystem):
     name = "letta"
-    version = "unknown"
-    capabilities = frozenset(
-        {"retrieval", "isolation", "temporal", "forget", "persistence"}
-    )
+    version = "v1-legacy-unknown"
+    capabilities = frozenset({"retrieval", "temporal", "forget", "persistence"})
 
     def __init__(self) -> None:
         self.client = Letta(base_url=LETTA_URL, max_retries=5)
         try:
             info = self.client.health()
-            self.version = getattr(info, "version", None) or "unknown"
+            server_version = getattr(info, "version", None) or "unknown"
+            self.version = f"v1-legacy-{server_version}"
         except Exception:
             pass
         self.archives: dict[str, str] = {}
@@ -93,10 +95,9 @@ class LettaSystem(MemorySystem):
     def remember(self, memory_id, text, principal, valid_from=None,
                  valid_until=None, private=False, nonce=None, supersedes=None,
                  derived_from=()) -> bool:
-        # nonce/supersedes/derived_from and valid_until have no Letta
-        # equivalent; the matching capabilities are unclaimed, so the driver
-        # never relies on them here. Privacy is archive scoping: the memory
-        # lives only in its principal's archive.
+        # nonce/supersedes/derived_from, valid_until, and caller-specific
+        # privacy have no equivalent in this API. Archive partitioning keeps
+        # benchmark data separate but is not claimed as authorization.
         passage = self.client.archives.passages.create(
             self._archive(principal),
             text=f"[id:{memory_id}] {text}",

@@ -1,7 +1,7 @@
 # MARCIANA-ADVERSARIAL-v1 benchmark runner image.
 #
 # Bundles the benchmark core, every OSS system adapter, and the report
-# scripts. Each adapter resolves its own pinned dependency set through uv, so
+# scripts. Each adapter resolves its own isolated dependency set through uv, so
 # their conflicting requirements stay isolated; those sets are pre-warmed at
 # build time so a run needs no network for Python packages. The heavy graph
 # and vector services (Fluree, Letta) and the LLM backend (Ollama) are

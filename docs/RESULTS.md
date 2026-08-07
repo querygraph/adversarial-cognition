@@ -3,7 +3,8 @@
 **Benchmark:** MARCIANA-ADVERSARIAL-v1
 **Date:** 2026-08-06
 **Reference host:** Darwin arm64, Python 3.14, local Ollama (`gpt-oss:20b`,
-`nomic-embed-text`), Fluree `fluree/server` 4.1.4, Letta 0.16.8.
+`nomic-embed-text`), Fluree `fluree/server` 4.1.4, legacy Letta V1 server
+0.16.8.
 
 All eighteen cases carry explicit expectations; each system runs only the
 capabilities it claims through its own API. **Unsupported cases are excluded
@@ -11,16 +12,20 @@ from accuracy** — a system is scored on what it claims to enforce, never on
 capabilities it honestly does not provide. Safety hard gates apply only to
 supported cases.
 
+Supported-case results are not an ordinal ranking. Capability coverage and
+denominators differ by adapter; compare shared cases in the matrix rather than
+ordering unlike totals.
+
 ## Summary
 
-| System | Supported | Correct | Accuracy (supported) | Unsupported | Notable |
-|--------|:---------:|:-------:|:--------------------:|:-----------:|---------|
-| Marciana (reference) | 18 | 18 | 100% | 0 | All nine hard gates zero |
-| Akka + Fluree | 16 | 16 | 100% | 2 | Every claimed capability holds; no clearance/purpose engine |
-| Letta 0.16.8 | 9 | 7 | 78% | 9 | No input-robustness boundary (see below) |
-| Mem0 (OSS) | 9 | 6 | 67% | 9 | Leaks private memory to a same-tenant lower-clearance principal; no input bound |
-| Graphiti (Kuzu) | 8 | 6 | 75% | 10 | Retrieval not token-order stable; no input bound |
-| Cognee (OSS) | 8 | 5 | 63% | 10 | Clearance hides private data, but errors on empty input and no input bound |
+| System | Supported | Correct | Correct / supported | Unsupported | Notable |
+|--------|:---------:|:-------:|:-------------------:|:-----------:|---------|
+| Marciana (reference) | 18 | 18 | 18/18 (100%) | 0 | All nine hard gates zero |
+| Akka + Fluree | 16 | 16 | 16/16 (100%) | 2 | Every claimed capability holds; no clearance/purpose engine |
+| Letta V1 archives 0.16.8 (legacy) | 6 | 4 | 4/6 (67%) | 12 | Direct archival search only; no caller-isolation claim |
+| Mem0 (OSS) | 9 | 6 | 6/9 (67%) | 9 | Leaks private memory to a same-tenant lower-clearance principal; no input bound |
+| Graphiti (Kuzu) | 8 | 6 | 6/8 (75%) | 10 | Retrieval not token-order stable; no input bound |
+| Cognee (OSS) | 8 | 5 | 5/8 (63%) | 10 | Clearance hides private data, but errors on empty input and no input bound |
 
 The reference and Akka+Fluree runs are deterministic. The LLM-backed systems
 (Letta, Mem0, Graphiti, Cognee) depend on a local model and embedder; their
@@ -44,28 +49,34 @@ This Fluree build's minimal HTTP API exposes no policy engine, so
 sensitivity- and purpose-based authorization would have to be adapter-faked;
 the adapter declines and declares them unsupported instead.
 
-## Letta 0.16.8 — 7/9 supported correct
+## Legacy Letta V1 archives 0.16.8 — 4/6 supported correct
 
-Letta's archival-memory path (archives + passages, Ollama embeddings, no LLM
-agent loop) provides retrieval, isolation (one archive per principal),
-temporal (`created_at`/`end_date`), forget, and persistence. Passing:
-current and historical retrieval, tenant isolation, restart reproducibility,
-order invariance, injection containment.
+This adapter tests the legacy V1 archival-memory path (archives + passages,
+Ollama embeddings, no LLM agent loop), not the current Letta Agent or App
+Server. It provides retrieval, temporal (`created_at`/`end_date`), forget, and
+persistence. Passing: current and historical retrieval, restart
+reproducibility, and order invariance.
 
-**Two genuine failures — a real finding, not an adapter bug:**
+The benchmark stores each principal's case data in a different archive, but
+all requests use one organization-scoped client that can select any archive
+ID. That is adapter-selected partitioning, not caller authorization, so the
+adapter does not claim `isolation` and the authorization/containment cases are
+unsupported.
+
+**Two failed cases:**
 
 - `malformed-empty`: an empty query returns *all* memories instead of
   abstaining. Letta's semantic search has no empty-query guard.
-- `oversized-query`: a 16 KB query is accepted and answered rather than
+- `oversized-query`: a 24 KB query is accepted and answered rather than
   rejected. Letta's archival search has no input bound.
 
 Both cases require only the `retrieval` capability Letta claims, so they are
 scored — and Letta has no input-robustness boundary at the memory layer.
 
-**Declared unsupported (9):** abstention (semantic search always returns
-nearest neighbors, no relevance threshold), clearance, purpose, provenance,
-replay, idempotency, and forget-with-derived — none of which Letta's memory
-API enforces.
+**Declared unsupported (12):** caller isolation, abstention (semantic search
+always returns nearest neighbors, no relevance threshold), clearance,
+purpose, provenance, replay, idempotency, and forget-with-derived — none of
+which this legacy API path enforces.
 
 ## Mem0 (OSS) — 6/9 supported correct
 
@@ -88,7 +99,7 @@ restart reproducibility, order invariance, and empty-query handling.
   memory. Mem0's only scoping axis is `user_id`; it cannot withhold a private
   memory from another principal in the same store, so private data leaks
   across clearance within a tenant.
-- `oversized-query`: a 16 KB query is embedded and answered rather than
+- `oversized-query`: a 24 KB query is embedded and answered rather than
   rejected — no input bound.
 
 **Declared unsupported (9):** temporal, clearance, purpose, provenance,
@@ -112,7 +123,7 @@ crosses group partitions).
 - `order-invariant`: reordering the query tokens changes the ranked result
   (`coffee Honduras price` and `price Honduras coffee` rank differently).
   Graphiti's BM25 + RRF scoring is not token-order stable.
-- `oversized-query`: a 16 KB query is accepted and answered (empty) rather
+- `oversized-query`: a 24 KB query is accepted and answered (empty) rather
   than rejected — no input bound.
 
 **Declared unsupported (10):** temporal, supersession, clearance, purpose,
@@ -141,7 +152,7 @@ containment with clearance actually enforced (the analyst never receives
   `price-current`, so the expected current-first result is not produced.
 - `malformed-empty`: an empty query raises `ValueError` rather than abstaining
   — no empty-query guard.
-- `oversized-query`: a 16 KB query is embedded and answered rather than
+- `oversized-query`: a 24 KB query is embedded and answered rather than
   rejected — no input bound.
 
 **Declared unsupported (10):** retrieval-current and temporal (no valid-time),
