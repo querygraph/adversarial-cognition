@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Begin MARCIANA-ADVERSARIAL-v2 (issue #3): design doc plus the `track`
+  model (`adversarial_cognition/tracks.py`) separating a memory-store track
+  from an agent-memory track, compared only within a track. Additive scaffold;
+  v1 scoring and rendering are unchanged.
+
 - Declare and report each adapter's `interface` (`direct-api` | `agent-loop`),
   so how a system's memory was reached is legible in the results, not implied.
   The adapter enforces no gate in either case; this is metadata only.
