@@ -58,9 +58,9 @@ persistence. Passing: current and historical retrieval, restart
 reproducibility, and order invariance.
 
 The benchmark stores each principal's case data in a different archive, but
-all requests use one organization-scoped client that can select any archive
-ID. That is adapter-selected partitioning, not caller authorization, so the
-adapter does not claim `isolation` and the authorization/containment cases are
+all requests use one local client that can list and select any archive ID.
+That is adapter-selected partitioning, not caller authorization, so the adapter
+does not claim `isolation` and the authorization/containment cases are
 unsupported.
 
 **Two failed cases:**

@@ -6,9 +6,9 @@ are as deterministic as the embedder. It does not represent the current Letta
 Agent or App Server product surface.
 
 One archive per benchmark principal keeps test data partitioned, but every
-request uses the same Letta client and organization-scoped actor. That actor
-can select any archive ID, so the mapping is not a server-enforced principal
-authorization boundary and this adapter does not claim ``isolation``.
+request uses the same Letta client and default server actor. That client can
+list and select any archive ID, so the mapping is not a server-enforced
+principal authorization boundary and this adapter does not claim ``isolation``.
 
 Temporal mapping (documented limitation): a memory's ``valid_from`` becomes
 the passage ``created_at`` and an as-of recall becomes a search

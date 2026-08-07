@@ -653,11 +653,11 @@ query is embedded and answered rather than rejected. Both cases require only
 the `retrieval` capability the adapter claims, so both are scored.
 
 The adapter does not claim authorization. It partitions benchmark principals
-into separate archives, but one organization-scoped client can select every
-archive ID; that is data organization, not a caller boundary. These results
-also do not represent current Letta Agent memory, whose MemFS, memory blocks,
-context construction, compaction, and behavior require a native end-to-end
-agent evaluation rather than this direct storage protocol.
+into separate archives, but one local client can list and select every archive
+ID. This is data organization, not a caller boundary. These results also do not
+represent current Letta Agent memory. Its MemFS, memory blocks, context
+construction, compaction, and behavior require a native end-to-end agent
+evaluation rather than this direct storage protocol.
 
 **Mem0** produces the most consequential enterprise finding in the set. Its only
 scoping axis is `user_id`: principals in the same organization share a store.

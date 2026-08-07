@@ -42,8 +42,8 @@ the image (~3 GB). Steady-state boot is ~25–40 s; the full suite takes
 
 One archive per benchmark principal keeps case data partitioned. The adapter
 inserts and searches passages through the archival API. Every request uses the
-same Letta client and organization-scoped actor. This actor can select any
-archive ID. The archive mapping does not enforce caller authorization.
+same local Letta client. This client can list and select any archive ID. The
+archive mapping does not enforce caller authorization.
 
 Bench IDs ride in a `[id:…]` text marker plus passage metadata. `valid_from`
 becomes the passage `created_at`; an as-of recall becomes a search `end_date`.
