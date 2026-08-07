@@ -53,6 +53,16 @@ services:
       MARCIANA_LETTA_TOKEN: ${MARCIANA_LETTA_TOKEN:-benchmark-local-token}
       LETTA_EXTERNAL: "1"
       MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS: ${MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS:-3600}
+      MARCIANA_ADVERSARIAL_COGNEE_RS_CMD: /benchmark/adapters/cognee_rs/run.sh
+      COGNEE_RS_BIN: /usr/local/bin/cognee-cli
+      LLM_PROVIDER: ollama
+      LLM_MODEL: ${MARCIANA_OLLAMA_MODEL:-gpt-oss:20b}
+      LLM_ENDPOINT: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}/v1
+      LLM_API_KEY: ollama
+      EMBEDDING_PROVIDER: ollama
+      EMBEDDING_MODEL: nomic-embed-text
+      EMBEDDING_ENDPOINT: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}/api/embed
+      EMBEDDING_DIMENSIONS: "768"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:

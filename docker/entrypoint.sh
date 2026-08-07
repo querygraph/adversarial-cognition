@@ -30,6 +30,7 @@ wait_for ollama "${MARCIANA_OLLAMA_URL}/api/tags" 120
 export MARCIANA_ADVERSARIAL_MEM0_CMD=/benchmark/adapters/mem0/run.sh
 export MARCIANA_ADVERSARIAL_GRAPHITI_CMD=/benchmark/adapters/graphiti/run.sh
 export MARCIANA_ADVERSARIAL_COGNEE_CMD=/benchmark/adapters/cognee/run.sh
+export MARCIANA_ADVERSARIAL_COGNEE_RS_CMD=/benchmark/adapters/cognee_rs/run.sh
 export MARCIANA_ADVERSARIAL_LETTA_CMD=/benchmark/adapters/letta/run.sh
 export MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD=/benchmark/adapters/akka_fluree/run.sh
 

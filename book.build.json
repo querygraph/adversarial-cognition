@@ -7,7 +7,10 @@
   "css": "docs/book/epub.css",
   "stem": "adversarial-cognition",
   "headboardImage": "docs/book/cover/adversarial-cognition-headboard.png",
-  "version": { "source": "literal", "value": "0.1.0" },
+  "version": {
+    "source": "literal",
+    "value": "0.1.0"
+  },
   "kindleName": "${stem} (${versionStamp})",
   "dist": "docs/book/dist",
   "buildDir": "docs/book/build/firstpair",
@@ -21,8 +24,16 @@
   "pandoc": {
     "reader": "markdown+smart",
     "tocDepth": 2,
-    "resourcePaths": ["${repoRoot}", "${repoRoot}/docs/book", "${tmpDir}", "${tmpDir}/diagrams"],
-    "commonArgs": ["--lua-filter", "${repoRoot}/docs/book/mermaid.lua"]
+    "resourcePaths": [
+      "${repoRoot}",
+      "${repoRoot}/docs/book",
+      "${tmpDir}",
+      "${tmpDir}/diagrams"
+    ],
+    "commonArgs": [
+      "--lua-filter",
+      "${repoRoot}/docs/book/mermaid.lua"
+    ]
   },
   "pdf": {
     "coverImage": "docs/book/cover/adversarial-cognition-cover.png",
@@ -39,6 +50,9 @@
     "splitLevel": 1
   },
   "hooks": {
-    "prepare": "mkdir -p \"${tmpDir}/diagrams\""
+    "prepare": [
+      "\"${repoRoot}/docs/book/assemble.sh\"",
+      "mkdir -p \"${tmpDir}/diagrams\""
+    ]
   }
 }

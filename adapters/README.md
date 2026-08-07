@@ -38,6 +38,8 @@ export MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD="$PWD/adapters/akka_fluree/run.sh"
 export MARCIANA_ADVERSARIAL_MEM0_CMD="$PWD/adapters/mem0/run.sh"
 export MARCIANA_ADVERSARIAL_GRAPHITI_CMD="$PWD/adapters/graphiti/run.sh"
 export MARCIANA_ADVERSARIAL_COGNEE_CMD="$PWD/adapters/cognee/run.sh"
+export MARCIANA_ADVERSARIAL_COGNEE_RS_CMD="$PWD/adapters/cognee_rs/run.sh"
+export COGNEE_RS_BIN=/path/to/cognee-cli
 export MARCIANA_ADVERSARIAL_LETTA_CMD="$PWD/adapters/letta/run.sh"
 export MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS=1800   # local LLMs are slow
 python3 run_benchmark.py
@@ -61,6 +63,7 @@ per-system status.
 | [mem0](mem0/) | Ollama | Mem0 OSS with a local vector store |
 | [graphiti](graphiti/) | Ollama | graphiti-core over embedded Kuzu (no external DB) |
 | [cognee](cognee/) | Ollama | Cognee OSS knowledge graph + vector index |
+| [cognee_rs](cognee_rs/) | Native Rust CLI + Ollama | Official cognee-rs memory engine |
 | [letta](letta/) | Letta App Server + Agent SDK + Ollama | Agent-loop memory over persistent MemFS |
 
 Each adapter's own README and module docstring is the authoritative record

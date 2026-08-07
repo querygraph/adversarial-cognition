@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add a separate native `cognee-rs` benchmark adapter and entry. It invokes
+  the official Rust CLI in an isolated store and claims only retrieval and
+  persistence; Python Cognee remains a distinct adapter.
+
+## Unreleased
+
 - Replace the Letta integration with Agent SDK 0.6.2 and the self-hosted App
   Server. Retain a bounded `llama3.1:latest` capture from
   real agent turns over persistent MemFS: 1/6 claimed cases, 12 unsupported;

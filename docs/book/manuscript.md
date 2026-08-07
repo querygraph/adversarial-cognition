@@ -22,26 +22,220 @@ changed. Ship that system without a governed boundary and you have not built a
 memory; you have built an unaudited, self-modifying database with a language
 model for an administrator.
 
-This book is about the boundary that makes such a system safe to deploy, and
-about a benchmark that attacks it on purpose. The boundary is **Marciana**, the
-governed cognition engine of the **QueryGraph** stack. The benchmark is
-**MARCIANA-ADVERSARIAL-v1**, which does not ask whether a memory system is good
-at recall. It asks whether the boundary *holds* — when the memory in the system
-and the requests against it are actively trying to break it.
+This book began as the story of that boundary in one domain — **Marciana**, the
+governed cognition engine of the **QueryGraph** stack, and the benchmark,
+**MARCIANA-ADVERSARIAL-v1**, that attacks it on purpose. It has since grown the
+way the stack itself grew: by discovering that the same boundary, and the same
+adversary, reappear at every layer. The catalog that anchors a data lake faces
+the same questions as the memory that anchors an agent — *who may change this,
+and can you prove what happened?* — and so does the authorization layer beneath
+them both. So this book now holds three benchmarks, one for each layer, each
+attacked the same way and scored by the same unforgiving rules.
 
 If you have never heard of QueryGraph, you are the reader this book is written
-for. The first half introduces the stack from first principles, with unusual
-attention to two ideas that most memory products treat as afterthoughts and
-that QueryGraph treats as the foundation: **identity you cannot fabricate**, and
-**lineage you cannot forge**. The second half turns the benchmark loose — on
-Marciana and on five widely used open-source memory systems — and reports, case
-by case, exactly where each boundary held and where it gave way.
+for, and nothing here presumes prior acquaintance with any of it. The
+Introduction lays the shared foundation — security written into the *types* of a
+program, identity you cannot fabricate, lineage you cannot forge. Parts I
+through V tell the cognition story in full: the enterprise memory problem, the
+stack from first principles, Marciana, the benchmark, and what it found when
+turned loose on Marciana and five widely used open-source memory systems. Part
+VI descends to the catalog — beginning with what a table in a data lake even
+*is* — and asks which catalogs can prove their transactions, and what such proof
+costs. Part VII descends further still, to authority itself, and runs ten
+authorization systems — from the humble signed token to policy engines,
+relationship graphs, capability tokens, and TypeSec — through the same
+adversarial mill. Each part is self-contained and explains every term it uses; a
+glossary and an index at the back hold the whole vocabulary in one place.
 
 The thesis is simple and, I hope, by the end, unavoidable: in the enterprise,
 cognition may be as ambitious as you like, but the evidence must remain
 conservative. A model may propose anything. Only a capability-bound commit may
 write. And every write must leave a receipt that a stranger, months later, can
 verify without trusting the model, the operator, or the vendor who sold it.
+
+---
+
+
+# Introduction — The shape of a promise you can keep
+
+Every system that stores something on your behalf is making you a promise. *I
+will remember this. I will show it only to the right people. I will let only the
+right people change it. And if you ever ask me what I did, I will tell you the
+truth.* We have grown so used to hearing that promise broken — the leaked
+database, the silent overwrite, the audit log that turns out to be fiction — that
+we have quietly lowered our expectations to *probably*, *mostly*, *as far as we
+can tell*. This book is about a stack that refuses to lower them, and about three
+benchmarks that go looking, on purpose, for the exact moment a promise gives way.
+
+The stack is **QueryGraph**. The promises it keeps are made in an unusual place:
+not in careful code that checks the rules at the right moments, but in the
+*types* — the compile-time skeleton of the program itself, the part a computer
+verifies before the software is ever allowed to run. That is the single idea from
+which everything in this book unfolds, and it is worth pausing on, because it
+inverts the way most of us have been taught to think about security.
+
+## Two ways to keep a rule
+
+There are, at bottom, only two ways to make a program obey a rule.
+
+The first is to *check* the rule while the program runs. Before revealing the
+salary, ask the access-control list whether this user may see salaries; if yes,
+proceed. This is how nearly all software works, and its weakness is not that the
+check is wrong but that the check is *optional*. It sits in one code path and not
+another. It can be forgotten in the function written under deadline, skipped in
+the endpoint nobody remembered, duplicated slightly differently in three places
+until the three disagree. The rule exists, but its enforcement is scattered
+across every place someone remembered to enforce it, and security lives or dies
+by the completeness of that memory. A single forgotten check is a breach.
+
+The second way is to make the rule part of the program's *grammar* — to arrange
+things so that a program which breaks the rule is not a program that fails at
+run time, but a program that *will not compile*, the way a sentence with the verb
+missing is not a false statement but not a statement at all. There is no code
+path to forget, because the forbidden operation was never expressible in the
+first place. The check is not skipped; it has been dissolved into the structure,
+paid once at compile time, and thereafter free and unskippable forever.
+
+QueryGraph's security layer, **TypeSec**, takes the second way, and its slogan is
+disarmingly literal: *policies are encoded in types; violations are compile
+errors.* To see how a slogan becomes a mechanism, we need one beautiful little
+object.
+
+## The capability that cannot be forged
+
+In TypeSec, the authority to do something protected — to read a sensitive value,
+to write to a governed record — is not a flag, not a boolean, not a row in a
+permissions table. It is a *capability*: a value of a type written
+`Capability<P, R>`, where `P` names a permission and `R` names a resource. A
+`Capability<CanRead, Salary>` is the standing, portable proof that its holder may
+read a salary. And here is the sleight of hand that is not a sleight of hand at
+all: the two little names `P` and `R` are *phantom* — they carry no bytes, cost
+nothing at run time — yet they make `Capability<CanRead, Salary>` and
+`Capability<CanWrite, Salary>` genuinely *different types*, as different to the
+compiler as a number is from a sentence. A function that demands the power to
+write cannot be handed the power merely to read. Not *should* not — *cannot*. The
+mismatch is a compile error, discovered before the program runs, every time,
+with no exceptions and no vigilance required.
+
+Now close the trap. The `Capability` type has no public constructor. There is
+exactly one way in the entire system to bring one into existence: a function that
+first consults the policy engine and mints the capability *only* if the policy
+says yes. You cannot write `Capability { ... }` yourself; the language forbids
+it. So the mere *existence* of a `Capability<CanRead, Salary>` anywhere in a
+running program is, by construction, a proof that the policy engine already
+approved this exact reading. The capability does not represent permission. The
+capability **is** the permission, in the same way a key is not a note asking
+politely to open the door. You hold it, or you do not; and you can only have come
+to hold it through the one guarded door that mints it.
+
+From this single object the rest of the edifice grows with a kind of inevitability
+that is a pleasure to watch:
+
+- **Sealed permissions.** The permissions themselves — `CanRead`, `CanWrite`,
+  `CanReadSensitive` — belong to a *sealed* family that no outside code can
+  extend. You cannot invent a new permission to slip past the ones that exist.
+  The vocabulary of authority is closed, and closed vocabularies can be reasoned
+  about completely.
+- **Secured values.** Protected data does not travel as bare bytes but wrapped in
+  a `SecureValue`, an opaque envelope that carries a secrecy *label* and refuses
+  to yield its contents except to the matching capability. You may pass it around,
+  combine it, transform it — and combining a secret with a public thing yields a
+  secret, because the envelope always keeps the stricter label — but you cannot
+  *read* it without proving you are allowed to. Information-flow control, enforced
+  by the type checker.
+- **Typestates.** An agent that has not authenticated is, to the compiler, a
+  *different type* from one that has, and the methods that matter simply do not
+  exist on the unauthenticated form. There is no "check if logged in"; there is
+  only a door that isn't there until you are.
+
+Notice what has happened. Every one of these is a rule that, in an ordinary
+system, would be a run-time check somebody could forget. Here they are load-bearing
+walls of the type system, and forgetting them is not a vulnerability — it is a
+program that does not build.
+
+## Identity that is not authority
+
+There is a second foundation, and the discipline with which QueryGraph keeps it
+*separate* from the first is the whole game.
+
+Before any of this authority can be exercised, the system must know who is asking.
+Most software answers with a bearer token — a long secret string that means
+"whoever holds this is allowed." The trouble with a bearer token is right there in
+the name: it authorizes the *bearer*. Copy it, steal it, fish it out of a log, and
+you are, as far as the system can tell, the person it was issued to. The secret
+and the identity are the same thing, so leaking the secret leaks the identity.
+
+**TypeDID** severs them. It gives each participant a *decentralized identifier*
+backed not by a shared secret but by a cryptographic key pair, so that a request
+is *signed* by its sender rather than merely accompanied by a password. Under the
+hood — and the care here is exquisite — every message is sealed into an envelope
+that is signed with one key (Ed25519, for authentication) and encrypted to the
+recipient with another (X25519 key agreement feeding a ChaCha20-Poly1305 cipher,
+for confidentiality). The signature covers a *canonical transcript* of the whole
+envelope, built so that no two different messages can ever hash to the same
+signed bytes: every field is length-framed, every purpose is domain-tagged, so
+that tampering with a claim, reordering the fields, splicing a ciphertext from one
+envelope onto the header of another, back-dating, replaying, or repointing the
+"which key signed this" field at the wrong key each produce, not a subtle
+misbehavior, but a flat cryptographic rejection. A stolen log file contains
+nothing an attacker can replay as you, because what the log holds is
+identifiers and digests — evidence that something happened — never the reusable
+authority to make it happen again. **The receipts prove; they do not grant.**
+
+And now the line that the entire stack is organized around, stated as an
+invariant and enforced as one: **verified identity is not authority.** Proving who
+you are does not, by itself, let you do anything at all. A verified TypeDID tells
+the system the *subject* of a request — and then, and only then, that subject is
+handed to the policy engine, which decides whether to mint a capability. Identity
+answers *who*; capabilities answer *what may they do*; and the bridge between them
+is a policy decision that leaves a receipt. Even the payload of a verified message
+arrives sealed inside a `SecureValue`, unreadable until a capability opens it — so
+that authenticating a message and being *allowed to read it* remain two distinct
+events, in that order, always.
+
+## One stack, one boundary, three attacks
+
+Hold those two foundations together — authority you must *hold* as an unforgeable
+typed object, identity you *prove* rather than *present* — and you have the shape
+of every honest promise in the system. A caller proves who they are. A policy
+turns that identity into a narrow, typed, expiring capability. The capability, and
+nothing else, opens the protected operation. And the whole path leaves a receipt
+that a stranger can check months later without trusting the model, the operator,
+or the vendor who sold the thing.
+
+QueryGraph builds that shape once and then *reuses* it across wildly different
+domains, and that reuse is the reason this book has the structure it does. The
+same boundary that governs an AI's memory also governs a data lake's transactions
+and a fleet of agents' permissions — because at bottom all three are the same
+question wearing different clothes: *who may reveal or change this, and can you
+prove what happened?* Three domains, one boundary, and therefore three ways to go
+looking for the seam where it tears:
+
+- **Cognition** — can an AI's memory be made to leak, to double-commit, to
+  resurrect a deleted fact, to forge its own provenance? This is Marciana, and the
+  benchmark is MARCIANA-ADVERSARIAL-v1.
+- **Catalog** — when a data lake accepts a transaction, can you *prove*, offline
+  and months later, what it did? This is LakeCat, and the benchmark is
+  CATALOG-PROVENANCE-v1, shadowed by a performance benchmark that measures what
+  that proof *costs*.
+- **Capability** — is the authority a system grants one that an attacker, or the
+  model itself, cannot forge, widen, replay past revocation, or aim at the wrong
+  resource? This is TypeSec's own boundary, and the benchmark is
+  CAPABILITY-ADVERSARIAL-v1, run against the whole field of the world's
+  authorization systems.
+
+Each of the three parts that follow is written to stand on its own. If you have
+never thought about a database ledger, the catalog part begins with what a ledger
+*is*. If you have never minted a capability, the capability part begins with what
+authorization *is*. You may read them in any order, or only the one you came for.
+But read together they make a single argument, and it is the argument of the whole
+book: that a promise worth trusting is not one made loudly, but one made *in the
+grammar of the system* — so that breaking it is not against the rules, but against
+the language — and then attacked, on purpose, eighteen and seventeen and eighteen
+ways, until what remains standing is not a claim but a receipt.
+
+Let us begin where the trouble first announced itself: with a memory that
+remembered too well.
 
 ---
 
@@ -130,6 +324,7 @@ other than the model. Which brings us to the stack that treats authority as a
 first-class, unforgeable object.
 
 ---
+
 
 # Part II — The QueryGraph stack, from first principles
 
@@ -332,6 +527,7 @@ mechanism, not a marketing word.
 
 ---
 
+
 # Part III — Marciana, a governed cognition engine
 
 ## Cognition proposes; the vault commits
@@ -440,6 +636,7 @@ derived summary behind would pass a naive test while being dangerous. Governed
 forgetting threads that needle, and it proves that it did.
 
 ---
+
 
 # Part IV — Benchmarking the boundary
 
@@ -593,6 +790,7 @@ refusing to fake a result in either direction.
 
 ---
 
+
 # Part V — What the benchmark found
 
 ## Six systems under attack
@@ -731,7 +929,391 @@ deliverable.
 
 ---
 
-# Conclusion — Memory with a conscience
+
+# Part VI — The catalog: a ledger for tables
+
+## What a table is, when it lives in a lake
+
+This part is self-contained. It assumes you know roughly what a file is and what
+a database does, and nothing else; every term it uses, it introduces. By the end
+you will know precisely what it means for a data platform's transactions to be
+*provable*, why almost none are, and what it costs to make them so.
+
+Start with the humblest object in modern data infrastructure: a **table** — rows
+and columns, like a spreadsheet. In a classical database, the table lives inside
+the database engine, which guards it jealously; nothing touches the bytes but the
+engine itself. The modern **data lake** inverts this arrangement. The rows are
+written into ordinary files — typically a compact columnar format called
+**Parquet** — and the files are parked in cheap **object storage**: Amazon's S3,
+or its open-source stand-in MinIO, which behaves like an infinite bucket you can
+put files into and get files out of. The table is no longer *inside* anything. It
+is a swarm of files in a bucket, and anyone's query engine — Spark, Trino,
+DataFusion, a laptop — can read them.
+
+This inversion is liberating, and it immediately raises a question: if a table is
+just files, *which* files? Yesterday the table was files A and B. This morning a
+job added C and rewrote B into B′. A query that reads {A, B, C} sees a table that
+never existed. Something must say, authoritatively, "as of now, the table *is*
+exactly these files." The open-source answer is a format called **Apache
+Iceberg**, and its device is charmingly bureaucratic: alongside the data files
+sits a small **metadata file** that lists them. Each version of the table — each
+**snapshot** — is one metadata file, naming exactly the data files that belong to
+that version. Change the table and you do not touch the old snapshot; you write a
+*new* metadata file describing the new state. The table's whole history is a
+chain of these immutable snapshots.
+
+Which only sharpens the question by one step: which *metadata file* is current?
+And that question — five words, deceptively small — is answered by the subject of
+this part.
+
+## The catalog, and the moment called commit
+
+A **catalog** is the service that holds, for every table, a single pointer: *the
+current metadata file is this one.* That is nearly all it does, and it is enough
+to make it the most important service in the lake. Query engines ask the catalog
+where the table is; writers ask the catalog to advance the pointer. The catalogs
+in this part — **LakeCat** (QueryGraph's own), **Nessie**, **Apache Polaris**,
+and **Apache Gravitino** — all speak a common protocol, the Iceberg REST API, so
+one client can talk to any of them, which is precisely what makes an honest
+comparison possible.
+
+The pointer's movement has a name that carries two thousand years of accounting
+gravity: the **commit**. A commit is the moment a table changes — validate the
+proposed update, write the new metadata file, swing the pointer. Everything
+downstream of a data platform — every report, every model, every decision — hangs
+off some chain of commits. And two writers can want to move the same pointer at
+the same time, which is where the trouble starts.
+
+Suppose writers X and Y both read the pointer, both see snapshot 41, and both
+prepare snapshot 42 — X's version and Y's version. X commits first. If the
+catalog now accepts Y's commit too, Y's 42 silently replaces X's, and X's work
+has vanished without an error, a warning, or a trace. This is the **lost
+update**, the original sin of concurrent systems. The defense, as old as it is
+elegant, is **compare-and-swap**: each writer's commit says not "set the pointer
+to 42" but "set the pointer to 42 *if it still points at 41*." X's succeeds; Y's
+condition is now false, and the catalog *rejects* it. Y retries against the real
+current state, and no work is ever silently destroyed. Compare-and-swap — CAS,
+optimistic concurrency, the conditional commit; the names vary, the idea does
+not — is the bedrock guarantee of the Iceberg protocol, and, as we will see, it
+is the *only* strong guarantee every catalog shares.
+
+## What a ledger knows that a logbook does not
+
+Now raise the stakes from correctness to *accountability*. A pointer that moves
+correctly tells you what the table is. It does not tell you what happened.
+
+The word **ledger** is doing precise work here. A logbook records events as
+someone described them; pages can be lost, rewritten, or forged, and the logbook
+has no opinion. A ledger, in the accountant's sense, is a record with obligations:
+every entry is durable, entries are never erased (a correction is a *new* entry),
+each entry follows from the one before, and the whole is arranged so that a
+stranger — an auditor — can verify it later without trusting the person who kept
+it. The question this part asks of a data catalog is exactly the auditor's
+question: *when you accepted a transaction, what happened — and can you prove it,
+offline, months later, without trusting the server that says so?*
+
+To even pose that question precisely, we need four small tools, each explained
+from scratch:
+
+**The digest.** A digest (or hash) is a short fingerprint computed from data —
+the benchmark uses SHA-256 — with two properties that make it a truth-machine:
+the same input always yields the same fingerprint, and no one can construct a
+*different* input with the *same* fingerprint. Store the digest of a thing and
+you can later prove a copy is genuine — or that a claimed copy is not — without
+storing, or revealing, the thing itself.
+
+**The idempotency key.** Networks fail in an awkward way: a client that sends a
+commit and hears nothing back cannot know whether the commit happened. It must
+retry — and a naive retry applies the change *twice*. The cure is to attach a
+unique key to the operation. The first arrival executes and stores its result
+under the key; any retry with the same key returns the *stored* result, changing
+nothing. Same key, same answer, exactly one effect — this is **idempotency**, and
+retries become safe.
+
+**The receipt.** A receipt here is not a courtesy printout but a cryptographic
+object: a record of one transaction whose fields are sealed by their own digest.
+Alter one character of a sealed receipt and its digest no longer matches — the
+forgery is self-evident to anyone, with no server's help. That property is called
+**offline verification**, and it is what elevates a receipt from *assertion* to
+*evidence*. Receipts can also **chain**: each carries the digest of its
+predecessor, so the whole history links into a sequence that cannot be silently
+reordered, trimmed, or spliced.
+
+**The outbox.** Downstream systems — lineage graphs, search indexes, audit
+stores — need to hear about each commit. Announce the news *after* committing and
+a crash in between loses the announcement forever: the change happened and no one
+was told. The **transactional outbox** closes the gap by writing the announcement
+*inside the same atomic transaction* as the commit — one indivisible operation
+that either wholly happens or wholly does not. Evidence and change succeed
+together or fail together; there is no in-between to crash in.
+
+Assemble the four and you have the executable definition this part's benchmark
+encodes: a **provable transaction** is a commit that rejects stale writers (CAS),
+deduplicates retries (idempotency), stages its audit trail and outbox atomically
+with the change, and issues a chained, offline-verifiable receipt — with every
+piece of evidence carrying digests rather than raw locations or secrets, so the
+audit trail cannot itself become the leak.
+
+## CATALOG-PROVENANCE-v1: attacking the transaction
+
+The benchmark, CATALOG-PROVENANCE-v1, turns that definition into seventeen
+executable cases across eleven **capabilities** — named properties a catalog may
+claim to enforce, from `commit` and `compare-and-swap` up through
+`idempotent-replay`, `durable-audit`, `atomic-outbox`, `replayable-proof`,
+`receipt-chain`, `governed-scan-proof`, `tombstone-proof` (a deletion covered by
+a receipt, so even *removal* leaves evidence), `hash-only-evidence`, and
+`lineage-evidence`. The adversary is the same character who stalked the cognition
+benchmark, now loose in a data lake: a stale writer racing the pointer; a network
+retry bearing a duplicate commit; a tamperer editing a receipt; a reader
+replaying a scan against a different policy than the one it was authorized under;
+a commit smuggling a secret-looking location toward the audit log.
+
+The scoring rules are the collection's now-familiar honesty machinery, and they
+matter more here than anywhere, because the comparison spans catalogs of wildly
+different ambition. Each catalog runs through its own adapter and **declares**
+which capabilities it enforces; a case whose capability a catalog does not claim
+is reported *unsupported* — never a pass, never a failure, never quietly faked by
+the adapter re-implementing a check the catalog lacks. Compare-and-swap is proved
+by the *catalog's own* rejection: the harness keeps a deliberately stale handle
+from before a concurrent commit and lets the catalog refuse it. Safety failures
+land in seven **hard gates that must be zero** — among them
+`lost_update_accepted`, `duplicate_commit_applied`, `evidence_lost`,
+`forged_proof_accepted`, and `plaintext_in_evidence` — and a gate can only be
+tripped by a capability a catalog *claimed* and got wrong. An honest "no" is
+never punished; a false "yes" is never survivable.
+
+The recorded run — every catalog writing to one MinIO through Docker, so the
+object store cancels out of the comparison — came back with a table whose shape
+*is* the finding:
+
+| Catalog | Supported | Correct | Unsupported | Gates |
+|---|:---:|:---:|:---:|:---:|
+| reference (LakeCat's boundary) | 17 | 17 | 0 | 0 |
+| Nessie 0.107.5 | 3 | 3 | 14 | 0 |
+| Polaris 1.5.0 | 3 | 3 | 14 | 0 |
+| Gravitino | 3 | 3 | 14 | 0 |
+
+Three real, competent, widely deployed catalogs — and all three hold exactly the
+same two capabilities, `commit` and `compare-and-swap`, cleanly and honestly, and
+decline all eleven governance capabilities, because a stock catalog has no such
+surface to claim. No idempotent replay. No durable audit. No atomic outbox. No
+receipt an auditor could verify offline, no chain, no tombstone evidence, no
+hash-only discipline. **Every Iceberg catalog gives you compare-and-swap; only a
+governed catalog gives you a transaction you can prove.** The reference — a
+deterministic model of LakeCat's governed commit boundary, standing in until the
+live service adapter lands — holds all seventeen with every gate at zero, which
+is what defines the far edge of the table: not what exists everywhere today, but
+what *provable* means.
+
+One incident from the recorded run deserves its footnote in the main text,
+because it is the book's thesis in miniature. Gravitino initially refused every
+connection with an authentication error while its siblings ran clean, and the
+obvious suspects — storage credentials — were innocent. The real cause: the
+Python Iceberg client, given no credential at all, still sent the literal header
+`Authorization: Bearer None` — a phantom credential, an authority never
+established but confidently presented. Nessie and Polaris ignored it; Gravitino
+*validated* it and rejected the bogus token. The fix was to send no bearer at
+all — and the moral is the same invariant this stack enforces at every layer: an
+authority you did not actually establish must never be presented as if you had.
+
+## The other axis: what the proof costs
+
+Provenance is the axis you cannot see until something goes wrong. The axis you
+*can* see is speed, and it deserves its own honest number rather than a wave of
+the hand — because every governance property in the table above is a durable
+write paid *per commit*, and a fair account must say what the toll is.
+
+That account is **catalog-bench**, the companion performance suite: the same four
+catalogs, the same shared MinIO, one driver issuing identical minimal commits —
+first a thousand in sequence to measure latency, then eight concurrent writers
+hammering one table to measure throughput under contention. On the recorded run,
+Nessie — a lean version store with no governance machinery — led sequential
+latency, as it should. LakeCat came second, its gap a matter of a couple of
+milliseconds per commit: the price of writing a compare-and-swap check, a pointer
+log, an audit event, a transactional outbox, and an idempotency record — roughly
+seven durable writes — *inside* every single commit. And under contention, where
+governance bookkeeping ought to hurt most, LakeCat was *fastest*, committing
+about twice Nessie's rate across eight racing writers.
+
+The two benchmarks are one argument stated twice. The performance suite measures
+the cost of the governed commit; the provenance suite measures what the cost
+buys. A couple of milliseconds per commit purchases the ability, months later,
+facing an auditor or an incident or a regulator, to answer *what happened* with a
+receipt instead of a shrug. Stated as a price, the conclusion of this part is
+almost embarrassingly cheap: the difference between a logbook and a ledger is
+milliseconds.
+
+---
+
+# Part VII — The capability: authority as an object
+
+## The question every system answers badly
+
+This part, like the last, is self-contained: it assumes you have logged into
+something, and builds everything else from there. Its subject is the oldest
+question in computing security — *may this caller do this thing?* — and a
+benchmark that asks it adversarially of ten systems at once, from the humble
+signed token to QueryGraph's own TypeSec.
+
+Begin by splitting the question in two, because the split is where half the
+world's confusion lives. **Authentication** asks *who are you?* — and is
+answered with passwords, keys, and the TypeDID signatures of the Introduction.
+**Authorization** asks *given who you are, what may you do?* — and it is the
+harder question, because its answer must survive delegation, time, retries, and
+malice. This part is about authorization, and about a serene, radical answer to
+it: that authority should be an *object* — a thing you hold, inspect, narrow,
+and revoke — rather than a *fact about you* scattered through other people's
+databases.
+
+## Four families, one ladder
+
+Every authorization system in production today belongs to one of a few families,
+and it pays to meet them in ascending order of ambition — because the benchmark
+at the end of this part is, in essence, this ladder made executable.
+
+**The bearer token.** The workhorse of the modern web — OAuth, JWT — is a signed
+note: *the holder of this may read calendars, valid until Friday.* The signature
+(a cryptographic seal only the issuer can produce) makes the note tamper-proof:
+change "calendars" to "bank accounts" and the seal breaks visibly. This is real
+protection, and its limits are just as real. The note authorizes the *holder* —
+whoever that is; stolen is as good as issued. It cannot be narrowed: to give a
+subordinate a smaller version you must go back to the issuer. And it dies only by
+expiring; there is no built-in way to kill it *now*.
+
+**The policy engine.** The enterprise's answer — OPA with its rule language,
+Amazon's Cedar — centralizes the rules: every request is sent to a decision
+point, which consults policy and answers allow or deny. Its cousin,
+**relationship-based access control** (ReBAC — Google's Zanzibar design, embodied
+in SpiceDB and OpenFGA), derives the decision from a graph of relationships:
+*Alice may edit the doc because Alice is an editor of the folder that contains
+it.* These systems are genuinely expressive and genuinely default-deny. But
+notice what they hand the caller: *nothing*. The decision evaporates the moment
+it is made. There is no artifact to carry, delegate, or verify later — only the
+standing obligation to ask the server again, and to trust it.
+
+**The capability token.** The research lineage — Macaroons out of Google, Biscuit
+from the systems community, UCAN from the decentralized web — makes authority
+*portable and shrinkable*. A macaroon is a bearer note that anyone can narrow by
+appending a **caveat** ("…only table 7", "…only before 5 pm"), each folded into a
+cryptographic chain so caveats can be added but never removed. Authority that can
+only shrink as it is passed along is called **attenuation**, and it is the single
+most important word in this part. Biscuit adds public-key verification and
+logic-language caveats; UCAN roots the chain in decentralized identifiers like
+TypeDID's. These are true capabilities — but they are still *just* tokens:
+nothing gates their minting, and revocation is an afterthought bolted on outside.
+
+**The capability system.** The top of the ladder is where TypeSec lives, and the
+Introduction already showed its heart: authority as an unforgeable *typed* value,
+`Capability<P, R>`, mintable only through a policy decision, narrowable only
+downward, bound to one resource, expiring on a lease, revocable mid-flight, and
+required — by the compiler — for every protected act. Where the token families
+make authority portable, and the policy families make it governed, a capability
+system makes it *both*, and adds the one thing none of the others attempt:
+**information-flow labels**, secrecy levels riding on the data itself, so that
+reading above your clearance is not denied so much as rendered inexpressible.
+
+One classic villain stalks this whole ladder, and deserves his formal
+introduction: the **confused deputy**. A deputy is any program that acts on
+behalf of others while holding standing powers of its own — and an attacker who
+cannot do a thing directly can often *ask the deputy* to do it, borrowing the
+deputy's authority for a purpose it was never granted. The billing service that
+can delete files, tricked into deleting *your rival's* files, is confused in
+exactly this way. Ambient authority — power that is simply *in the air* around a
+program rather than attached to a specific request — is what makes the confusion
+possible. The capability answer is austere and total: a deputy holds no ambient
+power at all; every request must arrive *carrying* the capability that justifies
+it, and an unaccompanied request — however politely phrased — finds no authority
+lying around to borrow.
+
+## CAPABILITY-ADVERSARIAL-v1: the ladder, attacked
+
+The benchmark grants the adversary the request path, the clock, and a wallet of
+captured or hand-crafted tokens, and sets it loose on eighteen cases across
+eleven claimed capabilities. Each case is one clean attack with one correct
+outcome. Forge a capability, or tamper one to widen its grants — the seal must
+fail. Delegate with *broader* permissions or a *longer* lease than the parent —
+attenuation must refuse to go up. Aim a capability for `customer/2` at
+`customer/1` — instance binding must hold. Replay a capability after revocation
+(by id, or by a mid-lease revoke-everything epoch) or past its lease — it must be
+dead. Call a tool with no capability at all — deny-by-default must find nothing
+to borrow. Use a search authority to drive a delete — the deputy must refuse the
+confusion. Read above clearance — the label must redact, not reveal. Smuggle an
+unexpected field into the request itself — the wire must reject it before policy
+ever runs.
+
+Ten hard gates with the by-now-familiar constitution — `forged_capability_accepted`,
+`permission_widened`, `lease_extended`, `revoked_capability_honored`,
+`confused_deputy_exploited`, `ambient_tool_call_executed`, `label_leaked`, and
+their siblings — each an authorization failure that fails the release outright,
+each trippable only by a capability a system *claimed*. And the same
+capability-declared honesty: every system runs live, through its own adapter,
+over its **real** library — no simulations, no reimplemented checks — and a
+system is scored only on what it declares. The roster is the ladder itself: JWT
+as the bearer floor; Macaroons, Biscuit, and UCAN as the token band; Cedar, OPA,
+SpiceDB, and OpenFGA as the decision band; TypeSec as the capability system; and
+a dependency-free reference modeling the idealized full boundary.
+
+| System | Family | Claimed & correct | Gates |
+|---|---|:---:|:---:|
+| reference | the idealized boundary | 18 of 18 | 0 |
+| **TypeSec** | capability system | **17 of 18** | 0 |
+| Biscuit | capability token | 8 of 18 | 0 |
+| Macaroons | capability token | 6 of 18 | 0 |
+| UCAN | capability token | 3 of 18 | 0 |
+| JWT / OAuth | bearer floor | 6 of 18 | 0 |
+| Cedar | policy engine | 4 of 18 | 0 |
+| OPA | policy engine | 4 of 18 | 0 |
+| OpenFGA | ReBAC | 4 of 18 | 0 |
+| SpiceDB | ReBAC | 4 of 18 | 0 |
+
+## Reading the bands
+
+Not one gate tripped anywhere in the table — every system in the field holds
+every property it claims, which is itself a compliment to a mature ecosystem.
+What separates them is *coverage*: how much of the boundary each can even claim.
+And the coverage clusters into bands so cleanly that the table reads like a
+geological cross-section of the field.
+
+The four decision engines — Cedar and OPA reasoning from policy rules, OpenFGA
+and SpiceDB from relationship graphs, two mechanisms with nothing in common
+internally — land on *identical* four-case coverage: instance binding,
+deny-by-default, deputy resistance. That is what a decision, however
+sophisticated, can enforce — and all that it can, because a decision engine
+mints nothing. There is no object to attenuate, revoke, lease, or verify
+offline; there is only the server's answer, evaporating as it is spoken. The
+token band climbs higher exactly as far as its cryptography carries: Macaroons'
+caveat chain buys real attenuation; Biscuit's public-key blocks and revocation
+identifiers buy the band's best result, eight; UCAN's young library claims a
+conservative three. But every token system falls off the same cliff: nothing
+gates the *mint* (anyone holding a root key may issue anything), and nothing in
+any of them has ever heard of a clearance label.
+
+TypeSec holds seventeen of eighteen — the policy-gated mint *and* the monotone
+attenuation *and* the instance binding, the epoch and id revocation, the leases,
+the label-gated reveal and declassify, the deny-by-default tool plane, the
+audited decisions — because it is not a better token or a smarter decision
+engine but the *composition* the ladder was climbing toward: the decision
+engine's governance wrapped around the token's portability, expressed in types
+that make the whole arrangement unforgeable at compile time. The one case it
+declines, wire-integrity — rejecting a request whose serialized form smuggles
+unknown fields — it declines *honestly*, because the capability core has no
+request wire to harden: minting takes typed arguments, not parsed bytes. No real
+system in the field claims that column either; only the reference's idealized
+boundary holds it. The abstention is the benchmark's fairness machinery leaving
+a visible, truthful mark on its own author's system — which is precisely what
+should make the seventeen believable.
+
+The moral of the cross-section deserves its aphorism: **policy engines decide,
+capability tokens travel, bearer scopes gate — and only a capability system
+makes the authority itself unforgeable, attenuation-monotone, instance-bound,
+revocable, and label-aware, all at once.** That intersection is not a luxury.
+It is the minimum an autonomous agent needs before you can hand it power and
+sleep: every one of this part's eighteen attacks is something a prompt-injected
+model, or a compromised tool, will eventually *try*.
+
+---
+
+# Conclusion — One boundary, kept three times
 
 The argument of this book has been a single line drawn from a throwaway sentence
 to a reproducible number. An agent that records "Honduras coffee is 4.20 USD per
@@ -742,24 +1324,44 @@ authority you must hold to exercise, lineage you cannot forge, and receipts a
 stranger can verify. The QueryGraph stack builds that boundary, and Marciana is
 where cognition meets it — proposing freely, committing only through the gate.
 
-MARCIANA-ADVERSARIAL-v1 is the proof, and it is a proof in the strong sense: it
-does not ask you to believe the boundary holds. It attacks the boundary eighteen
-ways, keeps safety failures in a ledger that no quality score can pay off, runs
-the same attacks against five other systems, and hands you a one-command way to
-rerun the whole thing and see for yourself. When it reports that Marciana passes
-every case with every gate at zero, and that widely used open-source systems leak
-private data across clearance, resurrect nothing but also bound nothing, and rank
-unstably under a reordered query, it is not scoring a competition. It is drawing a
-map of where each boundary is, and where it isn't.
+But the deeper claim of this book — the one the Introduction made and three
+benchmarks then went looking to break — is that this is not a fact about memory.
+It is a fact about *systems*. Descend from the agent's memory to the catalog
+beneath the data lake, and the same questions are waiting: three stock catalogs,
+each excellent, each able to promise no more than that two writers will not
+trample one another — while the governed commit answers, for milliseconds per
+transaction, the question every auditor eventually asks. Descend once more, to
+authorization itself, and the world's answers spread out in bands — decisions
+that evaporate, tokens that travel but answer to no policy, bearer scopes that
+authorize whoever is holding them — with exactly one system in the table holding
+the whole boundary at once, because that boundary was written into its types.
+Three domains, three benchmarks, one shape: whoever asks must be proven; whatever
+acts must hold authority it could not have forged; whatever changes must leave a
+receipt.
+
+Each benchmark is a proof in the strong sense: none of them asks you to believe
+a boundary holds. They attack it — eighteen ways for a memory, seventeen for a
+catalog, eighteen for an authority — keep safety failures in ledgers of hard
+gates that no quality score can pay off, run the same attacks against every
+comparable system that will stand still for them, and hand you a one-command way
+to rerun everything and see for yourself. When the reports say that Marciana
+holds every gate while widely used memory systems leak across clearance; that
+every Iceberg catalog gives you compare-and-swap and only a governed one gives
+you a transaction you can prove; that policy engines decide, capability tokens
+travel, and only a capability system makes authority unforgeable — none of that
+is a scoreboard. It is a map of where each boundary is, and where it isn't, in
+territory where the maps had never been drawn.
 
 Cognition may be ambitious. In the enterprise, the evidence must be conservative.
 A model may propose anything; only a capability-bound commit may write; and every
-write leaves a receipt. That is not a constraint on what memory can do. It is the
-precondition for trusting it with anything that matters.
+write leaves a receipt. That is not a constraint on what these systems can do. It
+is the precondition for trusting them with anything that matters — and it is,
+this book has tried to show, a precondition you can build, buy for milliseconds,
+verify from the outside, and keep.
 
 ---
 
-# Appendix A — The nine hard gates in full
+# Appendix A — The cognition gates in full
 
 Each gate is a boundary violation counted independently. Any nonzero gate fails
 the benchmark regardless of every other measured number. On the recorded
@@ -784,7 +1386,8 @@ reference run, all nine held at zero.
 9. **`adversarial_input_mishandled`** — malformed, oversized, Unicode-confusable,
    or prompt-injection input is mishandled.
 
-# Appendix B — The eighteen cases
+
+# Appendix B — The eighteen cognition cases
 
 | # | Case | Category | The expectation |
 |---|---|---|---|
@@ -807,51 +1410,456 @@ reference run, all nine held at zero.
 | 17 | `confusable-query` | robustness | A Unicode look-alike query cannot reach restricted memory |
 | 18 | `injection-contained` | robustness | Injected instruction text stays inert and cannot leak restricted memory |
 
-# Appendix C — Glossary of the QueryGraph stack
+
+# Appendix C — The catalog gates and cases
+
+CATALOG-PROVENANCE-v1 counts safety failures in seven hard gates. A gate trips
+only on a capability a catalog *claimed* and got wrong; an honestly-declared
+unsupported capability never trips one. On the recorded run, every gate held at
+zero for every executed catalog.
+
+1. **`lost_update_accepted`** — a stale commit overwrote a newer one.
+2. **`duplicate_commit_applied`** — an idempotent retry produced a second
+   durable effect.
+3. **`evidence_lost`** — audit, outbox, or lineage evidence was lost, or emitted
+   without the commit that justifies it.
+4. **`forged_proof_accepted`** — a tampered receipt verified.
+5. **`unauthorized_scan_disclosed`** — a scan with a mismatched policy proof was
+   accepted.
+6. **`plaintext_in_evidence`** — evidence carried a raw location or secret.
+7. **`non_deterministic_receipt`** — identical commits produced different
+   receipts.
+
+The seventeen cases, by capability:
+
+| # | Case | Capability | The expectation |
+|---|---|---|---|
+| 1 | `commit-fresh` | commit | A fresh commit advances the pointer and yields a receipt |
+| 2 | `cas-stale-rejected` | compare-and-swap | A commit asserting stale metadata is rejected |
+| 3 | `cas-concurrent` | compare-and-swap | Two writers on one head: exactly one wins |
+| 4 | `idempotent-retry` | idempotent-replay | A retried commit returns the stored receipt, no double-apply |
+| 5 | `idempotent-across-restart` | idempotent-replay | Idempotency survives a restart |
+| 6 | `audit-durable` | durable-audit | An accepted commit yields a durable audit event |
+| 7 | `outbox-atomic-present` | atomic-outbox | An accepted commit stages an outbox event atomically |
+| 8 | `outbox-absent-on-reject` | atomic-outbox | A rejected commit emits no outbox event |
+| 9 | `replay-verifies` | replayable-proof | The commit receipt verifies offline |
+| 10 | `replay-forged-rejected` | replayable-proof | A tampered receipt fails verification |
+| 11 | `governed-scan-receipt` | governed-scan-proof | A scan carries a policy-bound authorization receipt |
+| 12 | `governed-scan-mismatch-rejected` | governed-scan-proof | A scan receipt does not verify against a different policy |
+| 13 | `receipt-chain-linked` | receipt-chain | A commit receipt links to its predecessor |
+| 14 | `tombstone-covered` | tombstone-proof | A drop is covered by a tombstone receipt |
+| 15 | `hash-only-audit` | hash-only-evidence | Evidence carries digests, never raw secrets |
+| 16 | `lineage-emitted` | lineage-evidence | An accepted commit emits a lineage event |
+| 17 | `restart-reproducible` | replayable-proof | The receipt still verifies after a restart |
+
+Recorded results (2026-08-06, all catalogs writing to one MinIO through
+Docker): the reference holds 17 of 17 with every gate zero; Nessie 0.107.5,
+Polaris 1.5.0, and Gravitino each hold `commit` and `compare-and-swap` (3 of 3
+claimed cases) and honestly decline the eleven governance capabilities. Unity
+Catalog OSS is excluded on principle: its Iceberg REST surface is read-only,
+with no commit path to make provable.
+
+# Appendix D — The capability gates and cases
+
+CAPABILITY-ADVERSARIAL-v1 counts safety failures in ten hard gates, under the
+same constitution as the other two benchmarks: any nonzero gate fails the
+release, and a gate trips only on a capability a system claimed. On the recorded
+run, every gate held at zero for all ten systems.
+
+1. **`unauthorized_mint`** — the engine minted a capability the policy forbids.
+2. **`forged_capability_accepted`** — a capability with an invalid or absent
+   seal was honored.
+3. **`permission_widened`** — a derived capability carried a broader grant than
+   its parent.
+4. **`lease_extended`** — a derived capability outlived its parent's lease.
+5. **`cross_resource_reveal`** — a capability acted on a resource instance it
+   was not bound to.
+6. **`revoked_capability_honored`** — a revoked or expired capability authorized
+   an action.
+7. **`label_leaked`** — labeled data was disclosed above clearance, or
+   declassified without the grant.
+8. **`ambient_tool_call_executed`** — a tool call ran with no backing
+   capability.
+9. **`confused_deputy_exploited`** — authority for one operation drove another.
+10. **`injected_field_accepted`** — a request carrying unknown fields was
+    accepted.
+
+The eighteen cases, by capability:
+
+| # | Case | Capability | The expectation |
+|---|---|---|---|
+| 1 | `mint-authorized` | mint-capability | An authorized subject mints a capability, with audit |
+| 2 | `mint-denied-by-policy` | mint-capability | A policy-denied mint yields no capability at all |
+| 3 | `forged-capability-rejected` | mint-capability | A capability with a tampered seal is refused |
+| 4 | `attenuate-narrows` | attenuation-monotonic | Attenuation drops grants and shortens the lease |
+| 5 | `widen-permission-rejected` | attenuation-monotonic | Attenuation cannot widen a permission |
+| 6 | `extend-lease-rejected` | attenuation-monotonic | Attenuation cannot extend a lease |
+| 7 | `resource-instance-bound` | resource-instance-binding | A capability reveals its bound resource instance |
+| 8 | `cross-resource-rejected` | resource-instance-binding | A capability for one instance cannot act on another |
+| 9 | `revoke-by-id` | revocation | A capability revoked by id stops authorizing |
+| 10 | `revoke-all-epoch` | revocation | Revoke-all invalidates outstanding capabilities mid-lease |
+| 11 | `lease-expiry-enforced` | lease-expiry | A capability past its lease is inactive |
+| 12 | `reveal-authorized` | reveal-gating | A matching read capability reveals the cleartext |
+| 13 | `reveal-below-clearance-redacted` | reveal-gating | A read below clearance is redacted, not disclosed |
+| 14 | `declassify-requires-grant` | declassify-gating | Lowering a label needs an explicit declassify grant |
+| 15 | `ambient-tool-call-denied` | deny-by-default-tool | A tool call with no capability is refused |
+| 16 | `confused-deputy-rejected` | confused-deputy-resistance | Authority for one operation cannot drive another |
+| 17 | `audit-on-every-decision` | audit-on-decision | Both allow and deny leave a durable audit event |
+| 18 | `wire-injected-field-rejected` | wire-integrity | A request with a smuggled field is refused |
+
+Recorded results (2026-08-06, every adapter live over its system's real
+library): the reference holds 18 of 18; TypeSec 17 of 17 claimed (declining
+`wire-integrity`, which the capability core has no request wire to claim);
+Biscuit 8, Macaroons 6, and UCAN 3 in the capability-token band; JWT 6 at the
+bearer floor; Cedar, OPA, OpenFGA, and SpiceDB 4 each in the decision band.
+Every system held every capability it claimed; all gates zero across the field.
+
+# Glossary
+
+Every term of art in this book, in one place. Terms are grouped by the layer
+they belong to; within each group, they are ordered so that each definition can
+lean only on the ones before it.
+
+## The stack
 
 **QueryGraph** — a stack for governed, auditable answers over enterprise data.
 Its applications (Navigator, QGLake, semantic models) consume Marciana through a
-thin integration.
+thin integration and never reach past it into the foundations.
 
 **Marciana** — the governed cognition and memory engine; the composition layer
 that owns the four verbs, cognition jobs, the memory ledger, receipts, and
-recovery. The subject of this book.
+recovery. The subject of Parts I–V.
 
 **TypeSec** — the authority layer. Owns capabilities, policy, protected content,
 labels, retention, quarantine, proposal validation, and the identity system. Its
 capability-gated vault is the only authority that may reveal or mutate protected
-memory.
+memory. The subject of Part VII.
 
 **TypeDID** — the identity system within TypeSec. A cryptographic decentralized
-identifier bound to each request; without it, a request has no scope. The basis
+identifier bound to each request; without one, a request has no scope. The basis
 of unforgeable identity and of commit-bound receipts.
 
 **Grust** — the persistence layer. Generic graph and query types, transactions,
 guarded commits, and durable backends. Owns the physical, atomic commit that a
 mutation maps into.
 
-**Sail** — the compute layer. Generic Arrow and Spark-Connect execution. Runs the
-computation that produces proposals; never receives an authoritative mutation
-handle.
+**Sail** — the compute layer. Generic Arrow and Spark-Connect execution. Runs
+the computation that produces proposals; never receives an authoritative
+mutation handle.
 
-**LakeCat** — the governed catalog. Iceberg catalog state and governed-scan
-proofs. A scan proof identifies an authorized snapshot; it does not, by itself,
-prove that arbitrary text came from that snapshot — hence the one-use draft
-binding.
+**LakeCat** — the governed catalog. Iceberg catalog state, provable
+transactions, and governed-scan proofs. The subject of Part VI.
 
-**Capability** — a non-cloneable, single-purpose token of authority that must be
-held to reveal or mutate protected memory, and is consumed by the exact
-operation it authorizes. A permission you *hold*, not a flag you *check*.
+## Identity and cryptography
 
-**Receipt** — a versioned, TypeDID-bound record of what an operation did,
-constructed from a complete recovered outcome. Distinguishes every phase's digest
-and timestamp; identical runs produce identical receipts.
+**Digest (hash)** — a short, fixed-length fingerprint computed from data (this
+book's systems use SHA-256), with two properties: identical input always yields
+the identical fingerprint, and no one can construct a different input with the
+same fingerprint. The atom of verifiable evidence.
+
+**Domain separation** — mixing a purpose label into a digest so that a
+fingerprint computed for one purpose can never be mistaken for one computed for
+another. A small discipline that closes an entire class of splicing attacks.
+
+**Decentralized identifier (DID)** — an identity backed by cryptographic keys
+rather than a shared secret, so a request *proves* who issued it instead of
+presenting a password anyone could have copied.
+
+**Signature** — a cryptographic seal over exact bytes that only the holder of a
+private key can produce and anyone with the public key can check. TypeDID signs
+with Ed25519 and encrypts via X25519 key agreement feeding a ChaCha20-Poly1305
+cipher.
+
+**Envelope** — TypeDID's sealed message: signed by the sender, encrypted to the
+recipient, with the signature covering a canonical, length-framed transcript of
+the whole so that tampering, splicing, replaying, back-dating, and key-confusion
+each produce a flat cryptographic rejection.
+
+**Bearer token** — a signed note authorizing *whoever holds it* (OAuth and JWT
+are the ubiquitous forms). Tamper-proof but theft-transparent: stolen is as good
+as issued. The floor of Part VII's ladder.
+
+**Replay** — presenting a captured, once-valid message or credential a second
+time. Defeated by nonces, replay stores, expiry windows, and idempotency —
+durably, so a restart does not amnesty the attacker.
+
+## Ledgers, catalogs, and transactions
+
+**Table** — rows and columns. In a data lake, not an object inside a database
+but a set of files plus the metadata that says which files.
+
+**Data lake** — an architecture in which tables live as ordinary files in cheap
+object storage, readable by any query engine, rather than inside one database.
+
+**Object storage** — a service (Amazon S3; its open-source stand-in MinIO) that
+stores files in buckets and serves them back. Infinitely dumb, infinitely
+scalable.
+
+**Parquet** — the compact, columnar file format in which lake tables usually
+keep their rows.
+
+**Apache Iceberg** — the open table format that makes files into tables: each
+version of a table is an immutable *snapshot* described by a *metadata file*
+listing exactly the data files that belong to it.
+
+**Catalog** — the service that holds, per table, the single pointer to the
+current metadata file. The keeper of "which files *is* the table right now."
+LakeCat, Nessie, Polaris, and Gravitino all speak the Iceberg REST protocol.
+
+**Commit** — the moment a table changes: validate the update, write the new
+metadata file, advance the pointer. The unit of everything Part VI measures.
+
+**Lost update** — the original sin of concurrency: two writers race, and one's
+committed work is silently replaced by the other's, with no error and no trace.
+
+**Compare-and-swap (CAS)** — the defense: a commit that says "advance the
+pointer *if it still points where I last saw it*." The stale racer is rejected
+instead of destroying work. Also called optimistic concurrency.
+
+**Ledger** — a record with obligations: durable entries, never erased (a
+correction is a new entry), each following from the last, verifiable later by a
+stranger. What a catalog becomes when its transactions are provable.
+
+**Idempotency key** — a unique key attached to an operation so that a retry
+returns the stored result of the first execution instead of applying the change
+twice. Same key, same answer, exactly one effect.
+
+**Transactional outbox** — the announcement of a change written *inside the
+same atomic transaction* as the change itself, so downstream evidence can never
+be lost to a crash between committing and telling anyone.
+
+**Receipt** — a record of one operation whose fields are sealed by their own
+digest, so any alteration is self-evident without the server's help. In
+QueryGraph, versioned, TypeDID-bound, and deterministic: identical runs produce
+identical receipts.
+
+**Receipt chain** — each receipt carries the digest of its predecessor, linking
+history into a sequence that cannot be silently reordered, trimmed, or spliced.
+
+**Offline verification** — checking evidence with no help from — and no trust
+in — the server that produced it. What elevates a receipt from assertion to
+evidence.
+
+**Tombstone** — the receipt covering a deletion, so that even removal leaves
+evidence that it happened, when, and under whose authority.
+
+**Provable transaction** — the executable definition of Part VI: a commit with
+CAS, idempotent replay, audit and outbox staged atomically, and a chained,
+offline-verifiable receipt, all evidence hash-only.
 
 **Governed-scan proof** — LakeCat's cryptographic evidence that a read came from
-a specific authorized snapshot of a data product.
+a specific authorized snapshot under a specific policy. A proof of the scan, not
+of arbitrary text a caller staples to it.
 
-**The four verbs** — `remember`, `recall`, `improve`, `forget`. Every one enters
-the same vault and the same guarded mutation seam.
+**Lineage** — the recorded path from source, through authorization and
+computation, to committed result — every node carrying an identity and a digest.
 
-**Hard gate** — a named safety property that must be zero for the benchmark to
-pass; never averaged into a quality score.
+## Authority
+
+**Authentication** — *who are you?* Answered by TypeDID.
+
+**Authorization** — *given who you are, what may you do?* The subject of Part
+VII.
+
+**Capability** — authority as an object: a non-cloneable, single-purpose token
+that must be *held* to act and is consumed by the exact operation it authorizes.
+In TypeSec, a typed value `Capability<P, R>` with no public constructor,
+mintable only through a policy decision.
+
+**Policy engine** — a centralized decision point (OPA with the Rego language;
+Amazon's Cedar) that answers allow-or-deny per request. Expressive and
+default-deny — but the decision evaporates; nothing travels.
+
+**Relationship-based access control (ReBAC)** — deriving decisions from a graph
+of relationships ("editor of the folder containing the doc"), after Google's
+Zanzibar design; embodied in SpiceDB and OpenFGA.
+
+**Capability token** — portable, shrinkable authority: Macaroons (caveat chains
+under HMAC), Biscuit (public-key blocks with logic-language caveats), UCAN
+(DID-rooted delegation chains).
+
+**Caveat** — a restriction appended to a capability token, cryptographically
+folded in so it can be added but never removed.
+
+**Attenuation** — the property that delegated authority can only *narrow* —
+fewer grants, a shorter lease — never widen. The single most important word in
+Part VII.
+
+**Lease** — an expiry on authority: a capability is minted to die, and a use
+past its lease is inert.
+
+**Revocation** — killing authority before its lease ends: by individual id, or
+by *epoch* — a mid-lease revoke-everything that invalidates all outstanding
+capabilities minted before it.
+
+**Ambient authority** — power that is simply "in the air" around a program
+rather than attached to a specific request. The precondition for the confused
+deputy; abolished by deny-by-default capability discipline.
+
+**Confused deputy** — a program with standing powers tricked into exercising
+them on an attacker's behalf. The classic argument for capabilities: a deputy
+that holds no ambient power cannot be confused into lending it.
+
+**Information-flow label** — a secrecy level (public, internal, sensitive)
+riding on the data itself, so that reads above the reader's clearance are
+redacted and lowering a label requires an explicit *declassify* grant.
+
+**Clearance** — the maximum label a principal may read. Distinct from tenancy:
+two users of one organization can differ in clearance, which is exactly the
+distinction the recorded cognition run found some systems missing.
+
+## Type-level security
+
+**Type** — the compile-time classification of a value that determines what a
+program may do with it. The load-bearing idea of the Introduction: rules encoded
+in types are checked before the program ever runs.
+
+**Phantom type** — a type parameter that carries no run-time data yet makes two
+otherwise-identical types distinct to the compiler — how `Capability<CanRead, R>`
+and `Capability<CanWrite, R>` become as different as a number and a sentence, at
+zero cost.
+
+**Sealed trait** — a family of types that outside code cannot extend. TypeSec's
+permissions are sealed: the vocabulary of authority is closed, and closed
+vocabularies can be reasoned about completely.
+
+**SecureValue** — TypeSec's opaque envelope for protected data: carries an
+information-flow label, allows transformation without extraction, keeps the
+stricter label when values combine, and yields cleartext only to a matching
+capability.
+
+**Typestate** — encoding a protocol's states as distinct types, so that
+operations invalid in a state simply do not exist on it. An unauthenticated
+agent has no authenticated methods to call — not denied; absent.
+
+**Unforgeable** — the recurring adjective, meaning something precise: possession
+is constructible only through the guarded path. A `Capability` cannot be
+struct-literaled into existence; a verified message cannot be fabricated from
+caller-supplied fields; a receipt is a function of what happened, not a form to
+fill in.
+
+## The benchmarks
+
+**MARCIANA-ADVERSARIAL-v1** — the cognition benchmark: eighteen cases, nine
+hard gates, six systems (Parts IV–V, Appendices A–B).
+
+**CATALOG-PROVENANCE-v1** — the provable-transaction benchmark: seventeen
+cases, eleven capabilities, seven hard gates, four catalogs (Part VI, Appendix
+C). Its companion, **catalog-bench**, measures the commit's speed — the cost of
+what provenance buys.
+
+**CAPABILITY-ADVERSARIAL-v1** — the authority benchmark: eighteen cases, eleven
+capabilities, ten hard gates, ten systems in three bands (Part VII, Appendix D).
+
+**Hard gate** — a named safety property that must be zero for a benchmark to
+pass; never averaged into a quality score. The constitutional device shared by
+all three benchmarks.
+
+**Capability-declared scoring** — the fairness rule shared by all three: each
+system's adapter declares what the system enforces; unclaimed capabilities are
+reported *unsupported*, never scored, and never faked; a gate can only be
+tripped by a claim.
+
+**Adapter** — the thin program that drives one system through a benchmark's
+cases using the system's own real interface, declaring its capabilities and
+returning outcomes — never re-implementing a check the system lacks.
+
+**Corpus digest** — the SHA-256 fingerprint of a benchmark's entire expectation
+set, stamped into every report, so that no expectation can be quietly adjusted
+after the fact and two runs are demonstrably of the same benchmark.
+
+---
+
+# Index
+
+References point to parts rather than pages, since this book travels in several
+formats. *Intro* is the Introduction; roman numerals are Parts; *A–D* are the
+appendices; *G* is the Glossary, which defines every entry here.
+
+**abstention** — IV, V, B
+**adapter** — IV, VI, VII, G
+**ambient authority** — Intro, VII, D, G
+**Apache Iceberg** — VI, C, G
+**as-of query (two axes of time)** — I, III, B
+**attenuation** — Intro, VII, D, G
+**audit trail** — I, II, VI, VII, A, C, D
+**authentication vs. authorization** — Intro, VII, G
+**bearer token** — II, VII, D, G
+**Biscuit** — VII, D, G
+**capability** — Intro, II, VII, D, G
+**capability-declared scoring** — IV, VI, VII, G
+**capability token (family)** — VII, D, G
+**CAPABILITY-ADVERSARIAL-v1** — Intro, VII, D, G
+**catalog** — VI, C, G
+**catalog-bench** — VI, G
+**CATALOG-PROVENANCE-v1** — Intro, VI, C, G
+**caveat** — VII, G
+**Cedar** — VII, D, G
+**clearance** — I, IV, V, VII, B, D, G
+**Cognee** — V
+**commit** — I, II, III, VI, C, G
+**compare-and-swap (CAS)** — VI, C, G
+**confused deputy** — Intro, VII, D, G
+**corpus digest** — IV, VI, VII, G
+**data lake** — VI, G
+**declassify** — VII, D, G
+**decentralized identifier (DID)** — Intro, II, G
+**deny-by-default** — Intro, VII, D
+**digest (hash)** — II, VI, G
+**domain separation** — II, VI, G
+**Ed25519 / X25519 / ChaCha20-Poly1305** — Intro, G
+**envelope (TypeDID)** — Intro, G
+**forgetting (surgical)** — III, IV, B
+**four verbs (remember, recall, improve, forget)** — III, G
+**governed-scan proof** — II, VI, C, G
+**Graphiti** — V
+**Gravitino** — VI, C
+**Grust** — II, G
+**hard gate** — Intro, IV, VI, VII, A, C, D, G
+**idempotency key** — I, IV, VI, B, C, G
+**information-flow label** — Intro, VII, D, G
+**JWT / OAuth** — VII, D, G
+**LakeCat** — II, VI, C, G
+**lease** — VII, D, G
+**ledger** — I, III, VI, G
+**Letta** — V
+**lineage** — Intro, II, VI, C, G
+**lost update** — VI, C, G
+**Macaroons** — VII, D, G
+**Marciana** — Intro, III, IV, V, G
+**MARCIANA-ADVERSARIAL-v1** — Intro, IV, V, A, B, G
+**Mem0** — V
+**metadata file / snapshot** — VI, C, G
+**MinIO** — V, VI, C, G
+**Nessie** — VI, C
+**object storage** — VI, G
+**offline verification** — Intro, VI, C, G
+**OPA (Open Policy Agent)** — VII, D, G
+**OpenFGA** — VII, D, G
+**outbox (transactional)** — II, VI, C, G
+**Parquet** — VI, G
+**phantom type** — Intro, G
+**Polaris** — VI, C
+**policy engine** — Intro, VII, D, G
+**prompt injection** — IV, B
+**provable transaction** — VI, C, G
+**QueryGraph** — Intro, II, G
+**ReBAC (relationship-based access control)** — VII, D, G
+**receipt** — Intro, II, III, VI, A, C, G
+**receipt chain** — VI, C, G
+**replay** — Intro, IV, VI, A, B, C, G
+**revocation (by id; by epoch)** — VII, D, G
+**Sail** — II, G
+**sealed trait** — Intro, G
+**SecureValue** — Intro, VII, G
+**SpiceDB** — VII, D, G
+**tombstone** — VI, C, G
+**type-level security** — Intro, VII, G
+**TypeDID** — Intro, II, G
+**typestate** — Intro, G
+**TypeSec** — Intro, II, VII, D, G
+**UCAN** — VII, D, G
+**unforgeable** — Intro, II, VII, G
+**Unity Catalog (excluded)** — VI, C
+**Zanzibar** — VII, G
+
