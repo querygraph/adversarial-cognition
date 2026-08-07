@@ -48,11 +48,35 @@ async function turn(agentId, prompt) {
 }
 
 function idsFrom(text) {
-  const match = text.match(/\[[\s\S]*?\]/);
-  if (!match) return [];
-  const parsed = JSON.parse(match[0]);
-  if (!Array.isArray(parsed)) throw new Error("recall response is not an array");
-  return parsed.filter((value) => typeof value === "string").slice(0, 8);
+  for (let start = 0; start < text.length; start += 1) {
+    if (text[start] !== "[") continue;
+    let depth = 0;
+    let quoted = false;
+    let escaped = false;
+    for (let end = start; end < text.length; end += 1) {
+      const char = text[end];
+      if (quoted) {
+        if (escaped) escaped = false;
+        else if (char === "\\") escaped = true;
+        else if (char === '"') quoted = false;
+        continue;
+      }
+      if (char === '"') quoted = true;
+      else if (char === "[") depth += 1;
+      else if (char === "]") {
+        depth -= 1;
+        if (depth !== 0) continue;
+        try {
+          const parsed = JSON.parse(text.slice(start, end + 1));
+          if (!Array.isArray(parsed) || !parsed.every((value) => typeof value === "string")) continue;
+          return parsed.slice(0, 8);
+        } catch {
+          break;
+        }
+      }
+    }
+  }
+  return [];
 }
 
 async function handle(request) {

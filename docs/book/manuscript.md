@@ -617,7 +617,7 @@ The results, recorded on a single local host, scored only on supported cases:
 |---|:---:|:---:|---|
 | **Marciana** | 18 | 18 | Every hard gate zero. |
 | **Akka + Fluree** | 16 | 16 | All claimed cases pass. |
-| **Letta App Server** | 6 | 0 | No bounded IDs; inputs accepted. |
+| **Letta App Server** | 6 | 1 | Empty-query abstention passed; temporal output was out of contract. |
 | **Graphiti** | 8 | 6 | Ranking and input-bound failures. |
 | **Mem0** | 9 | 6 | Same-tenant clearance leak. |
 | **Cognee** | 8 | 5 | Empty/input-bound failures. |
@@ -648,9 +648,10 @@ credited for it, and one that lacks a boundary says so rather than pretending.
 **Letta** is exercised through its current self-hosted App Server and Agent SDK.
 The agent loop handles each remember, recall, and forget operation against
 persistent MemFS. On the retained `llama3.1:latest` run, it returns no bounded
-IDs in the four supported retrieval cases and accepts both empty and 16 KB
-queries, for 0/6. These are configuration-specific response and input-validation
-findings, not a memory-leak or authorization claim. The adapter does not claim
+IDs in current retrieval, restart, order, and oversized-query cases. Its
+temporal output is not a corpus ID; only empty-query abstention passes, for
+1/6. These are configuration-specific response and input-validation findings,
+not a memory-leak or authorization claim. The adapter does not claim
 isolation merely because it selects a principal's agent, leaving twelve cases
 unsupported rather than manufacturing a security boundary.
 

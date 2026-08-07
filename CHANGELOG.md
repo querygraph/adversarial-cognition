@@ -4,7 +4,7 @@
 
 - Replace the Letta integration with Agent SDK 0.6.2 and the self-hosted App
   Server. Retain a bounded `llama3.1:latest` capture from
-  real agent turns over persistent MemFS: 0/6 claimed cases, 12 unsupported;
+  real agent turns over persistent MemFS: 1/6 claimed cases, 12 unsupported;
   no adapter-mediated isolation or authorization result is claimed.
 - Add the source-owned *Adversarial Cognition* book: a manuscript that
   introduces the QueryGraph stack from first principles, frames TypeDID

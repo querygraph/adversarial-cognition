@@ -44,7 +44,7 @@ Letta. Provenance, replay protection, idempotency, and derived-memory tracking
 are likewise unclaimed.
 
 The retained local `llama3.1:latest` capture in `outputs/letta.json` scores
-0/6 claimed cases with
-12 unsupported: four retrieval cases return no bounded IDs, while empty and
-16 KB queries are accepted. These are configuration-specific response and
-input-validation observations, not authorization findings.
+1/6 claimed cases with 12 unsupported: empty-query abstention passes, while
+current retrieval, temporal output, restart, order, and oversized-query cases
+fail the bounded response contract. These are configuration-specific response
+and input-validation observations, not authorization findings.
