@@ -10,6 +10,7 @@ this adapter deliberately does not claim isolation.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from datetime import date
@@ -26,8 +27,21 @@ class LettaSystem(MemorySystem):
     capabilities = frozenset({"retrieval", "temporal", "forget", "persistence"})
 
     def __init__(self) -> None:
+        # LETTA_ADAPTER_MODE selects how memory is reached. Default is the
+        # agent loop (what Letta ships as its interface). "direct-memory"
+        # drives the passage store directly, so the cost of the agent loop can
+        # be read as the delta between the two rows. Principal->archive routing
+        # is not a Letta authorization boundary (see PR #1), so direct mode
+        # claims only the primitives the store itself provides — never
+        # isolation — and the adapter still enforces no gate.
+        self.mode = os.environ.get("LETTA_ADAPTER_MODE", "agent-loop")
+        if self.mode == "direct-memory":
+            self.name = "letta-direct-memory"
+            self.interface = "direct-api"
+            self.capabilities = frozenset({"retrieval", "persistence"})
         self.bridge = subprocess.Popen(
             ["node", str(Path(__file__).with_name("bridge.js"))],
+            env={**os.environ, "LETTA_ADAPTER_MODE": self.mode},
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             text=True,

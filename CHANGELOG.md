@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Declare and report each adapter's `interface` (`direct-api` | `agent-loop`),
+  so how a system's memory was reached is legible in the results, not implied.
+  The adapter enforces no gate in either case; this is metadata only.
+
+- Add an optional second Letta entry (`letta-direct`) driving its memory store
+  directly rather than through the agent loop, so the cost of the loop is the
+  delta between the two rows. The Python mode switch, honest capability/interface
+  declarations, and registry entry are in place; the `direct-memory` bridge path
+  fails loudly until wired against the live App Server passage API (see
+  `adapters/letta/BUILD_NOTES.md`) rather than silently mislabeling an agent run.
+
 - Align comparative results wording with the 24 KB oversized-query fixture and
   make coverage-scoped accuracy explicit rather than presenting an ordinal
   ranking.

@@ -23,6 +23,10 @@ MAX_ERROR_CHARS = 256
 EXTERNAL_SYSTEMS = (
     ("mem0", "MARCIANA_ADVERSARIAL_MEM0_CMD"),
     ("letta", "MARCIANA_ADVERSARIAL_LETTA_CMD"),
+    # Optional second Letta entry driving its memory store directly rather than
+    # through the agent loop, so the cost of the loop can be read as the delta
+    # between the two rows. Same adapter, LETTA_ADAPTER_MODE=direct-memory.
+    ("letta-direct", "MARCIANA_ADVERSARIAL_LETTA_DIRECT_CMD"),
     ("cognee", "MARCIANA_ADVERSARIAL_COGNEE_CMD"),
     ("cognee-rs", "MARCIANA_ADVERSARIAL_COGNEE_RS_CMD"),
     ("graphiti", "MARCIANA_ADVERSARIAL_GRAPHITI_CMD"),
@@ -61,6 +65,7 @@ class SystemReport:
     status: str
     missing_configuration: tuple[str, ...] = ()
     error: str = ""
+    interface: str = "direct-api"
     outcomes: tuple[CaseOutcome, ...] = ()
 
     def as_dict(self) -> dict[str, object]:
@@ -74,6 +79,7 @@ class SystemReport:
         if self.error:
             report["error"] = self.error
         if self.status == "executed":
+            report["interface"] = self.interface
             report["cases"] = [outcome.as_dict() for outcome in self.outcomes]
             report["unsupported_cases"] = sum(
                 not outcome.supported for outcome in self.outcomes
@@ -101,7 +107,8 @@ def execute_marciana(suite: tuple[Case, ...], repeats: int) -> SystemReport:
                 elapsed_us,
             )
         )
-    return SystemReport("marciana", ADAPTER_PROTOCOL, "executed", outcomes=tuple(outcomes))
+    return SystemReport("marciana", ADAPTER_PROTOCOL, "executed",
+                        interface="direct-api", outcomes=tuple(outcomes))
 
 
 def _external_request(suite: tuple[Case, ...], repeats: int) -> str:
@@ -128,21 +135,24 @@ def _external_request(suite: tuple[Case, ...], repeats: int) -> str:
 
 def _parse_external_outcomes(
     payload: str, suite: tuple[Case, ...]
-) -> tuple[str, tuple[CaseOutcome, ...]]:
-    """Parse an external adapter's payload into a version and case outcomes.
+) -> tuple[str, str, tuple[CaseOutcome, ...]]:
+    """Parse an external adapter's payload into a version, interface, and outcomes.
 
     An adapter may honestly declare a case ``"supported": false`` instead of
     faking a result for a feature its system does not claim; unsupported
-    cases are reported separately, never counted as passes.
+    cases are reported separately, never counted as passes. The optional
+    ``interface`` field records how the adapter reached the system's memory
+    (``direct-api`` or ``agent-loop``); it is metadata, never a score.
     """
 
     parsed = json.loads(payload)
     version = str(parsed.get("adapter_version", ADAPTER_PROTOCOL))[:64]
+    interface = str(parsed.get("interface", "direct-api"))[:32]
     rows = parsed["cases"]
     by_id = {row["case_id"]: row for row in rows}
     if set(by_id) != {case.case_id for case in suite}:
         raise ValueError("external adapter did not report every case exactly once")
-    return version, tuple(
+    return version, interface, tuple(
         CaseOutcome(
             case.case_id,
             case.category,
@@ -186,12 +196,12 @@ def execute_external(
             timeout=timeout,
             check=True,
         )
-        version, outcomes = _parse_external_outcomes(completed.stdout, suite)
+        version, interface, outcomes = _parse_external_outcomes(completed.stdout, suite)
     except Exception as error:  # noqa: BLE001 - adapter failures become reportable errors
         return SystemReport(
             system, ADAPTER_PROTOCOL, "error", error=str(error)[:MAX_ERROR_CHARS]
         )
-    return SystemReport(system, version, "executed", outcomes=outcomes)
+    return SystemReport(system, version, "executed", interface=interface, outcomes=outcomes)
 
 
 def execute_systems(

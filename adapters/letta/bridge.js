@@ -79,9 +79,25 @@ function idsFrom(text) {
   return [];
 }
 
+// How memory is reached. "agent-loop" (default) drives an agent turn per
+// operation; "direct-memory" must drive the passage store directly. The direct
+// path is a documented handoff (see BUILD_NOTES.md) — until it is wired against
+// the live App Server passage API, memory operations fail loudly rather than
+// silently falling back to the agent loop and mislabeling the interface.
+const adapterMode = process.env.LETTA_ADAPTER_MODE ?? "agent-loop";
+const MEMORY_OPS = new Set(["reset", "remember", "recall", "forget", "restart"]);
+
 async function handle(request) {
   if (request.op === "info") {
-    return { version: `agent-sdk-0.6.2/app-server/${model}` };
+    const label = adapterMode === "direct-memory" ? "direct-memory" : "agent-sdk-0.6.2/app-server";
+    return { version: `${label}/${model}` };
+  }
+  if (adapterMode === "direct-memory" && MEMORY_OPS.has(request.op)) {
+    throw new Error(
+      "letta direct-memory bridge path is not implemented; drive Letta passages " +
+      "directly here (create/list/delete on the archival store) and run against " +
+      "the live App Server — see adapters/letta/BUILD_NOTES.md"
+    );
   }
   if (request.op === "reset") {
     for (const agentId of agents.values()) await newClient().agents.delete(agentId);

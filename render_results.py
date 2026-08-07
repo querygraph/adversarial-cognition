@@ -56,8 +56,8 @@ def render(report: dict) -> str:
         "",
         "## Systems",
         "",
-        "| System | Status | Adapter | Coverage | Correctness within coverage |",
-        "|--------|--------|---------|----------|-----------------------------|",
+        "| System | Status | Interface | Adapter | Coverage | Correctness within coverage |",
+        "|--------|--------|-----------|---------|----------|-----------------------------|",
     ]
     for name in present:
         entry = systems[name]
@@ -67,13 +67,14 @@ def render(report: dict) -> str:
             supported = [c for c in cases if c.get("supported", True)]
             acc = sum(c["correct"] for c in supported) / len(supported) if supported else 0.0
             lines.append(
-                f"| {name} | executed | `{entry['adapter_version']}` | "
+                f"| {name} | executed | {entry.get('interface', '—')} | "
+                f"`{entry['adapter_version']}` | "
                 f"{len(supported)}/{len(cases)} | "
                 f"{acc:.0%} ({sum(c['correct'] for c in supported)}/{len(supported)}) |"
             )
         else:
             missing = ", ".join(entry.get("missing_configuration", ())) or entry.get("error", "")
-            lines.append(f"| {name} | {status} | — | — | {missing} |")
+            lines.append(f"| {name} | {status} | — | — | — | {missing} |")
 
     lines += ["", "## Hard gates (Marciana reference)", ""]
     lines.append("| Gate | Count |")

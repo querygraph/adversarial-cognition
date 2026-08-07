@@ -80,6 +80,11 @@ class MemorySystem:
     name = "unnamed"
     version = "unversioned"
     capabilities: frozenset[str] = frozenset()
+    # How the adapter reaches the system's memory: "direct-api" for a library
+    # or store called directly, "agent-loop" for memory mediated by an agent.
+    # The adapter enforces no gate either way — this only makes the interface
+    # each system was driven through legible in the report.
+    interface: str = "direct-api"
 
     def reset(self) -> None:
         raise NotImplementedError
@@ -301,6 +306,7 @@ def run(system: MemorySystem) -> None:
     temporal = "temporal" in system.capabilities
     rows = [_run_case(system, case, temporal) for case in request["cases"]]
     print(json.dumps({"adapter_version": f"{system.name}-{system.version}",
+                      "interface": system.interface,
                       "cases": rows}))
 
 

@@ -71,6 +71,38 @@ class ExternalAdapterTests(unittest.TestCase):
         self.assertEqual(sum(not o.supported for o in report.outcomes), 1)
         self.assertEqual(report.as_dict()["unsupported_cases"], 1)
 
+    def test_interface_defaults_to_direct_api(self) -> None:
+        # The stub emits no `interface`; it must default to direct-api.
+        with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as handle:
+            handle.write(STUB_ADAPTER)
+            stub = handle.name
+        try:
+            environ = {"MARCIANA_ADVERSARIAL_MEM0_CMD": f"{sys.executable} {stub}"}
+            report = execute_external("mem0", "MARCIANA_ADVERSARIAL_MEM0_CMD", cases(), 1, environ)
+        finally:
+            Path(stub).unlink()
+        self.assertEqual(report.interface, "direct-api")
+        self.assertEqual(report.as_dict()["interface"], "direct-api")
+
+    def test_interface_is_surfaced_from_adapter(self) -> None:
+        # An adapter declaring agent-loop is recorded as such — metadata only.
+        stub_src = STUB_ADAPTER.replace(
+            '"adapter_version": "stub-adapter-1",',
+            '"adapter_version": "stub-adapter-1", "interface": "agent-loop",',
+        )
+        with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as handle:
+            handle.write(stub_src)
+            stub = handle.name
+        try:
+            environ = {"MARCIANA_ADVERSARIAL_LETTA_CMD": f"{sys.executable} {stub}"}
+            report = execute_external("letta", "MARCIANA_ADVERSARIAL_LETTA_CMD", cases(), 1, environ)
+        finally:
+            Path(stub).unlink()
+        self.assertEqual(report.as_dict()["interface"], "agent-loop")
+
+    def test_marciana_declares_direct_api(self) -> None:
+        self.assertEqual(execute_marciana(cases(), 1).as_dict()["interface"], "direct-api")
+
     def test_malformed_adapter_output_reports_error(self) -> None:
         environ = {"MARCIANA_ADVERSARIAL_MEM0_CMD": f'{sys.executable} -c "print(42)"'}
         report = execute_external("mem0", "MARCIANA_ADVERSARIAL_MEM0_CMD", cases(), 1, environ)
