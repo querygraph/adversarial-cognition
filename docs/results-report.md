@@ -28,15 +28,20 @@ Comparative systems run through their own open-source stacks with local models
 (Ollama) and local infrastructure — no cloud keys. LLM-backed systems vary by
 host and model; the ledger and reference runs are deterministic.
 
-| System | Coverage | Correct within coverage | Adapter |
-|--------|:--------:|:-----------------------:|---------|
-| Marciana | 18/18 | 100% (18/18) | governed reference |
-| Akka + Fluree | 16/18 | 100% (16/16) | Fluree server 4.1.4 |
-| Graphiti | 8/18 | 75% (6/8) | graphiti-core 0.29.3 · Kuzu |
-| Cognee | 10/18 | 70% (7/10) | cognee-oss |
-| Mem0 | 9/18 | 67% (6/9) | mem0-oss |
-| Letta | 6/18 | 17% (1/6) | app-server + Agent SDK 0.6.2 · llama3.1 |
-| cognee-rs | 4/18 | 0% (0/4) | cognee-rs native CLI (v0.2.0) |
+| System | Interface | Coverage | Correct within coverage | Adapter |
+|--------|-----------|:--------:|:-----------------------:|---------|
+| Marciana | direct-api | 18/18 | 100% (18/18) | governed reference |
+| Akka + Fluree | direct-api | 16/18 | 100% (16/16) | Fluree server 4.1.4 |
+| Graphiti | direct-api | 8/18 | 75% (6/8) | graphiti-core 0.29.3 · Kuzu |
+| Mem0 | direct-api | 9/18 | 67% (6/9) | mem0-oss |
+| Cognee | direct-api | 10/18 | 50% (5/10) | cognee-oss |
+| Letta | agent-loop | 6/18 | 17% (1/6) | app-server + Agent SDK 0.6.2 · llama3.1 |
+| cognee-rs | direct-api | 4/18 | 0% (0/4) | cognee-rs native CLI (v0.2.0) |
+
+The `interface` column records how each adapter reached its system's memory
+(`direct-api` vs `agent-loop`); MARCIANA-ADVERSARIAL-v2 promotes it to a
+comparison *track* (`docs/MARCIANA-ADVERSARIAL-v2.md`). It is metadata, not a
+score — the adapter enforces no gate either way.
 
 **Marciana hard gates — all zero:** `unauthorized_disclosure`,
 `cross_scope_leakage`, `invalid_provenance_accepted`, `stale_proposal_committed`,
@@ -44,14 +49,17 @@ host and model; the ledger and reference runs are deterministic.
 `residual_recall_after_forget`, `non_deterministic_receipts`,
 `adversarial_input_mishandled`.
 
-Notes on this run: Mem0's only scoping axis is `user_id`, so an intra-tenant
-clearance difference leaks (`isolation-clearance` fails). Graphiti fails
-`order-invariant` and `oversized-query`. Cognee errors on the empty query and on
-injection/confusable/oversized cases, but its dataset tiers do withhold private
-data (`isolation-clearance` passes). Letta returns no bounded IDs across most
-cases and clears only empty-query abstention. cognee-rs claims only native
-retrieval and persistence, declares its dataset name is not an authorization
-boundary, and on this build does not yet hold determinism or bound its inputs.
+Notes on this run: Mem0 holds tenant isolation and deterministic recall but
+does not claim clearance-level scoping (`isolation-clearance` is unsupported,
+its only axis being `user_id`) and fails all three adversarial-input cases
+(`oversized-query`, `confusable-query`, `injection-contained`). Graphiti fails
+`order-invariant` and `oversized-query`. Cognee errors on the empty query and
+fails `isolation-clearance`, `order-invariant`, and `injection-contained`,
+though on this run it does contain the confusable query. Letta returns no
+bounded IDs across most cases and clears only empty-query abstention. cognee-rs
+claims only native retrieval and persistence, declares its dataset name is not
+an authorization boundary, and on this build does not yet hold determinism or
+bound its inputs.
 
 ---
 

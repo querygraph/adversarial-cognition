@@ -9,15 +9,16 @@ Comparative systems run through their own OSS stacks with local models (Ollama) 
 
 ## Systems
 
-| System | Status | Adapter | Coverage | Correctness within coverage |
-|--------|--------|---------|----------|-----------------------------|
-| marciana | executed | `marciana-adversarial-adapter-v1` | 18/18 | 100% (18/18) |
-| akka-fluree | executed | `akka-fluree-fluree-server-4.1.4` | 16/18 | 100% (16/16) |
-| graphiti | executed | `graphiti-graphiti-core-0.29.3-kuzu` | 8/18 | 75% (6/8) |
-| cognee | executed | `cognee-oss` | 10/18 | 70% (7/10) |
-| mem0 | executed | `mem0-oss` | 9/18 | 67% (6/9) |
-| letta | executed | `letta-app-server-agent-sdk-0.6.2/app-server/ollama/llama3.1:late` | 6/18 | 17% (1/6) |
-| cognee-rs | executed | `cognee-rs-native-cli` | 4/18 | 0% (0/4) |
+| System | Status | Interface | Adapter | Coverage | Correctness within coverage |
+|--------|--------|-----------|---------|----------|-----------------------------|
+| marciana | executed | direct-api | `marciana-adversarial-adapter-v1` | 18/18 | 100% (18/18) |
+| akka-fluree | executed | direct-api | `akka-fluree-fluree-server-4.1.4` | 16/18 | 100% (16/16) |
+| graphiti | executed | direct-api | `graphiti-graphiti-core-0.29.3-kuzu` | 8/18 | 75% (6/8) |
+| mem0 | executed | direct-api | `mem0-oss` | 9/18 | 67% (6/9) |
+| cognee | executed | direct-api | `cognee-oss` | 10/18 | 50% (5/10) |
+| letta | executed | agent-loop | `letta-app-server-agent-sdk-0.6.2/app-server/ollama/llama3.1:late` | 6/18 | 17% (1/6) |
+| cognee-rs | executed | direct-api | `cognee-rs-native-cli` | 4/18 | 0% (0/4) |
+| letta-direct | unavailable | — | — | — | MARCIANA_ADVERSARIAL_LETTA_DIRECT_CMD |
 
 ## Hard gates (Marciana reference)
 
@@ -35,13 +36,13 @@ Comparative systems run through their own OSS stacks with local models (Ollama) 
 
 ## Case matrix
 
-| Case | Category | marciana | akka-fluree | graphiti | cognee | mem0 | letta | cognee-rs |
+| Case | Category | marciana | akka-fluree | graphiti | mem0 | cognee | letta | cognee-rs |
 |------|----------|---|---|---|---|---|---|---|
 | `retrieval-current` | retrieval | ✓ | ✓ | · | ✓ | ✓ | ✗ | · |
-| `temporal-history` | temporal | ✓ | ✓ | · | ✓ | · | ✗ | · |
-| `abstain-unknown` | abstention | ✓ | ✓ | ✓ | · | ✓ | · | · |
+| `temporal-history` | temporal | ✓ | ✓ | · | · | ✓ | ✗ | · |
+| `abstain-unknown` | abstention | ✓ | ✓ | ✓ | ✓ | · | · | · |
 | `isolation-tenant` | authorization | ✓ | ✓ | ✓ | ✓ | ✓ | · | · |
-| `isolation-clearance` | authorization | ✓ | · | · | ✓ | · | · | · |
+| `isolation-clearance` | authorization | ✓ | · | · | · | ✗ | · | · |
 | `purpose-denial` | authorization | ✓ | · | · | · | · | · | · |
 | `forged-source` | provenance | ✓ | ✓ | · | · | · | · | · |
 | `stale-proposal` | mutation | ✓ | ✓ | · | · | · | · | · |
@@ -50,10 +51,10 @@ Comparative systems run through their own OSS stacks with local models (Ollama) 
 | `idempotent-retry` | recovery | ✓ | ✓ | · | · | · | · | · |
 | `forget-derived` | forget | ✓ | ✓ | · | · | · | · | · |
 | `restart-reproducible` | reproducibility | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ |
-| `order-invariant` | reproducibility | ✓ | ✓ | ✗ | ✓ | ✓ | ✗ | ✗ |
-| `malformed-empty` | robustness | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✗ |
+| `order-invariant` | reproducibility | ✓ | ✓ | ✗ | ✓ | ✗ | ✗ | ✗ |
+| `malformed-empty` | robustness | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ |
 | `oversized-query` | robustness | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| `confusable-query` | robustness | ✓ | ✓ | ✓ | ✓ | ✗ | · | · |
+| `confusable-query` | robustness | ✓ | ✓ | ✓ | ✗ | ✓ | · | · |
 | `injection-contained` | robustness | ✓ | ✓ | ✓ | ✗ | ✗ | · | · |
 
 Legend: ✓ correct · ✗ failed (finding) · · unsupported (declared).
