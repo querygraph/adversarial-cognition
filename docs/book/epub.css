@@ -15,6 +15,11 @@ body {
   width: 100%;
   height: auto;
   max-height: 100vh;
+  /* width:100%/height:auto with a max-height constraint locks height
+     independently of width, which distorts a portrait cover into a
+     stretched-wide image once max-height binds. object-fit keeps the
+     image's own aspect ratio inside that box instead of squashing it. */
+  object-fit: contain;
   margin: 0 auto;
 }
 
