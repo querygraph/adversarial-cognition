@@ -3,8 +3,7 @@
 Runs MARCIANA-ADVERSARIAL-v1 through Letta's current self-hosted
 [App Server](https://docs.letta.com/self-hosting) and
 `@letta-ai/letta-agent-sdk`. The integration uses Agent SDK 0.6.2 with Letta
-Code/App Server 0.30.8. It does not use the deprecated V1 Python client,
-archives, passages, or direct search endpoints.
+Code/App Server 0.30.8.
 
 Every benchmark operation goes through the agent loop:
 
@@ -24,13 +23,14 @@ The default standalone command builds and starts the App Server container,
 connects it to local Ollama, runs the adapter, and removes the container:
 
 ```sh
-ollama pull gpt-oss:20b
+ollama pull llama3.1
 MARCIANA_ADVERSARIAL_LETTA_CMD=adapters/letta/run.sh \
   python3 run_benchmark.py --systems marciana,letta --repeats 1
 ```
 
-Override the agent model with `MARCIANA_LETTA_MODEL`. In compose mode the App
-Server is a sibling service at `http://letta:4500`.
+The recorded configuration uses `ollama/llama3.1:latest`; override it with
+`MARCIANA_LETTA_MODEL`. In compose mode the App Server is a sibling service at
+`http://letta:4500`. The exact model handle is included in the adapter version.
 The non-loopback compose listener uses a capability token, passed to the SDK
 through `MARCIANA_LETTA_TOKEN`; the default is scoped to the local benchmark
 network and can be overridden.
@@ -43,6 +43,8 @@ sending a turn is adapter routing, not differential permission enforcement by
 Letta. Provenance, replay protection, idempotency, and derived-memory tracking
 are likewise unclaimed.
 
-No comparative score is published until a fresh bounded output from this
-current agent-loop path is retained in `outputs/letta.json` and validated by
-CI. Historical archive-search observations are not carried forward.
+The retained local `llama3.1:latest` capture in `outputs/letta.json` scores
+0/6 claimed cases with
+12 unsupported: four retrieval cases return no bounded IDs, while empty and
+16 KB queries are accepted. These are configuration-specific response and
+input-validation observations, not authorization findings.

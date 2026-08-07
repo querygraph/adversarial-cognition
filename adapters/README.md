@@ -61,7 +61,7 @@ per-system status.
 | [mem0](mem0/) | Ollama | Mem0 OSS with a local vector store |
 | [graphiti](graphiti/) | Ollama | graphiti-core over embedded Kuzu (no external DB) |
 | [cognee](cognee/) | Ollama | Cognee OSS knowledge graph + vector index |
-| [letta](letta/) | Letta server + Ollama | Letta stateful-agent archival memory |
+| [letta](letta/) | Letta App Server + Agent SDK + Ollama | Agent-loop memory over persistent MemFS |
 
 Each adapter's own README and module docstring is the authoritative record
 of the capabilities it claims and the rationale for each — they are tuned to

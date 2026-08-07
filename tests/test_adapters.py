@@ -138,6 +138,7 @@ class LettaAppServerAdapterTests(unittest.TestCase):
         bridge = (root / "adapters/letta/bridge.js").read_text(encoding="utf-8")
         self.assertIn("LettaAgentClient", bridge)
         self.assertIn("client.prompt", bridge)
+        self.assertIn("ollama/llama3.1:latest", bridge)
         self.assertNotIn("archive_id", bridge)
 
         tree = ast.parse(

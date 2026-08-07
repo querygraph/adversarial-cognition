@@ -377,8 +377,8 @@ vendor supplies and tunes its own adapter command.
 Published comparative numbers additionally require the bounded raw adapter
 output used to assemble the report to be committed. A prose-only recorded
 result is not independently auditable and must not appear as a score. Adapter
-scope is part of the result: a direct legacy endpoint integration may not be
-described as representative of a current agent or application server.
+scope is part of the result: the documented API, execution loop, model, and
+server generation must match the system named in the result.
 
 **"In-process microsecond latencies versus our hosted service is not a fair
 comparison."** Agreed, and the report never makes it. Performance is

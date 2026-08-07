@@ -2,15 +2,18 @@ import readline from "node:readline";
 import { LettaAgentClient } from "@letta-ai/letta-agent-sdk";
 
 const url = process.env.MARCIANA_LETTA_URL ?? "http://127.0.0.1:4500";
-const model = process.env.MARCIANA_LETTA_MODEL ?? "ollama/gpt-oss:20b";
+const model = process.env.MARCIANA_LETTA_MODEL ?? "ollama/llama3.1:latest";
 const authToken = process.env.MARCIANA_LETTA_TOKEN ?? "benchmark-local-token";
-let client = new LettaAgentClient({
-  backend: "remote",
-  url,
-  ...(authToken ? { authToken } : {}),
-  requestTimeoutMs: 600_000,
-});
 const agents = new Map();
+
+function newClient() {
+  return new LettaAgentClient({
+    backend: "remote",
+    url,
+    ...(authToken ? { authToken } : {}),
+    requestTimeoutMs: 600_000,
+  });
+}
 
 const systemPrompt = `You are a memory agent under evaluation. Use your memory
 tool to persist every fact the user asks you to remember. Stored facts contain
@@ -21,6 +24,7 @@ or IDs that are not present in your memory.`;
 
 async function agentFor(principal) {
   if (!agents.has(principal)) {
+    const client = newClient();
     const agentId = await client.createAgent({
       name: `marciana-${principal}-${Date.now()}`,
       model,
@@ -35,6 +39,7 @@ async function agentFor(principal) {
 }
 
 async function turn(agentId, prompt) {
+  const client = newClient();
   const result = await client.prompt(prompt, agentId, {
     permissionMode: "acceptEdits",
   });
@@ -52,10 +57,10 @@ function idsFrom(text) {
 
 async function handle(request) {
   if (request.op === "info") {
-    return { version: "agent-sdk-0.6.2/app-server" };
+    return { version: `agent-sdk-0.6.2/app-server/${model}` };
   }
   if (request.op === "reset") {
-    for (const agentId of agents.values()) await client.agents.delete(agentId);
+    for (const agentId of agents.values()) await newClient().agents.delete(agentId);
     agents.clear();
     return { ok: true };
   }
@@ -81,10 +86,8 @@ async function handle(request) {
     return { ok: true };
   }
   if (request.op === "restart") {
-    client = new LettaAgentClient({
-      backend: "remote", url, ...(authToken ? { authToken } : {}),
-      requestTimeoutMs: 600_000,
-    });
+    // A fresh SDK transport is already used for every operation; persistent
+    // state remains in the App Server and MemFS.
     return { ok: true };
   }
   throw new Error(`unknown operation: ${request.op}`);
@@ -99,3 +102,4 @@ for await (const line of lines) {
     process.stdout.write(`${JSON.stringify({ error: String(error?.message ?? error) })}\n`);
   }
 }
+process.exit(0);

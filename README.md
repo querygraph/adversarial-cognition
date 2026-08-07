@@ -78,6 +78,11 @@ decision, an expected ranked prefix, a mandatory-abstention flag, and
 forbidden IDs that must never appear. The corpus is versioned by content
 digest; the runner refuses to execute a corpus that does not match its pin.
 Full design: [`docs/MARCIANA-ADVERSARIAL-v1.md`](docs/MARCIANA-ADVERSARIAL-v1.md).
+The public overview is at [adversari.al/cognition](https://adversari.al/cognition),
+and the companion book is available through
+[FirstPair](https://firstpair.org/read/adversarial-cognition/). Ownership and
+build paths for those separate repositories are recorded in
+[`FIRSTPAIR.md`](FIRSTPAIR.md).
 
 ## Comparative systems
 
@@ -105,7 +110,7 @@ and infrastructure (Neo4j for Graphiti, Fluree for the Akka adapter) comes
 from `docker compose up -d`. Setup details live in each adapter's README.
 The bundled Letta adapter uses the current TypeScript Agent SDK and self-hosted
 App Server. Remember, recall, and forget operations all execute through the
-agent loop and persistent MemFS; the deprecated V1 archive API is not used.
+agent loop and persistent MemFS.
 Bounded raw outputs underlying published comparative results are committed in
 [`outputs/`](outputs/). A system without a retained output is not assigned a
 published score.

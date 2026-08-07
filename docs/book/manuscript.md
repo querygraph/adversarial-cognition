@@ -606,7 +606,7 @@ embedded graph store) brought up locally, no cloud keys anywhere. The systems:
 - **Akka + Fluree** — a semantic-ledger design in which Fluree is the
   query/policy authority and the actor tier is the adapter process.
 - **Letta App Server** — the current Agent SDK drives persistent MemFS through
-  the agent loop; a fresh comparative capture is pending.
+  the agent loop, using local `llama3.1:latest` for the recorded run.
 - **Mem0** — an open-source retrieval-and-update memory over a local vector store.
 - **Graphiti** — a knowledge-graph memory over an embedded Kuzu backend.
 - **Cognee** — a knowledge-graph pipeline that builds and searches a graph.
@@ -615,12 +615,12 @@ The results, recorded on a single local host, scored only on supported cases:
 
 | System | Supported | Correct | The finding |
 |---|:---:|:---:|---|
-| **Marciana** (reference) | 18 | 18 | The full governed boundary. Every case correct; every hard gate zero. |
-| **Akka + Fluree** | 16 | 16 | Every claimed capability is executed by the Fluree ledger. Declines clearance and purpose rather than faking a policy engine. |
-| **Letta App Server** | — | — | Current agent-loop adapter added; fresh bounded output pending. |
-| **Graphiti** | 8 | 6 | Retrieval ranking is not stable under query-token reordering; no input bound. |
-| **Mem0** | 9 | 6 | Its only scoping axis is `user_id`: a lower-clearance principal in the same tenant reads private memory. |
-| **Cognee** | 8 | 5 | Its clearance tiers genuinely withhold private data — yet it errors on an empty query and bounds no input. |
+| **Marciana** | 18 | 18 | Every hard gate zero. |
+| **Akka + Fluree** | 16 | 16 | All claimed cases pass. |
+| **Letta App Server** | 6 | 0 | No bounded IDs; inputs accepted. |
+| **Graphiti** | 8 | 6 | Ranking and input-bound failures. |
+| **Mem0** | 9 | 6 | Same-tenant clearance leak. |
+| **Cognee** | 8 | 5 | Empty/input-bound failures. |
 
 The reference and the ledger runs are deterministic. The LLM-backed systems
 depend on the local model and hardware, so their numbers will vary by host; that
@@ -645,11 +645,14 @@ build ships no policy engine and the adapter refuses to fake one. This is the
 benchmark working as intended: a system that enforces a real boundary is
 credited for it, and one that lacks a boundary says so rather than pretending.
 
-**Letta** is now exercised through its current self-hosted App Server and Agent
-SDK. The agent loop handles each remember, recall, and forget operation against
-persistent MemFS. The adapter still does not claim isolation merely because it
-selects a principal's agent. No result is stated here until the new path has a
-fresh bounded output retained alongside the other comparative evidence.
+**Letta** is exercised through its current self-hosted App Server and Agent SDK.
+The agent loop handles each remember, recall, and forget operation against
+persistent MemFS. On the retained `llama3.1:latest` run, it returns no bounded
+IDs in the four supported retrieval cases and accepts both empty and 16 KB
+queries, for 0/6. These are configuration-specific response and input-validation
+findings, not a memory-leak or authorization claim. The adapter does not claim
+isolation merely because it selects a principal's agent, leaving twelve cases
+unsupported rather than manufacturing a security boundary.
 
 **Mem0** produces the most consequential enterprise finding in the set. Its only
 scoping axis is `user_id`: principals in the same organization share a store.
@@ -681,7 +684,7 @@ The intra-tenant clearance leak in Mem0 is the clearest example. An organization
 could run Mem0 for a year, pass every recall benchmark, demo beautifully, and
 never notice that a lower-clearance user could read a higher-clearance user's
 private data — until the day someone does, and it becomes an incident report. The
-missing input bounds in Letta, Graphiti, and Cognee are the same shape of
+missing input bounds in the tested Letta configuration, Graphiti, and Cognee are the same shape of
 problem: latent until adversarial, and then suddenly load-bearing.
 
 This is the enterprise case for governed cognition, made not by assertion but by

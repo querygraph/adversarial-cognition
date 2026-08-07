@@ -3,7 +3,7 @@
 **Benchmark:** MARCIANA-ADVERSARIAL-v1
 **Date:** 2026-08-06
 **Reference host:** Darwin arm64, Python 3.14, local Ollama (`gpt-oss:20b`,
-`nomic-embed-text`), Fluree `fluree/server` 4.1.4.
+`llama3.1:latest`, `nomic-embed-text`), Fluree `fluree/server` 4.1.4.
 
 All eighteen cases carry explicit expectations; each system runs only the
 capabilities it claims through its own API. **Unsupported cases are excluded
@@ -17,7 +17,7 @@ supported cases.
 |--------|:---------:|:-------:|:--------------------:|:-----------:|---------|
 | Marciana (reference) | 18 | 18 | 100% | 0 | All nine hard gates zero |
 | Akka + Fluree | 16 | 16 | 100% | 2 | Every claimed capability holds; no clearance/purpose engine |
-| Letta App Server | — | — | — | — | Current agent-loop adapter added; fresh output pending |
+| Letta App Server | 6 | 0 | 0% | 12 | Agent loop returned no bounded IDs; empty and 16 KB queries accepted |
 | Mem0 (OSS) | 9 | 6 | 67% | 9 | Leaks private memory to a same-tenant lower-clearance principal; no input bound |
 | Graphiti (Kuzu) | 8 | 6 | 75% | 10 | Retrieval not token-order stable; no input bound |
 | Cognee (OSS) | 8 | 5 | 63% | 10 | Clearance hides private data, but errors on empty input and no input bound |
@@ -44,7 +44,7 @@ This Fluree build's minimal HTTP API exposes no policy engine, so
 sensitivity- and purpose-based authorization would have to be adapter-faked;
 the adapter declines and declares them unsupported instead.
 
-## Letta App Server — fresh result pending
+## Letta App Server — 0/6 supported correct
 
 The replacement adapter uses `@letta-ai/letta-agent-sdk` 0.6.2 against a
 self-hosted Letta Code/App Server 0.30.8. Every memory operation is an agent
@@ -52,9 +52,17 @@ turn over persistent MemFS; it does not call V1 archives or passages. It still
 declares isolation unsupported because choosing which principal agent receives
 a turn is adapter routing rather than a Letta authorization test.
 
-No score or finding is published until the current path has produced a fresh,
-bounded `outputs/letta.json` capture. Results from the removed legacy
-archive-search adapter are not attributed to this implementation.
+The retained `outputs/letta.json` capture uses `llama3.1:latest`. The agent
+loop returned no bounded memory IDs for current retrieval, temporal history,
+restart reproducibility, or order invariance. It also accepted both an empty
+query and a 16 KB query instead of rejecting them. Those are response and input-
+validation findings for this exact model/configuration—not evidence of a memory
+leak or an authorization failure.
+
+**Declared unsupported (12):** unknown-query abstention, tenant isolation,
+clearance, purpose, provenance, replay, idempotency, forget-with-derived, and
+the confusable/injection containment cases. Principal-to-agent routing is not a
+Letta security permission, so no isolation case is scored.
 
 ## Mem0 (OSS) — 6/9 supported correct
 

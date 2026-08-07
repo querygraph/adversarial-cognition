@@ -25,6 +25,20 @@ routes, and catalog delivery. The canonical shared workflow is
 The source repository owns the cover, headboard, and manuscript; no public
 catalog or Blob metadata is edited from this repository during a local build.
 
+## Public surfaces
+
+| Surface | Owning checkout | Source or route |
+|---|---|---|
+| Benchmark repository and docs | this repository | `README.md`, `docs/` |
+| Adversari.al benchmark site | `/Users/alexy/src/adversarial-site` | `cognition/index.html` → `https://adversari.al/cognition` |
+| FirstPair book source | this repository | `docs/book/manuscript.md` |
+| FirstPair build and catalog | `/Users/alexy/src/firstpair` | `publishing/scripts/build-library-book.sh`, slug `adversarial-cognition` |
+| FirstPair reader | `/Users/alexy/src/firstpair` | `https://firstpair.org/read/adversarial-cognition/` |
+
+The website and FirstPair catalog are separate Git repositories. Update their
+source checkouts deliberately after the benchmark evidence and book artifacts
+have been regenerated here; never hand-edit generated FirstPair reader output.
+
 ## Safe workflow
 
 ```sh

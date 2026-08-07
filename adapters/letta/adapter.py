@@ -78,10 +78,14 @@ class LettaSystem(MemorySystem):
 
     def close(self) -> None:
         try:
-            self._request("reset")
+            if self.bridge.poll() is None:
+                self._request("reset")
+        except (BrokenPipeError, RuntimeError):
+            pass
         finally:
-            self.bridge.terminate()
-            self.bridge.wait(timeout=10)
+            if self.bridge.poll() is None:
+                self.bridge.terminate()
+                self.bridge.wait(timeout=10)
 
 
 if __name__ == "__main__":
