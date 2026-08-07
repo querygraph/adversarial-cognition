@@ -38,7 +38,7 @@ Introduction lays the shared foundation — security written into the *types* of
 program, identity you cannot fabricate, lineage you cannot forge. Parts I
 through V tell the cognition story in full: the enterprise memory problem, the
 stack from first principles, Marciana, the benchmark, and what it found when
-turned loose on Marciana and five widely used open-source memory systems. Part
+turned loose on Marciana and a field of widely used open-source memory systems. Part
 VI descends to the catalog — beginning with what a table in a data lake even
 *is* — and asks which catalogs can prove their transactions, and what such proof
 costs. Part VII descends further still, to authority itself, and runs ten
@@ -791,119 +791,158 @@ refusing to fake a result in either direction.
 ---
 
 
-# Part V — What the benchmark found
+# Part V — What the benchmark reveals
 
-## Six systems under attack
+## A word on numbers, and where they live
 
-The reference run pits Marciana against five widely used open-source memory
-systems, each driven through its own adapter against local models — LLM inference
-and embeddings served by a local Ollama, infrastructure (a Fluree ledger, an
-embedded graph store) brought up locally, no cloud keys anywhere. The systems:
+This part describes what the benchmark *finds* — the kinds of failure it drags
+into the light, illustrated by the real systems it has been run against. What it
+does not do is print a scoreboard. The exact coverage and correctness of each
+system on each run — which shift as models change, as adapters mature, as new
+systems join — live in a companion **results report**, regenerated every time the
+suite runs and stamped with the corpus digest that proves which corpus produced
+them. The book keeps to what does not change with the scores: the shape of the
+attack, and the character of what it reveals. Read the two together — the book
+for the *why*, the report for the *what, today*.
 
-- **Marciana** — the governed reference, exercising the full boundary.
-- **Akka + Fluree** — a semantic-ledger design in which Fluree is the
-  query/policy authority and the actor tier is the adapter process.
-- **Letta App Server** — the current Agent SDK drives persistent MemFS through
-  the agent loop, using local `llama3.1:latest` for the recorded run.
-- **Mem0** — an open-source retrieval-and-update memory over a local vector store.
+## A field of memory systems
+
+The reference run pits **Marciana**, the governed engine, against a field of
+widely used open-source memory systems, each driven through its own adapter
+against local models — inference and embeddings from a local Ollama,
+infrastructure brought up locally, no cloud keys anywhere. The roster is worth
+meeting not as competitors but as *specimens*, because each embodies a different
+answer to the question "what is a memory?":
+
+- **Marciana** — the governed reference, exercising the full boundary: the four
+  verbs, capability-gated reveal, digest-bound proposals, durable replay
+  protection, deterministic receipts.
+- **Akka + Fluree** — a semantic-ledger design, in which a Fluree ledger is the
+  query and policy authority and an actor tier is the adapter. A ledger is
+  exactly the kind of substrate that can enforce the properties the benchmark
+  cares about.
+- **Letta** — the current self-hosted App Server and Agent SDK, driving
+  persistent MemFS through an agent loop against a local model.
+- **Mem0** — an open-source retrieve-and-update memory over a local vector store.
 - **Graphiti** — a knowledge-graph memory over an embedded Kuzu backend.
-- **Cognee** — a knowledge-graph pipeline that builds and searches a graph.
+- **Cognee** — a Python knowledge-graph pipeline that builds and searches a
+  graph.
+- **cognee-rs** — the native Rust rewrite of Cognee, run through its own CLI,
+  deliberately kept separate from the Python entry so the two are never
+  conflated.
 
-The results, recorded on a single local host, scored only on supported cases:
+The list grows; systems come and go; a vendor may send an adapter tomorrow. That
+is precisely why the roster is treated here as a set of *examples* and the live
+tally is kept elsewhere. What follows holds regardless of the day's numbers.
 
-| System | Supported | Correct | The finding |
-|---|:---:|:---:|---|
-| **Marciana** | 18 | 18 | Every hard gate zero. |
-| **Akka + Fluree** | 16 | 16 | All claimed cases pass. |
-| **Letta App Server** | 6 | 1 | Empty-query abstention passed; temporal output was out of contract. |
-| **Graphiti** | 8 | 6 | Ranking and input-bound failures. |
-| **Mem0** | 9 | 6 | Same-tenant clearance leak. |
-| **Cognee** | 8 | 5 | Empty/input-bound failures. |
+## How to read a run
 
-The reference and the ledger runs are deterministic. The LLM-backed systems
-depend on the local model and hardware, so their numbers will vary by host; that
-variability is stated plainly and is itself a reason the benchmark ships as a
-reproducible stack rather than a leaderboard.
+Three habits make a results report legible, and they are the same three whatever
+the roster.
 
-## Reading the results
+First, **coverage and correctness are two axes, not one.** A system is scored
+only on the cases whose capability it *declares* it enforces; a case it does not
+claim is marked unsupported — never a pass, never a failure. So "correct on
+everything it claimed" and "claimed almost nothing" are both true of the same
+row, and a small, honest system is not flattered by its silence nor punished for
+it. Scores taken over different coverage are not directly comparable, and the
+report says so on its face.
 
-The numbers are less interesting than what the adversarial cases *surfaced*,
-because every failure here is a specific, legible property — not a vague
-"weakness."
+Second, **the gate ledger is separate from the quality score, and dominates it.**
+The named hard gates — unauthorized disclosure, cross-scope leakage, stale or
+replayed mutation, residual recall after forget, non-deterministic receipts, and
+the rest — must be zero, and no amount of recall accuracy buys back a single one.
+A run is read gates-first.
 
-**Akka + Fluree** is the strongest comparative result, and instructively so.
-Fluree is a ledger, and a ledger is exactly the kind of substrate that can
-enforce the properties the benchmark cares about: authorization and temporal
-filters run as query clauses, ranking as an aggregation, nonce claims and
-digest-guarded improvements as conditional transactions that fail if the
-condition does not hold, and forgetting as a cascading tombstone. It passes all
-sixteen capabilities it claims — including every safety gate that applies to
-them — and it *declines* clearance and purpose, honestly, because that Fluree
-build ships no policy engine and the adapter refuses to fake one. This is the
-benchmark working as intended: a system that enforces a real boundary is
-credited for it, and one that lacks a boundary says so rather than pretending.
+Third, **unsupported is an honest answer, not a hidden failure.** When an
+adapter declines a case, it is saying "this system does not claim this boundary,"
+and the benchmark records that as information rather than converting it into a
+loss. The most useful thing a comparison can produce is not a ranking but a *map*
+of exactly which parts of the boundary each system holds.
 
-**Letta** is exercised through its current self-hosted App Server and Agent SDK.
-The agent loop handles each remember, recall, and forget operation against
-persistent MemFS. On the retained `llama3.1:latest` run, it returns no bounded
-IDs in current retrieval, restart, order, and oversized-query cases. Its
-temporal output is not a corpus ID; only empty-query abstention passes, for
-1/6. These are configuration-specific response and input-validation findings,
-not a memory-leak or authorization claim. The adapter does not claim
-isolation merely because it selects a principal's agent, leaving twelve cases
-unsupported rather than manufacturing a security boundary.
+## The character of the findings
 
-**Mem0** produces the most consequential enterprise finding in the set. Its only
-scoping axis is `user_id`: principals in the same organization share a store.
-Model an analyst and an operator as the same tenant — which is what they are,
-differing only in *clearance* — and Mem0 cannot withhold the operator's private
-memory from the analyst, because it has no notion of clearance *within* a tenant.
-The private record leaks. This is exactly the failure the `unauthorized_disclosure`
-family of gates exists to catch, and it is invisible to any recall benchmark,
-because Mem0 recalls the record perfectly — to the wrong person.
+With those habits in hand, here is what the attack actually surfaces — each an
+example of a whole class, drawn from a real system, and each invisible to any
+recall score.
 
-**Graphiti** fails order-invariance — reordering the tokens of a query changes
-the ranked result — and, like the others, accepts oversized input. **Cognee** is
-the only open-source system in the set whose clearance mechanism (dataset tiers)
-genuinely withholds private data from the under-cleared caller, a real and
-creditable boundary; yet it errors on an empty query instead of abstaining and
-bounds no input. Each of these is a single, nameable property, and that is the
-deliverable: not a score, but a map of exactly which parts of the boundary each
-system holds.
+**A ledger enforces the boundary almost for free.** The strongest comparative
+result in the field has consistently been the semantic-ledger design, and
+instructively so. A ledger serializes transactions, filters by time and
+authorization as ordinary query clauses, guards a conditional write that fails if
+its condition no longer holds, and tombstones on delete — which is to say it
+already speaks the grammar the benchmark tests. Give it those capabilities and it
+passes them; where its particular build ships no policy engine, its adapter
+*declines* clearance and purpose rather than faking them. That is the benchmark
+working as intended: a real boundary is credited, an absent one is declared.
+
+**The intra-tenant clearance leak is the enterprise finding.** A popular
+vector-store memory scopes by a single axis — a user id. Model an analyst and an
+operator as what they actually are — one tenant, differing only in *clearance* —
+and such a system cannot withhold the operator's private memory from the analyst,
+because it has no notion of clearance *within* a tenant. The private record
+leaks. This is the exact failure the disclosure gates exist to catch, and it is
+invisible to every recall benchmark on earth, because the record is recalled
+*perfectly* — to the wrong person. An organization could run such a system for a
+year, pass every recall benchmark, demo beautifully, and never see it, until the
+day someone does and it becomes an incident report.
+
+**Ranking can be unstable under a reordered query.** A knowledge-graph memory may
+return one ranked result for a query and a different one when the query's tokens
+are reordered — an order-invariance failure. Nothing leaked; nothing was lost;
+but an audit that depends on the same question producing the same answer has
+quietly lost its footing.
+
+**Input that isn't bounded is a latent liability.** Several systems accept an
+oversized query, or error on an empty one instead of abstaining, or let a
+Unicode look-alike through. None of these is dramatic in a demo. All of them are
+load-bearing the moment an adversary, rather than a user, is typing.
+
+**A response contract is part of the boundary.** Exercised through its agent
+loop, one system returns no bounded identifiers across most retrieval and
+robustness cases and only clears the empty-query abstention — a configuration and
+response-shape finding, not a leak or an authorization claim, and its adapter
+says so by declining the cases it cannot honestly support rather than
+manufacturing a boundary it lacks.
+
+**A young engine wears its youth honestly.** The native Rust rewrite of a
+graph-memory pipeline claims only what it natively provides — retrieval and
+persistence — and explicitly declares that its dataset name is *not* an
+authorization boundary, so tenant and clearance cases stay unsupported rather
+than pretending. On the strength of what it does claim, an early build may not
+yet hold determinism across a restart or bound its inputs; the benchmark records
+that plainly, and — because it scores only the four cases the engine actually
+claims — the picture is a fair one of a system still under construction, not a
+caricature of one.
+
+Every one of these is a single, nameable property. That is the deliverable: not
+a verdict, but a map.
 
 ## What the findings mean for an enterprise deployment
 
-Step back from the individual systems and the pattern is stark. Every
-general-purpose open-source memory system in the set recalls facts well. Not one
-of them ships the *full* governed boundary — and the specific things they lack
-are precisely the things that do not show up until an adversary, or a regulator,
-or an incident, goes looking.
-
-The intra-tenant clearance leak in Mem0 is the clearest example. An organization
-could run Mem0 for a year, pass every recall benchmark, demo beautifully, and
-never notice that a lower-clearance user could read a higher-clearance user's
-private data — until the day someone does, and it becomes an incident report. The
-missing input bounds in the tested Letta configuration, Graphiti, and Cognee are the same shape of
-problem: latent until adversarial, and then suddenly load-bearing.
+Step back from the specimens and the pattern is stark, and it is the pattern
+rather than any row that matters. Every general-purpose open-source memory system
+recalls facts well. Not one of them ships the *full* governed boundary — and the
+specific things they lack are precisely the things that do not surface until an
+adversary, a regulator, or an incident goes looking: clearance within a tenant,
+bounded input, stable ranking, durable replay protection, deterministic receipts.
 
 This is the enterprise case for governed cognition, made not by assertion but by
-the negative space in the results table. The value of Marciana is not that it
+the negative space in a results table. The value of Marciana is not that it
 recalls better — several of these systems recall comparably. The value is that it
-is the only participant that *holds every part of the boundary at once*, and can
+is the only participant that holds *every* part of the boundary at once, and can
 prove it did, because the boundary is not a feature bolted onto a memory. It is
-the composition of TypeDID identity, TypeSec capabilities, LakeCat proofs, Grust's
-atomic commits, and deterministic receipts described in Part II — the thing the
-whole stack was built to make unforgeable.
-
-An enterprise does not need the best recall. It needs a memory it can stand
-behind when someone asks how. That is what "governed" buys, and the benchmark is
-the receipt.
+the composition of TypeDID identity, TypeSec capabilities, LakeCat proofs,
+Grust's atomic commits, and deterministic receipts described in Part II — the
+thing the whole stack was built to make unforgeable. An enterprise does not need
+the best recall. It needs a memory it can stand behind when someone asks how.
 
 ## Reproducing it: the Docker stack
 
-None of the above is worth anything if you have to take the authors' word for it.
-The benchmark ships as a source repository with a one-command Docker stack, so
-that anyone can rerun every system against the same corpus on their own hardware.
+None of this is worth anything on the authors' word. The benchmark ships as a
+source repository with a one-command Docker stack, so anyone can rerun every
+system against the same corpus on their own hardware and generate their own copy
+of the results report.
 
 ```sh
 ollama pull gpt-oss:20b nomic-embed-text
@@ -911,24 +950,18 @@ docker compose build
 docker compose run --rm benchmark      # all systems → out/RESULTS.md
 ```
 
-The compose stack brings up the Fluree and Letta services, resolves each
-adapter's pinned dependencies inside the benchmark image, runs every configured
-system against the corpus, and writes the machine-readable report and a
-human-readable `RESULTS.md`. Every report contains bounded identifiers, digests,
-counts, and timings — **never memory plaintext.** This is enforced structurally,
-not by convention: report assembly rejects any string long enough to be
-plaintext, and a test asserts that no seeded memory phrase appears in a rendered
-report. The corpus digest is stamped into every run, so two people who run the
-benchmark are demonstrably running the same benchmark.
-
-The core — the reference backend, the corpus, the gates, the report scripts — is
-dependency-free Python and runs with no network and no keys. The Docker stack is
-the full comparison; the core is the release gate that runs in continuous
-integration on every change. Both are in the repository, and both are the
-deliverable.
+The compose stack brings up the infrastructure services, resolves each adapter's
+pinned dependencies inside the benchmark image, runs every configured system
+against the corpus, and writes the machine-readable report and a human-readable
+`RESULTS.md` — the companion report this part has deferred to throughout. Every
+report contains bounded identifiers, digests, counts, and timings, **never memory
+plaintext**: report assembly rejects any string long enough to be plaintext, and
+a test asserts that no seeded phrase appears in a rendered report. The corpus
+digest is stamped into every run, so two people who run the benchmark are
+demonstrably running the same benchmark — and the book you are holding never goes
+stale, because the numbers were never in it.
 
 ---
-
 
 # Part VI — The catalog: a ledger for tables
 
@@ -1082,28 +1115,20 @@ land in seven **hard gates that must be zero** — among them
 tripped by a capability a catalog *claimed* and got wrong. An honest "no" is
 never punished; a false "yes" is never survivable.
 
-The recorded run — every catalog writing to one MinIO through Docker, so the
-object store cancels out of the comparison — came back with a table whose shape
-*is* the finding:
-
-| Catalog | Supported | Correct | Unsupported | Gates |
-|---|:---:|:---:|:---:|:---:|
-| reference (LakeCat's boundary) | 17 | 17 | 0 | 0 |
-| Nessie 0.107.5 | 3 | 3 | 14 | 0 |
-| Polaris 1.5.0 | 3 | 3 | 14 | 0 |
-| Gravitino | 3 | 3 | 14 | 0 |
-
-Three real, competent, widely deployed catalogs — and all three hold exactly the
-same two capabilities, `commit` and `compare-and-swap`, cleanly and honestly, and
-decline all eleven governance capabilities, because a stock catalog has no such
-surface to claim. No idempotent replay. No durable audit. No atomic outbox. No
-receipt an auditor could verify offline, no chain, no tombstone evidence, no
-hash-only discipline. **Every Iceberg catalog gives you compare-and-swap; only a
-governed catalog gives you a transaction you can prove.** The reference — a
-deterministic model of LakeCat's governed commit boundary, standing in until the
-live service adapter lands — holds all seventeen with every gate at zero, which
-is what defines the far edge of the table: not what exists everywhere today, but
-what *provable* means.
+The recorded run has every catalog writing to one MinIO through Docker, so the
+object store cancels out of the comparison, and the shape it produces — not the
+digits, which live in the companion results report — *is* the finding. Three
+real, competent, widely deployed stock catalogs sit in that table, and every one
+of them holds exactly the same two capabilities: `commit` and `compare-and-swap`,
+cleanly and honestly. And every one declines all eleven governance capabilities,
+because a stock catalog has no such surface to claim. No idempotent replay. No
+durable audit. No atomic outbox. No receipt an auditor could verify offline, no
+chain, no tombstone evidence, no hash-only discipline. **Every Iceberg catalog
+gives you compare-and-swap; only a governed catalog gives you a transaction you
+can prove.** The reference — a deterministic model of LakeCat's governed commit
+boundary, standing in until the live service adapter lands — holds all eleven
+governance capabilities with every gate at zero, which is what defines the far
+edge of the table: not what exists everywhere today, but what *provable* means.
 
 One incident from the recorded run deserves its footnote in the main text,
 because it is the book's thesis in miniature. Gravitino initially refused every
@@ -1125,15 +1150,17 @@ write paid *per commit*, and a fair account must say what the toll is.
 
 That account is **catalog-bench**, the companion performance suite: the same four
 catalogs, the same shared MinIO, one driver issuing identical minimal commits —
-first a thousand in sequence to measure latency, then eight concurrent writers
-hammering one table to measure throughput under contention. On the recorded run,
-Nessie — a lean version store with no governance machinery — led sequential
-latency, as it should. LakeCat came second, its gap a matter of a couple of
-milliseconds per commit: the price of writing a compare-and-swap check, a pointer
-log, an audit event, a transactional outbox, and an idempotency record — roughly
-seven durable writes — *inside* every single commit. And under contention, where
-governance bookkeeping ought to hurt most, LakeCat was *fastest*, committing
-about twice Nessie's rate across eight racing writers.
+first a run in sequence to measure latency, then a crowd of concurrent writers
+hammering one table to measure throughput under contention. The exact figures
+belong in the results report, where they can be rerun and revised; the durable
+finding is a ranking with a moral. A lean version store with no governance
+machinery leads on sequential latency, as it should. LakeCat sits just behind it,
+its gap a matter of a couple of milliseconds per commit — the price of writing a
+compare-and-swap check, a pointer log, an audit event, a transactional outbox,
+and an idempotency record, roughly seven durable writes, *inside* every single
+commit. And under contention, where governance bookkeeping ought to hurt most,
+LakeCat is *fastest*. The one-line summary the suite keeps earning: LakeCat is
+paying for features, not losing on speed.
 
 The two benchmarks are one argument stated twice. The performance suite measures
 the cost of the governed commit; the provenance suite measures what the cost
@@ -1152,8 +1179,8 @@ milliseconds.
 This part, like the last, is self-contained: it assumes you have logged into
 something, and builds everything else from there. Its subject is the oldest
 question in computing security — *may this caller do this thing?* — and a
-benchmark that asks it adversarially of ten systems at once, from the humble
-signed token to QueryGraph's own TypeSec.
+benchmark that asks it adversarially of a whole field of systems at once, from
+the humble signed token to QueryGraph's own TypeSec.
 
 Begin by splitting the question in two, because the split is where half the
 world's confusion lives. **Authentication** asks *who are you?* — and is
@@ -1251,57 +1278,48 @@ over its **real** library — no simulations, no reimplemented checks — and a
 system is scored only on what it declares. The roster is the ladder itself: JWT
 as the bearer floor; Macaroons, Biscuit, and UCAN as the token band; Cedar, OPA,
 SpiceDB, and OpenFGA as the decision band; TypeSec as the capability system; and
-a dependency-free reference modeling the idealized full boundary.
-
-| System | Family | Claimed & correct | Gates |
-|---|---|:---:|:---:|
-| reference | the idealized boundary | 18 of 18 | 0 |
-| **TypeSec** | capability system | **17 of 18** | 0 |
-| Biscuit | capability token | 8 of 18 | 0 |
-| Macaroons | capability token | 6 of 18 | 0 |
-| UCAN | capability token | 3 of 18 | 0 |
-| JWT / OAuth | bearer floor | 6 of 18 | 0 |
-| Cedar | policy engine | 4 of 18 | 0 |
-| OPA | policy engine | 4 of 18 | 0 |
-| OpenFGA | ReBAC | 4 of 18 | 0 |
-| SpiceDB | ReBAC | 4 of 18 | 0 |
+a dependency-free reference modeling the idealized full boundary. The exact
+coverage each system posts on a given run lives, as ever, in the companion
+results report; what the book keeps is the shape, because the shape is the
+argument.
 
 ## Reading the bands
 
-Not one gate tripped anywhere in the table — every system in the field holds
-every property it claims, which is itself a compliment to a mature ecosystem.
-What separates them is *coverage*: how much of the boundary each can even claim.
-And the coverage clusters into bands so cleanly that the table reads like a
-geological cross-section of the field.
+No gate trips anywhere in the field — every system holds every property it
+claims, which is itself a compliment to a mature ecosystem. What separates them
+is *coverage*: how much of the boundary each can even claim. And the coverage
+clusters into bands so cleanly that the table reads like a geological
+cross-section.
 
 The four decision engines — Cedar and OPA reasoning from policy rules, OpenFGA
 and SpiceDB from relationship graphs, two mechanisms with nothing in common
-internally — land on *identical* four-case coverage: instance binding,
-deny-by-default, deputy resistance. That is what a decision, however
+internally — land on *identical* coverage: instance binding, deny-by-default,
+deputy resistance, and nothing more. That is what a decision, however
 sophisticated, can enforce — and all that it can, because a decision engine
 mints nothing. There is no object to attenuate, revoke, lease, or verify
 offline; there is only the server's answer, evaporating as it is spoken. The
-token band climbs higher exactly as far as its cryptography carries: Macaroons'
-caveat chain buys real attenuation; Biscuit's public-key blocks and revocation
-identifiers buy the band's best result, eight; UCAN's young library claims a
-conservative three. But every token system falls off the same cliff: nothing
-gates the *mint* (anyone holding a root key may issue anything), and nothing in
-any of them has ever heard of a clearance label.
+token band climbs higher exactly as far as its cryptography carries: a caveat
+chain buys real attenuation; public-key blocks and revocation identifiers buy
+the band's best result; a younger library claims less, conservatively. But every
+token system falls off the same cliff: nothing gates the *mint* — anyone holding
+a root key may issue anything — and nothing in any of them has ever heard of a
+clearance label.
 
-TypeSec holds seventeen of eighteen — the policy-gated mint *and* the monotone
-attenuation *and* the instance binding, the epoch and id revocation, the leases,
-the label-gated reveal and declassify, the deny-by-default tool plane, the
-audited decisions — because it is not a better token or a smarter decision
-engine but the *composition* the ladder was climbing toward: the decision
-engine's governance wrapped around the token's portability, expressed in types
-that make the whole arrangement unforgeable at compile time. The one case it
-declines, wire-integrity — rejecting a request whose serialized form smuggles
-unknown fields — it declines *honestly*, because the capability core has no
-request wire to harden: minting takes typed arguments, not parsed bytes. No real
-system in the field claims that column either; only the reference's idealized
-boundary holds it. The abstention is the benchmark's fairness machinery leaving
-a visible, truthful mark on its own author's system — which is precisely what
-should make the seventeen believable.
+TypeSec sits at the top of the cross-section, one case short of the idealized
+reference — holding the policy-gated mint *and* the monotone attenuation *and*
+the instance binding, the epoch and id revocation, the leases, the label-gated
+reveal and declassify, the deny-by-default tool plane, the audited decisions —
+because it is not a better token or a smarter decision engine but the
+*composition* the ladder was climbing toward: the decision engine's governance
+wrapped around the token's portability, expressed in types that make the whole
+arrangement unforgeable at compile time. The single case it declines,
+wire-integrity — rejecting a request whose serialized form smuggles unknown
+fields — it declines *honestly*, because the capability core has no request wire
+to harden: minting takes typed arguments, not parsed bytes. No real system in the
+field claims that column either; only the reference's idealized boundary holds
+it. The abstention is the benchmark's fairness machinery leaving a visible,
+truthful mark on its own author's system — which is precisely what should make
+the rest of the row believable.
 
 The moral of the cross-section deserves its aphorism: **policy engines decide,
 capability tokens travel, bearer scopes gate — and only a capability system
@@ -1548,19 +1566,20 @@ The seventeen cases, by capability:
 | 16 | `lineage-emitted` | lineage-evidence | An accepted commit emits a lineage event |
 | 17 | `restart-reproducible` | replayable-proof | The receipt still verifies after a restart |
 
-Recorded results (2026-08-06, all catalogs writing to one MinIO through
-Docker): the reference holds 17 of 17 with every gate zero; Nessie 0.107.5,
-Polaris 1.5.0, and Gravitino each hold `commit` and `compare-and-swap` (3 of 3
-claimed cases) and honestly decline the eleven governance capabilities. Unity
-Catalog OSS is excluded on principle: its Iceberg REST surface is read-only,
-with no commit path to make provable.
+The per-catalog coverage and gate counts for the latest run live in the
+companion results report, regenerated whenever the suite runs and stamped with
+the corpus digest. The durable finding, unchanged across runs, is that stock
+Iceberg catalogs hold `commit` and `compare-and-swap` and decline the eleven
+governance capabilities, while the governed reference holds all of them with
+every gate at zero. Unity Catalog OSS is excluded on principle: its Iceberg REST
+surface is read-only, with no commit path to make provable.
 
 # Appendix D — The capability gates and cases
 
 CAPABILITY-ADVERSARIAL-v1 counts safety failures in ten hard gates, under the
 same constitution as the other two benchmarks: any nonzero gate fails the
 release, and a gate trips only on a capability a system claimed. On the recorded
-run, every gate held at zero for all ten systems.
+run, every gate held at zero across the field.
 
 1. **`unauthorized_mint`** — the engine minted a capability the policy forbids.
 2. **`forged_capability_accepted`** — a capability with an invalid or absent
@@ -1603,12 +1622,14 @@ The eighteen cases, by capability:
 | 17 | `audit-on-every-decision` | audit-on-decision | Both allow and deny leave a durable audit event |
 | 18 | `wire-injected-field-rejected` | wire-integrity | A request with a smuggled field is refused |
 
-Recorded results (2026-08-06, every adapter live over its system's real
-library): the reference holds 18 of 18; TypeSec 17 of 17 claimed (declining
-`wire-integrity`, which the capability core has no request wire to claim);
-Biscuit 8, Macaroons 6, and UCAN 3 in the capability-token band; JWT 6 at the
-bearer floor; Cedar, OPA, OpenFGA, and SpiceDB 4 each in the decision band.
-Every system held every capability it claimed; all gates zero across the field.
+The per-system coverage for the latest run — every adapter live over its
+system's real library — lives in the companion results report. The durable
+finding, unchanged across runs, is the banding: decision engines (policy-rule
+and relationship-based alike) cluster at the low end, holding what a decision can
+enforce and nothing more; the capability-token band climbs as far as its
+cryptography carries; and only the capability system holds the whole boundary at
+once, one honest case short of the idealized reference. Every system holds every
+capability it claims; the gates stay at zero across the field.
 
 # Glossary
 
@@ -1837,15 +1858,24 @@ fill in.
 ## The benchmarks
 
 **MARCIANA-ADVERSARIAL-v1** — the cognition benchmark: eighteen cases, nine
-hard gates, six systems (Parts IV–V, Appendices A–B).
+hard gates, run against Marciana and a field of open-source memory systems
+(Parts IV–V, Appendices A–B).
 
 **CATALOG-PROVENANCE-v1** — the provable-transaction benchmark: seventeen
-cases, eleven capabilities, seven hard gates, four catalogs (Part VI, Appendix
-C). Its companion, **catalog-bench**, measures the commit's speed — the cost of
-what provenance buys.
+cases, eleven capabilities, seven hard gates, run against the governed reference
+and a field of Iceberg REST catalogs (Part VI, Appendix C). Its companion,
+**catalog-bench**, measures the commit's speed — the cost of what provenance
+buys.
 
 **CAPABILITY-ADVERSARIAL-v1** — the authority benchmark: eighteen cases, eleven
-capabilities, ten hard gates, ten systems in three bands (Part VII, Appendix D).
+capabilities, ten hard gates, run against a field of authorization systems in
+three bands — bearer, capability token, and decision engine (Part VII, Appendix
+D).
+
+**Results report** — the companion document to this book that holds the *current*
+coverage and gate counts for every benchmark, regenerated on each run and stamped
+with the corpus digest. The book keeps the durable findings; the report keeps the
+numbers, so the book does not go stale.
 
 **Hard gate** — a named safety property that must be zero for a benchmark to
 pass; never averaged into a quality score. The constitutional device shared by

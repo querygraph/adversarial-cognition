@@ -150,28 +150,20 @@ land in seven **hard gates that must be zero** — among them
 tripped by a capability a catalog *claimed* and got wrong. An honest "no" is
 never punished; a false "yes" is never survivable.
 
-The recorded run — every catalog writing to one MinIO through Docker, so the
-object store cancels out of the comparison — came back with a table whose shape
-*is* the finding:
-
-| Catalog | Supported | Correct | Unsupported | Gates |
-|---|:---:|:---:|:---:|:---:|
-| reference (LakeCat's boundary) | 17 | 17 | 0 | 0 |
-| Nessie 0.107.5 | 3 | 3 | 14 | 0 |
-| Polaris 1.5.0 | 3 | 3 | 14 | 0 |
-| Gravitino | 3 | 3 | 14 | 0 |
-
-Three real, competent, widely deployed catalogs — and all three hold exactly the
-same two capabilities, `commit` and `compare-and-swap`, cleanly and honestly, and
-decline all eleven governance capabilities, because a stock catalog has no such
-surface to claim. No idempotent replay. No durable audit. No atomic outbox. No
-receipt an auditor could verify offline, no chain, no tombstone evidence, no
-hash-only discipline. **Every Iceberg catalog gives you compare-and-swap; only a
-governed catalog gives you a transaction you can prove.** The reference — a
-deterministic model of LakeCat's governed commit boundary, standing in until the
-live service adapter lands — holds all seventeen with every gate at zero, which
-is what defines the far edge of the table: not what exists everywhere today, but
-what *provable* means.
+The recorded run has every catalog writing to one MinIO through Docker, so the
+object store cancels out of the comparison, and the shape it produces — not the
+digits, which live in the companion results report — *is* the finding. Three
+real, competent, widely deployed stock catalogs sit in that table, and every one
+of them holds exactly the same two capabilities: `commit` and `compare-and-swap`,
+cleanly and honestly. And every one declines all eleven governance capabilities,
+because a stock catalog has no such surface to claim. No idempotent replay. No
+durable audit. No atomic outbox. No receipt an auditor could verify offline, no
+chain, no tombstone evidence, no hash-only discipline. **Every Iceberg catalog
+gives you compare-and-swap; only a governed catalog gives you a transaction you
+can prove.** The reference — a deterministic model of LakeCat's governed commit
+boundary, standing in until the live service adapter lands — holds all eleven
+governance capabilities with every gate at zero, which is what defines the far
+edge of the table: not what exists everywhere today, but what *provable* means.
 
 One incident from the recorded run deserves its footnote in the main text,
 because it is the book's thesis in miniature. Gravitino initially refused every
@@ -193,15 +185,17 @@ write paid *per commit*, and a fair account must say what the toll is.
 
 That account is **catalog-bench**, the companion performance suite: the same four
 catalogs, the same shared MinIO, one driver issuing identical minimal commits —
-first a thousand in sequence to measure latency, then eight concurrent writers
-hammering one table to measure throughput under contention. On the recorded run,
-Nessie — a lean version store with no governance machinery — led sequential
-latency, as it should. LakeCat came second, its gap a matter of a couple of
-milliseconds per commit: the price of writing a compare-and-swap check, a pointer
-log, an audit event, a transactional outbox, and an idempotency record — roughly
-seven durable writes — *inside* every single commit. And under contention, where
-governance bookkeeping ought to hurt most, LakeCat was *fastest*, committing
-about twice Nessie's rate across eight racing writers.
+first a run in sequence to measure latency, then a crowd of concurrent writers
+hammering one table to measure throughput under contention. The exact figures
+belong in the results report, where they can be rerun and revised; the durable
+finding is a ranking with a moral. A lean version store with no governance
+machinery leads on sequential latency, as it should. LakeCat sits just behind it,
+its gap a matter of a couple of milliseconds per commit — the price of writing a
+compare-and-swap check, a pointer log, an audit event, a transactional outbox,
+and an idempotency record, roughly seven durable writes, *inside* every single
+commit. And under contention, where governance bookkeeping ought to hurt most,
+LakeCat is *fastest*. The one-line summary the suite keeps earning: LakeCat is
+paying for features, not losing on speed.
 
 The two benchmarks are one argument stated twice. The performance suite measures
 the cost of the governed commit; the provenance suite measures what the cost

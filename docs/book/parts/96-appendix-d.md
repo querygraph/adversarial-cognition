@@ -3,7 +3,7 @@
 CAPABILITY-ADVERSARIAL-v1 counts safety failures in ten hard gates, under the
 same constitution as the other two benchmarks: any nonzero gate fails the
 release, and a gate trips only on a capability a system claimed. On the recorded
-run, every gate held at zero for all ten systems.
+run, every gate held at zero across the field.
 
 1. **`unauthorized_mint`** — the engine minted a capability the policy forbids.
 2. **`forged_capability_accepted`** — a capability with an invalid or absent
@@ -46,9 +46,11 @@ The eighteen cases, by capability:
 | 17 | `audit-on-every-decision` | audit-on-decision | Both allow and deny leave a durable audit event |
 | 18 | `wire-injected-field-rejected` | wire-integrity | A request with a smuggled field is refused |
 
-Recorded results (2026-08-06, every adapter live over its system's real
-library): the reference holds 18 of 18; TypeSec 17 of 17 claimed (declining
-`wire-integrity`, which the capability core has no request wire to claim);
-Biscuit 8, Macaroons 6, and UCAN 3 in the capability-token band; JWT 6 at the
-bearer floor; Cedar, OPA, OpenFGA, and SpiceDB 4 each in the decision band.
-Every system held every capability it claimed; all gates zero across the field.
+The per-system coverage for the latest run — every adapter live over its
+system's real library — lives in the companion results report. The durable
+finding, unchanged across runs, is the banding: decision engines (policy-rule
+and relationship-based alike) cluster at the low end, holding what a decision can
+enforce and nothing more; the capability-token band climbs as far as its
+cryptography carries; and only the capability system holds the whole boundary at
+once, one honest case short of the idealized reference. Every system holds every
+capability it claims; the gates stay at zero across the field.

@@ -38,7 +38,7 @@ Introduction lays the shared foundation — security written into the *types* of
 program, identity you cannot fabricate, lineage you cannot forge. Parts I
 through V tell the cognition story in full: the enterprise memory problem, the
 stack from first principles, Marciana, the benchmark, and what it found when
-turned loose on Marciana and five widely used open-source memory systems. Part
+turned loose on Marciana and a field of widely used open-source memory systems. Part
 VI descends to the catalog — beginning with what a table in a data lake even
 *is* — and asks which catalogs can prove their transactions, and what such proof
 costs. Part VII descends further still, to authority itself, and runs ten

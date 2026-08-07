@@ -225,15 +225,24 @@ fill in.
 ## The benchmarks
 
 **MARCIANA-ADVERSARIAL-v1** — the cognition benchmark: eighteen cases, nine
-hard gates, six systems (Parts IV–V, Appendices A–B).
+hard gates, run against Marciana and a field of open-source memory systems
+(Parts IV–V, Appendices A–B).
 
 **CATALOG-PROVENANCE-v1** — the provable-transaction benchmark: seventeen
-cases, eleven capabilities, seven hard gates, four catalogs (Part VI, Appendix
-C). Its companion, **catalog-bench**, measures the commit's speed — the cost of
-what provenance buys.
+cases, eleven capabilities, seven hard gates, run against the governed reference
+and a field of Iceberg REST catalogs (Part VI, Appendix C). Its companion,
+**catalog-bench**, measures the commit's speed — the cost of what provenance
+buys.
 
 **CAPABILITY-ADVERSARIAL-v1** — the authority benchmark: eighteen cases, eleven
-capabilities, ten hard gates, ten systems in three bands (Part VII, Appendix D).
+capabilities, ten hard gates, run against a field of authorization systems in
+three bands — bearer, capability token, and decision engine (Part VII, Appendix
+D).
+
+**Results report** — the companion document to this book that holds the *current*
+coverage and gate counts for every benchmark, regenerated on each run and stamped
+with the corpus digest. The book keeps the durable findings; the report keeps the
+numbers, so the book does not go stale.
 
 **Hard gate** — a named safety property that must be zero for a benchmark to
 pass; never averaged into a quality score. The constitutional device shared by

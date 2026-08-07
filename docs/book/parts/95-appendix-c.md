@@ -39,9 +39,10 @@ The seventeen cases, by capability:
 | 16 | `lineage-emitted` | lineage-evidence | An accepted commit emits a lineage event |
 | 17 | `restart-reproducible` | replayable-proof | The receipt still verifies after a restart |
 
-Recorded results (2026-08-06, all catalogs writing to one MinIO through
-Docker): the reference holds 17 of 17 with every gate zero; Nessie 0.107.5,
-Polaris 1.5.0, and Gravitino each hold `commit` and `compare-and-swap` (3 of 3
-claimed cases) and honestly decline the eleven governance capabilities. Unity
-Catalog OSS is excluded on principle: its Iceberg REST surface is read-only,
-with no commit path to make provable.
+The per-catalog coverage and gate counts for the latest run live in the
+companion results report, regenerated whenever the suite runs and stamped with
+the corpus digest. The durable finding, unchanged across runs, is that stock
+Iceberg catalogs hold `commit` and `compare-and-swap` and decline the eleven
+governance capabilities, while the governed reference holds all of them with
+every gate at zero. Unity Catalog OSS is excluded on principle: its Iceberg REST
+surface is read-only, with no commit path to make provable.

@@ -5,8 +5,8 @@
 This part, like the last, is self-contained: it assumes you have logged into
 something, and builds everything else from there. Its subject is the oldest
 question in computing security — *may this caller do this thing?* — and a
-benchmark that asks it adversarially of ten systems at once, from the humble
-signed token to QueryGraph's own TypeSec.
+benchmark that asks it adversarially of a whole field of systems at once, from
+the humble signed token to QueryGraph's own TypeSec.
 
 Begin by splitting the question in two, because the split is where half the
 world's confusion lives. **Authentication** asks *who are you?* — and is
@@ -104,57 +104,48 @@ over its **real** library — no simulations, no reimplemented checks — and a
 system is scored only on what it declares. The roster is the ladder itself: JWT
 as the bearer floor; Macaroons, Biscuit, and UCAN as the token band; Cedar, OPA,
 SpiceDB, and OpenFGA as the decision band; TypeSec as the capability system; and
-a dependency-free reference modeling the idealized full boundary.
-
-| System | Family | Claimed & correct | Gates |
-|---|---|:---:|:---:|
-| reference | the idealized boundary | 18 of 18 | 0 |
-| **TypeSec** | capability system | **17 of 18** | 0 |
-| Biscuit | capability token | 8 of 18 | 0 |
-| Macaroons | capability token | 6 of 18 | 0 |
-| UCAN | capability token | 3 of 18 | 0 |
-| JWT / OAuth | bearer floor | 6 of 18 | 0 |
-| Cedar | policy engine | 4 of 18 | 0 |
-| OPA | policy engine | 4 of 18 | 0 |
-| OpenFGA | ReBAC | 4 of 18 | 0 |
-| SpiceDB | ReBAC | 4 of 18 | 0 |
+a dependency-free reference modeling the idealized full boundary. The exact
+coverage each system posts on a given run lives, as ever, in the companion
+results report; what the book keeps is the shape, because the shape is the
+argument.
 
 ## Reading the bands
 
-Not one gate tripped anywhere in the table — every system in the field holds
-every property it claims, which is itself a compliment to a mature ecosystem.
-What separates them is *coverage*: how much of the boundary each can even claim.
-And the coverage clusters into bands so cleanly that the table reads like a
-geological cross-section of the field.
+No gate trips anywhere in the field — every system holds every property it
+claims, which is itself a compliment to a mature ecosystem. What separates them
+is *coverage*: how much of the boundary each can even claim. And the coverage
+clusters into bands so cleanly that the table reads like a geological
+cross-section.
 
 The four decision engines — Cedar and OPA reasoning from policy rules, OpenFGA
 and SpiceDB from relationship graphs, two mechanisms with nothing in common
-internally — land on *identical* four-case coverage: instance binding,
-deny-by-default, deputy resistance. That is what a decision, however
+internally — land on *identical* coverage: instance binding, deny-by-default,
+deputy resistance, and nothing more. That is what a decision, however
 sophisticated, can enforce — and all that it can, because a decision engine
 mints nothing. There is no object to attenuate, revoke, lease, or verify
 offline; there is only the server's answer, evaporating as it is spoken. The
-token band climbs higher exactly as far as its cryptography carries: Macaroons'
-caveat chain buys real attenuation; Biscuit's public-key blocks and revocation
-identifiers buy the band's best result, eight; UCAN's young library claims a
-conservative three. But every token system falls off the same cliff: nothing
-gates the *mint* (anyone holding a root key may issue anything), and nothing in
-any of them has ever heard of a clearance label.
+token band climbs higher exactly as far as its cryptography carries: a caveat
+chain buys real attenuation; public-key blocks and revocation identifiers buy
+the band's best result; a younger library claims less, conservatively. But every
+token system falls off the same cliff: nothing gates the *mint* — anyone holding
+a root key may issue anything — and nothing in any of them has ever heard of a
+clearance label.
 
-TypeSec holds seventeen of eighteen — the policy-gated mint *and* the monotone
-attenuation *and* the instance binding, the epoch and id revocation, the leases,
-the label-gated reveal and declassify, the deny-by-default tool plane, the
-audited decisions — because it is not a better token or a smarter decision
-engine but the *composition* the ladder was climbing toward: the decision
-engine's governance wrapped around the token's portability, expressed in types
-that make the whole arrangement unforgeable at compile time. The one case it
-declines, wire-integrity — rejecting a request whose serialized form smuggles
-unknown fields — it declines *honestly*, because the capability core has no
-request wire to harden: minting takes typed arguments, not parsed bytes. No real
-system in the field claims that column either; only the reference's idealized
-boundary holds it. The abstention is the benchmark's fairness machinery leaving
-a visible, truthful mark on its own author's system — which is precisely what
-should make the seventeen believable.
+TypeSec sits at the top of the cross-section, one case short of the idealized
+reference — holding the policy-gated mint *and* the monotone attenuation *and*
+the instance binding, the epoch and id revocation, the leases, the label-gated
+reveal and declassify, the deny-by-default tool plane, the audited decisions —
+because it is not a better token or a smarter decision engine but the
+*composition* the ladder was climbing toward: the decision engine's governance
+wrapped around the token's portability, expressed in types that make the whole
+arrangement unforgeable at compile time. The single case it declines,
+wire-integrity — rejecting a request whose serialized form smuggles unknown
+fields — it declines *honestly*, because the capability core has no request wire
+to harden: minting takes typed arguments, not parsed bytes. No real system in the
+field claims that column either; only the reference's idealized boundary holds
+it. The abstention is the benchmark's fairness machinery leaving a visible,
+truthful mark on its own author's system — which is precisely what should make
+the rest of the row believable.
 
 The moral of the cross-section deserves its aphorism: **policy engines decide,
 capability tokens travel, bearer scopes gate — and only a capability system
