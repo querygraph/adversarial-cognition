@@ -23,7 +23,7 @@ wait_for() {
 
 # Fluree and Letta are the only network services adapters call directly.
 wait_for fluree "${MARCIANA_FLUREE_URL%/v1/fluree}" 180
-wait_for letta "${MARCIANA_LETTA_URL}/v1/health/" 240
+wait_for letta "${MARCIANA_LETTA_URL}/" 240
 wait_for ollama "${MARCIANA_OLLAMA_URL}/api/tags" 120
 
 # Wire every adapter command; unset ones are reported unavailable, not skipped.

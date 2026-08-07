@@ -7,7 +7,7 @@
 # and vector services (Fluree, Letta) and the LLM backend (Ollama) are
 # sibling containers wired in docker-compose.yml — this image talks to them
 # over the network and never spawns a container itself.
-FROM python:3.12-slim-bookworm
+FROM node:22-bookworm-slim
 
 COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /usr/local/bin/
 
@@ -17,7 +17,7 @@ ENV UV_LINK_MODE=copy \
     DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential curl ca-certificates git \
+        build-essential curl ca-certificates git python3 python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /benchmark
@@ -29,7 +29,8 @@ WORKDIR /benchmark
 RUN uv run --with 'mem0ai' --with 'chromadb' --with 'ollama' python -c "pass"
 RUN uv run --with 'graphiti-core[kuzu]==0.29.3' --with 'openai' python -c "pass"
 RUN uv run --with 'cognee' --with 'litellm==1.91.4' python -c "pass"
-RUN uv run --with 'letta-client==1.12.1' python -c "pass"
+COPY adapters/letta/package.json adapters/letta/package-lock.json /benchmark/adapters/letta/
+RUN npm ci --ignore-scripts --prefix adapters/letta
 
 COPY . /benchmark
 

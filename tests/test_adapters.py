@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import ast
 import sys
 import tempfile
 import unittest
@@ -123,6 +124,33 @@ class RecordedAdapterOutputTests(unittest.TestCase):
                         assert_bounded(item)
 
             assert_bounded(parsed)
+
+
+class LettaAppServerAdapterTests(unittest.TestCase):
+    def test_uses_current_agent_sdk_without_claiming_adapter_routing_as_isolation(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        package = json.loads(
+            (root / "adapters/letta/package.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            package["dependencies"]["@letta-ai/letta-agent-sdk"], "0.6.2"
+        )
+        bridge = (root / "adapters/letta/bridge.js").read_text(encoding="utf-8")
+        self.assertIn("LettaAgentClient", bridge)
+        self.assertIn("client.prompt", bridge)
+        self.assertNotIn("archive_id", bridge)
+
+        tree = ast.parse(
+            (root / "adapters/letta/adapter.py").read_text(encoding="utf-8")
+        )
+        assignment = next(
+            node for node in ast.walk(tree)
+            if isinstance(node, ast.Assign)
+            and any(isinstance(target, ast.Name) and target.id == "capabilities"
+                    for target in node.targets)
+        )
+        capabilities = ast.literal_eval(assignment.value.args[0])
+        self.assertNotIn("isolation", capabilities)
 
 
 if __name__ == "__main__":

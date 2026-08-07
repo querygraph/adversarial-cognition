@@ -20,14 +20,16 @@ services:
       - fluree-data:/opt/fluree-server/data
 
   letta:
-    # Legacy archive-search fixture only; not the current Letta app server.
-    image: letta/letta:0.16.8
+    build: adapters/letta
     ports:
-      - "8283:8283"
+      - "4500:4500"
     environment:
-      OLLAMA_BASE_URL: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}
+      MARCIANA_OLLAMA_URL: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}
+      MARCIANA_LETTA_TOKEN: ${MARCIANA_LETTA_TOKEN:-benchmark-local-token}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - letta-data:/var/lib/letta
 
   ollama:
     image: ollama/ollama:latest
@@ -46,8 +48,9 @@ services:
       MARCIANA_OLLAMA_URL: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}
       MARCIANA_OLLAMA_MODEL: ${MARCIANA_OLLAMA_MODEL:-}
       MARCIANA_FLUREE_URL: http://fluree:8090/v1/fluree
-      MARCIANA_LETTA_URL: http://letta:8283
-      MARCIANA_LETTA_EMBED_URL: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}/v1
+      MARCIANA_LETTA_URL: http://letta:4500
+      MARCIANA_LETTA_MODEL: ${MARCIANA_LETTA_MODEL:-ollama/gpt-oss:20b}
+      MARCIANA_LETTA_TOKEN: ${MARCIANA_LETTA_TOKEN:-benchmark-local-token}
       LETTA_EXTERNAL: "1"
       MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS: ${MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS:-3600}
     extra_hosts:
@@ -57,4 +60,5 @@ services:
 
 volumes:
   fluree-data:
+  letta-data:
   ollama-models:

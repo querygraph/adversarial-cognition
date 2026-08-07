@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Replace the deprecated Letta V1 archive-search integration with the current
+  TypeScript Agent SDK and self-hosted App Server. Memory operations now run as
+  agent turns over persistent MemFS in the adapter's isolated Node environment;
+  no result is published until this new path has a retained bounded capture.
 - Correct the Letta comparison: label the pinned 0.16 archive/passage adapter
   as a legacy integration that bypasses the agent loop, remove its adapter-
   mediated isolation claim, withdraw the unreproducible 7/9 score, and describe

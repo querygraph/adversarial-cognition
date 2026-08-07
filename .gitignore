@@ -2,6 +2,7 @@ __pycache__/
 /reports/
 .venv/
 adapters/*/.venv/
+adapters/*/node_modules/
 adapters/*/data/
 *.log
 .DS_Store

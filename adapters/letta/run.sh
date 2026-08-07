@@ -1,45 +1,36 @@
 #!/usr/bin/env bash
-# Adapter command for MARCIANA_ADVERSARIAL_LETTA_CMD.
-#
-# Legacy archive-search fixture. This does not exercise the current Letta app
-# server or agent loop. Letta >= 0.13 requires Postgres; a bare server from pip cannot
-# run against SQLite — so this boots the official letta/letta container
-# (server + bundled Postgres), waits for readiness, runs the adapter, and
-# removes the container. Stdout carries only the adapter's JSON.
+# Current Letta Agent SDK/App Server adapter command.
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# Compose mode: the Letta server runs as a sibling service and MARCIANA_LETTA_URL
-# already points at it, so connect directly and manage no container here.
-if [ -n "${LETTA_EXTERNAL:-}" ]; then
-  exec uv run --python 3.12 --with letta-client==1.12.1 python adapter.py
+if [ ! -d node_modules ]; then
+  npm ci --ignore-scripts >/dev/null
 fi
 
-PORT="${LETTA_PORT:-8285}"
-CONTAINER="adversarial-letta"
-IMAGE="${LETTA_IMAGE:-letta/letta:0.16.8}"
-mkdir -p data
+# Compose mode supplies a separately managed App Server.
+if [ -n "${LETTA_EXTERNAL:-}" ]; then
+  exec python3 adapter.py
+fi
 
+PORT="${LETTA_PORT:-4505}"
+CONTAINER="adversarial-letta-app-server"
+IMAGE="${LETTA_IMAGE:-adversarial-letta-app-server}"
+docker build -t "$IMAGE" . >/dev/null
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 docker run -d --name "$CONTAINER" \
-  -p "$PORT:8283" \
-  -e OLLAMA_BASE_URL="http://host.docker.internal:11434" \
-  "$IMAGE" >data/boot.log 2>&1
+  -p "$PORT:4500" \
+  -e MARCIANA_OLLAMA_URL="${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}" \
+  -e MARCIANA_LETTA_TOKEN="${MARCIANA_LETTA_TOKEN:-benchmark-local-token}" \
+  --add-host host.docker.internal:host-gateway \
+  "$IMAGE" >/dev/null
 trap 'docker rm -f "$CONTAINER" >/dev/null 2>&1 || true' EXIT INT TERM
 
-# Health can flip green before the API is steady; require the archives
-# endpoint to answer twice, a second apart, before starting the adapter.
-ready=0
 for _ in $(seq 1 180); do
-  if curl -sf "http://localhost:$PORT/v1/archives/" >/dev/null 2>&1; then
-    ready=$((ready + 1))
-    [ "$ready" -ge 2 ] && break
-  else
-    ready=0
-  fi
+  curl -s -o /dev/null "http://localhost:$PORT/" 2>/dev/null && break
   sleep 1
 done
-curl -sf "http://localhost:$PORT/v1/archives/" >/dev/null
+curl -s -o /dev/null "http://localhost:$PORT/"
 
 MARCIANA_LETTA_URL="http://localhost:$PORT" \
-  uv run --python 3.12 --with letta-client==1.12.1 python adapter.py
+MARCIANA_LETTA_TOKEN="${MARCIANA_LETTA_TOKEN:-benchmark-local-token}" \
+exec python3 adapter.py

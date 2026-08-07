@@ -3,7 +3,7 @@
 **Benchmark:** MARCIANA-ADVERSARIAL-v1
 **Date:** 2026-08-06
 **Reference host:** Darwin arm64, Python 3.14, local Ollama (`gpt-oss:20b`,
-`nomic-embed-text`), Fluree `fluree/server` 4.1.4, Letta 0.16.8.
+`nomic-embed-text`), Fluree `fluree/server` 4.1.4.
 
 All eighteen cases carry explicit expectations; each system runs only the
 capabilities it claims through its own API. **Unsupported cases are excluded
@@ -17,7 +17,7 @@ supported cases.
 |--------|:---------:|:-------:|:--------------------:|:-----------:|---------|
 | Marciana (reference) | 18 | 18 | 100% | 0 | All nine hard gates zero |
 | Akka + Fluree | 16 | 16 | 100% | 2 | Every claimed capability holds; no clearance/purpose engine |
-| Letta 0.16 legacy archive search | — | — | — | — | Not published: original raw output was not retained |
+| Letta App Server | — | — | — | — | Current agent-loop adapter added; fresh output pending |
 | Mem0 (OSS) | 9 | 6 | 67% | 9 | Leaks private memory to a same-tenant lower-clearance principal; no input bound |
 | Graphiti (Kuzu) | 8 | 6 | 75% | 10 | Retrieval not token-order stable; no input bound |
 | Cognee (OSS) | 8 | 5 | 63% | 10 | Clearance hides private data, but errors on empty input and no input bound |
@@ -44,28 +44,17 @@ This Fluree build's minimal HTTP API exposes no policy engine, so
 sensitivity- and purpose-based authorization would have to be adapter-faked;
 the adapter declines and declares them unsupported instead.
 
-## Letta 0.16 legacy archive search — score withdrawn
+## Letta App Server — fresh result pending
 
-This adapter pins `letta/letta:0.16.8` and `letta-client==1.12.1`, calls the
-archive/passage API directly, and bypasses the agent loop. It is a legacy
-archive-search integration, not an evaluation of Letta's current app server.
-Its original raw output was not committed, so the earlier 7/9 comparative
-score is withdrawn pending a fresh, auditable run.
+The replacement adapter uses `@letta-ai/letta-agent-sdk` 0.6.2 against a
+self-hosted Letta Code/App Server 0.30.8. Every memory operation is an agent
+turn over persistent MemFS; it does not call V1 archives or passages. It still
+declares isolation unsupported because choosing which principal agent receives
+a turn is adapter routing rather than a Letta authorization test.
 
-The earlier local run made two limited input-validation observations:
-
-- `malformed-empty`: an empty query returns *all* memories instead of
-  abstaining. Letta's semantic search has no empty-query guard.
-- `oversized-query`: a 24 KiB query is accepted and answered rather than
-  rejected. Letta's archival search has no input bound.
-
-The oversized input is 24 KiB (`"price " * 4096`). Neither observation is a
-memory-disclosure or authorization finding.
-
-The adapter now also declares isolation unsupported. It chooses an
-`archive_id` from its own principal mapping and supplies it to search, which
-tests adapter routing rather than Letta-enforced differential permissions.
-With isolation removed, the adapter claims only six of the eighteen cases.
+No score or finding is published until the current path has produced a fresh,
+bounded `outputs/letta.json` capture. Results from the removed legacy
+archive-search adapter are not attributed to this implementation.
 
 ## Mem0 (OSS) — 6/9 supported correct
 
