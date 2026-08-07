@@ -6,6 +6,7 @@ appendices; *G* is the Glossary, which defines every entry here.
 
 **abstention** — IV, V, B
 **adapter** — IV, VI, VII, G
+**agentic vs. agentless memory** — IV
 **ambient authority** — Intro, VII, D, G
 **Apache Iceberg** — VI, C, G
 **as-of query (two axes of time)** — I, III, B
@@ -23,8 +24,10 @@ appendices; *G* is the Glossary, which defines every entry here.
 **CATALOG-PROVENANCE-v1** — Intro, VI, C, G
 **caveat** — VII, G
 **Cedar** — VII, D, G
+**claim as a boundary** — Intro, IV
 **clearance** — I, IV, V, VII, B, D, G
 **Cognee** — V
+**cognition system (what counts as one)** — Intro, IV
 **commit** — I, II, III, VI, C, G
 **compare-and-swap (CAS)** — VI, C, G
 **confused deputy** — Intro, VII, D, G
@@ -81,6 +84,7 @@ appendices; *G* is the Glossary, which defines every entry here.
 **sealed trait** — Intro, G
 **SecureValue** — Intro, VII, G
 **SpiceDB** — VII, D, G
+**temporal reasoning** — III, IV, B
 **tombstone** — VI, C, G
 **type-level security** — Intro, VII, G
 **TypeDID** — Intro, II, G

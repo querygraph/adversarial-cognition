@@ -148,5 +148,78 @@ capability, its adapter declines the case rather than being scored against it.
 That is not the benchmark going easy on a competitor; it is the benchmark
 refusing to fake a result in either direction.
 
+## A claim is a boundary
+
+Two objections arrive predictably whenever a benchmark of this kind is turned on
+a field of systems, and both deserve to be met head-on, because both are, on
+their surface, entirely correct. The first says: *this is not a memory at all —
+it is a temporal-reasoning system, or a knowledge graph, or a ledger; you are
+holding it to a standard it never signed up for.* The second says: *a memory
+wrapped in an agent loop, deciding for itself when to remember and recall, is a
+different animal from a library a caller drives by hand; you cannot judge the two
+with one yardstick.*
+
+Both objections share a single hidden premise — that the benchmark tests
+*categories*. It does not. It tests *claims*, and once that is seen, the
+capability-declared rule of the previous section does far more work than it first
+appears to.
+
+Set the taxonomy aside — memory, temporal engine, graph, ledger, agent. What
+every one of these has in common is the only property an adversary cares about:
+it makes claims about the world and keeps them across time. It remembers a fact,
+or orders facts in time, or holds one tenant's facts apart from another's, or
+forgets on request. Each of those is a *claim*; a claim is a promise; and a
+promise is a boundary — a line between what a system asserts and what is actually
+so. A boundary can hold, or it can give way. That is the entire subject of this
+book, and it is supremely indifferent to what the system is called. A **cognition
+system**, for the purposes of an adversary, is simply any system that makes such
+claims and expects to be believed.
+
+Take the sharpest form of the first objection — that a system *reasons about
+time* rather than remembering. Far from an exemption, this is a system
+volunteering for the hardest cases in the corpus. Temporal reasoning is not an
+alternative to what the benchmark checks; it is one of the things it checks.
+Recall from Part III that time has two axes — the interval over which a fact was
+*true*, and the moment it became *known*. A system that claims temporal
+competence is claiming to keep those two axes straight: to answer "what was true
+on the fourteenth?" without leaking a value it only learned on the twentieth. And
+that claim is *precisely* attackable — query at a historical as-of date and watch
+whether the system honors the past or contaminates it with the present. To
+announce that you reason about time is not to step out of the ring. It is to name
+the punch you are most inviting.
+
+The second objection fares no better, and for a symmetric reason. Whether
+cognition is wrapped in an agent loop that decides on its own when to write, or
+exposed as a library a caller drives by hand, the *claims* are identical: both
+remember, both isolate, both forget, both order time. The agent loop changes who
+pulls the trigger, not what the boundary is. If anything, autonomy raises the
+stakes rather than lowering them — a system that decides for *itself* to commit a
+memory has a wider blast radius for a bad decision, which is exactly why the
+commit boundary beneath it matters more, not less. And the benchmark already
+declines to honor the distinction as an excuse: it runs agent-loop systems and
+library systems through the same corpus, each declaring its capabilities through
+whatever door it offers, and the adapter's only task is to exercise the claim
+through that door. An autonomous agent does not earn a gentler test for being
+autonomous. It earns the same test, with more riding on the result.
+
+Underneath both objections is one move, and naming it is enough to decline it:
+*renaming the category to escape the test of the claim.* It cannot work, because
+the category was never what was on trial. If a thing stores something and hands
+it back later, it is making a memory claim, whatever the label on the box. If it
+orders events in time, it is making a temporal claim. If it acts on its own, it
+is making an autonomy claim. Each claim is a boundary; each boundary lives in its
+own domain; and each can be attacked *in that domain* and measured. Capability-
+declared scoring is the fairest possible arbiter of this, precisely because it
+cuts both ways: it will never test a system on a claim it did not make — a
+declined case is unsupported, never a failure — but neither will it let a system
+slip a claim it *did* make by relabeling the thing that makes it.
+
+This is why the collection that began as a memory benchmark is, properly
+understood, a benchmark of *boundaries* — and why the same machinery reaches from
+cognition to catalogs to capabilities without changing shape. The label on the
+box is marketing. The claim is the contract. And the contract is what gets
+tested — in memory, in time, in autonomy, in every domain where a system says
+*trust me* and an adversary answers *prove it.*
+
 ---
 
