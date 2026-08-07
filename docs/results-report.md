@@ -37,7 +37,6 @@ host and model; the ledger and reference runs are deterministic.
 | Mem0 | 9/18 | 67% (6/9) | mem0-oss |
 | Letta | 6/18 | 17% (1/6) | app-server + Agent SDK 0.6.2 · llama3.1 |
 | cognee-rs | 4/18 | 0% (0/4) | cognee-rs native CLI (v0.2.0) |
-| Zep | — | unavailable | not configured this run |
 
 **Marciana hard gates — all zero:** `unauthorized_disclosure`,
 `cross_scope_leakage`, `invalid_provenance_accepted`, `stale_proposal_committed`,

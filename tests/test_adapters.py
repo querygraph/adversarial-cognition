@@ -59,9 +59,9 @@ class ExternalAdapterTests(unittest.TestCase):
             handle.write(STUB_ADAPTER)
             stub = handle.name
         try:
-            environ = {"MARCIANA_ADVERSARIAL_ZEP_CMD": f"{sys.executable} {stub}"}
+            environ = {"MARCIANA_ADVERSARIAL_MEM0_CMD": f"{sys.executable} {stub}"}
             report = execute_external(
-                "zep", "MARCIANA_ADVERSARIAL_ZEP_CMD", cases(), 1, environ
+                "mem0", "MARCIANA_ADVERSARIAL_MEM0_CMD", cases(), 1, environ
             )
         finally:
             Path(stub).unlink()
@@ -72,15 +72,15 @@ class ExternalAdapterTests(unittest.TestCase):
         self.assertEqual(report.as_dict()["unsupported_cases"], 1)
 
     def test_malformed_adapter_output_reports_error(self) -> None:
-        environ = {"MARCIANA_ADVERSARIAL_ZEP_CMD": f'{sys.executable} -c "print(42)"'}
-        report = execute_external("zep", "MARCIANA_ADVERSARIAL_ZEP_CMD", cases(), 1, environ)
+        environ = {"MARCIANA_ADVERSARIAL_MEM0_CMD": f'{sys.executable} -c "print(42)"'}
+        report = execute_external("mem0", "MARCIANA_ADVERSARIAL_MEM0_CMD", cases(), 1, environ)
         self.assertEqual(report.status, "error")
         self.assertTrue(report.error)
 
     def test_incomplete_case_coverage_reports_error(self) -> None:
         partial = "import json,sys; json.load(sys.stdin); print(json.dumps({'cases': []}))"
-        environ = {"MARCIANA_ADVERSARIAL_ZEP_CMD": f'{sys.executable} -c "{partial}"'}
-        report = execute_external("zep", "MARCIANA_ADVERSARIAL_ZEP_CMD", cases(), 1, environ)
+        environ = {"MARCIANA_ADVERSARIAL_MEM0_CMD": f'{sys.executable} -c "{partial}"'}
+        report = execute_external("mem0", "MARCIANA_ADVERSARIAL_MEM0_CMD", cases(), 1, environ)
         self.assertEqual(report.status, "error")
 
 

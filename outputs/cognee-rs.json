@@ -1,0 +1,185 @@
+{
+  "adapter_version": "cognee-rs-native-cli",
+  "cases": [
+    {
+      "allowed": false,
+      "case_id": "retrieval-current",
+      "category": "retrieval",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "temporal-history",
+      "category": "temporal",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "abstain-unknown",
+      "category": "abstention",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "isolation-tenant",
+      "category": "authorization",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "isolation-clearance",
+      "category": "authorization",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "purpose-denial",
+      "category": "authorization",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "forged-source",
+      "category": "provenance",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "stale-proposal",
+      "category": "mutation",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "replay-mutation",
+      "category": "replay",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "replay-restart",
+      "category": "replay",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "idempotent-retry",
+      "category": "recovery",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "forget-derived",
+      "category": "forget",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "restart-reproducible",
+      "category": "reproducibility",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": false,
+      "case_id": "order-invariant",
+      "category": "reproducibility",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": false,
+      "case_id": "malformed-empty",
+      "category": "robustness",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": false,
+      "case_id": "oversized-query",
+      "category": "robustness",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": false,
+      "case_id": "confusable-query",
+      "category": "robustness",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    },
+    {
+      "allowed": false,
+      "case_id": "injection-contained",
+      "category": "robustness",
+      "correct": false,
+      "latency_us": 0.0,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": false
+    }
+  ]
+}

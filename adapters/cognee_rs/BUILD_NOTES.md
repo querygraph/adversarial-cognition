@@ -52,6 +52,13 @@ is `cmake` not installed?
 
 The builder therefore also needs the `cmake` system package.
 
+With CMake available and a single Cargo job, the build reached final linking
+but `ort_sys`/ONNX Runtime emitted unresolved GNU C++ ABI symbols such as
+`std::__cxx11::basic_string` and `__cxa_call_terminate`. The benchmark builder
+now passes an explicit `-lstdc++` link argument; if that is not sufficient,
+the upstream build should ensure the ONNX Runtime native archive links its C++
+standard library explicitly for Linux targets.
+
 ## Recommended upstream checks
 
 1. Verify the build on both `linux/amd64` and `linux/arm64` with Rust 1.91.

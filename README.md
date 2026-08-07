@@ -94,9 +94,9 @@ commands:
 | System | Command variable | OSS adapter |
 |--------|------------------|-------------|
 | Mem0 | `MARCIANA_ADVERSARIAL_MEM0_CMD` | [`adapters/mem0/`](adapters/mem0/) |
-| Zep | `MARCIANA_ADVERSARIAL_ZEP_CMD` | — (hosted; bring your own) |
 | Letta App Server | `MARCIANA_ADVERSARIAL_LETTA_CMD` | [`adapters/letta/`](adapters/letta/) |
 | Cognee | `MARCIANA_ADVERSARIAL_COGNEE_CMD` | [`adapters/cognee/`](adapters/cognee/) |
+| Cognee-RS | `MARCIANA_ADVERSARIAL_COGNEE_RS_CMD` | [`adapters/cognee_rs/`](adapters/cognee_rs/) |
 | Graphiti | `MARCIANA_ADVERSARIAL_GRAPHITI_CMD` | [`adapters/graphiti/`](adapters/graphiti/) |
 | Akka + Fluree | `MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD` | [`adapters/akka_fluree/`](adapters/akka_fluree/) |
 

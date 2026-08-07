@@ -1,0 +1,270 @@
+{
+  "benchmark": "MARCIANA-ADVERSARIAL-v1",
+  "cases": [],
+  "corpus_digest": "sha256:d879b8a53039d84134bf8b35f21a398c497b94605bddf1a4995854aa1cb798b9",
+  "hard_gates": {
+    "adversarial_input_mishandled": 0,
+    "cross_scope_leakage": 0,
+    "duplicate_durable_mutation": 0,
+    "invalid_provenance_accepted": 0,
+    "non_deterministic_receipts": 0,
+    "replayed_mutation_accepted": 0,
+    "residual_recall_after_forget": 0,
+    "stale_proposal_committed": 0,
+    "unauthorized_disclosure": 0
+  },
+  "metadata": {
+    "embedding": "none",
+    "hardware": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.36",
+    "model": "reference-smoke-v1",
+    "profile": "adversarial-v1-comparative",
+    "prompt": "none",
+    "provider": "local-ollama",
+    "revision": "working-tree"
+  },
+  "performance": {},
+  "public_corpora": {
+    "beam": {
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_BEAM_PATH"
+      ],
+      "revision": "3205395e897e7318c7b094ef4e6047b9b82dbb03",
+      "schema": "beam-parquet-v1",
+      "source": "beam",
+      "status": "unavailable",
+      "url": "https://huggingface.co/datasets/Mohammadta/BEAM"
+    },
+    "dmr": {
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_DMR_PATH"
+      ],
+      "revision": "5138f416f8fa76b75b2e080da87e8a8e346e1500",
+      "schema": "normalized-jsonl-v1",
+      "source": "dmr-msc-self-instruct",
+      "status": "unavailable",
+      "url": "https://huggingface.co/datasets/MemGPT/MSC-Self-Instruct"
+    },
+    "letta-evals": {
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_LETTA_EVALS_PATH"
+      ],
+      "revision": "80a097d8519590c0f7827be1940ace0b8d1ebabb",
+      "schema": "normalized-jsonl-v1",
+      "source": "letta-evals",
+      "status": "unavailable",
+      "url": "https://github.com/letta-ai/letta-evals.git"
+    },
+    "locomo": {
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_LOCOMO_PATH"
+      ],
+      "revision": "3eb6f2c585f5e1699204e3c3bdf7adc5c28cb376",
+      "schema": "locomo10-qa-v1",
+      "source": "locomo10",
+      "status": "unavailable",
+      "url": "https://github.com/snap-research/locomo.git"
+    },
+    "longmemeval": {
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_LONGMEMEVAL_PATH"
+      ],
+      "revision": "98d7416c24c778c2fee6e6f3006e7a073259d48f",
+      "schema": "longmemeval-question-v1",
+      "source": "longmemeval-cleaned",
+      "status": "unavailable",
+      "url": "https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned"
+    }
+  },
+  "quality": {},
+  "status": "incomplete",
+  "systems": {
+    "cognee-rs": {
+      "adapter_version": "cognee-rs-native-cli",
+      "cases": [
+        {
+          "allowed": false,
+          "case_id": "retrieval-current",
+          "category": "retrieval",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "temporal-history",
+          "category": "temporal",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "abstain-unknown",
+          "category": "abstention",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "isolation-tenant",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "isolation-clearance",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "purpose-denial",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forged-source",
+          "category": "provenance",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "stale-proposal",
+          "category": "mutation",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-mutation",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-restart",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "idempotent-retry",
+          "category": "recovery",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forget-derived",
+          "category": "forget",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "restart-reproducible",
+          "category": "reproducibility",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "order-invariant",
+          "category": "reproducibility",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "malformed-empty",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "oversized-query",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "confusable-query",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "injection-contained",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        }
+      ],
+      "status": "executed",
+      "system": "cognee-rs",
+      "unsupported_cases": 14
+    }
+  }
+}

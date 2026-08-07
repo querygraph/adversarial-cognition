@@ -214,16 +214,16 @@ The adapter protocol
 ([`adversarial_cognition/adapters.py`](https://github.com/querygraph/adversarial-cognition/blob/main/adversarial_cognition/adapters.py))
 enumerates every configured system on every run and never silently
 substitutes one backend for another. Marciana executes locally against the
-deterministic reference path. Six external systems — **Mem0, Zep, Letta,
-Cognee, Graphiti, and Akka + Fluree** — execute only when explicitly
+deterministic reference path. Six external systems — **Mem0, Letta, Cognee,
+Cognee-RS, Graphiti, and Akka + Fluree** — execute only when explicitly
 configured through an environment variable naming an adapter command:
 
 | System | Configuration |
 |--------|---------------|
 | Mem0 | `MARCIANA_ADVERSARIAL_MEM0_CMD` |
-| Zep | `MARCIANA_ADVERSARIAL_ZEP_CMD` |
 | Letta | `MARCIANA_ADVERSARIAL_LETTA_CMD` |
 | Cognee | `MARCIANA_ADVERSARIAL_COGNEE_CMD` |
+| Cognee-RS | `MARCIANA_ADVERSARIAL_COGNEE_RS_CMD` |
 | Graphiti | `MARCIANA_ADVERSARIAL_GRAPHITI_CMD` |
 | Akka + Fluree | `MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD` |
 
@@ -386,7 +386,7 @@ reported per system from that system's own runs and is never
 cross-normalized; the recorded reference figures are explicitly labeled
 engineering diagnostics of the deterministic backend, not a hosted-system
 comparison. The same discipline applies to published vendor numbers: where
-Marciana documentation cites Mem0's or Zep's self-reported results, it
+Marciana documentation cites Mem0's self-reported results, it
 cites them with sources as orientation, never as reproduced comparisons.
 
 **"Lexical-overlap retrieval is a toy."** The reference backend's ranking

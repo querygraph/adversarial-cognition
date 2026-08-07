@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 # MARCIANA-ADVERSARIAL-v1 benchmark runner image.
 #
 # Bundles the benchmark core, every OSS system adapter, and the report
@@ -19,6 +18,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     && git clone https://github.com/topoteretes/cognee-rs.git /src/cognee-rs \
     && cd /src/cognee-rs \
     && git checkout "$COGNEE_RS_COMMIT" \
+    && sed -i 's#cognee = { path = "../lib", version = "0.2.0" }#cognee = { path = "../lib", version = "0.2.0", default-features = false }#' crates/cli/Cargo.toml \
     && mkdir -p /tmp/protobuf/google/protobuf \
     && cp /usr/include/google/protobuf/*.proto /tmp/protobuf/google/protobuf/ \
     && printf '#!/bin/sh\nexec /usr/bin/protoc -I/tmp/protobuf -I/usr/include "$@"\n' > /usr/local/bin/protoc-wrapper \
@@ -27,7 +27,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
        CARGO_HOME=/usr/local/cargo \
        CARGO_TARGET_DIR=/cargo-target \
        CARGO_BUILD_JOBS=1 \
-       cargo build --release -p cognee-cli \
+       cargo build --release -p cognee-cli --no-default-features --features 'ladybug,sqlite' \
     && cp /cargo-target/release/cognee-cli /tmp/cognee-cli
 
 FROM node:22-bookworm-slim

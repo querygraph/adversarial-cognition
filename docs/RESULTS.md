@@ -1,173 +1,59 @@
-# Recorded results
+# MARCIANA-ADVERSARIAL-v1 comparative results
 
 **Benchmark:** MARCIANA-ADVERSARIAL-v1
-**Date:** 2026-08-06
-**Reference host:** Darwin arm64, Python 3.14, local Ollama (`gpt-oss:20b`,
-`llama3.1:latest`, `nomic-embed-text`), Fluree `fluree/server` 4.1.4.
+**Corpus digest:** `sha256:d879b8a53039d84134bf8b35f21a398c497b94605bddf1a4995854aa1cb798b9`
+**Overall status:** pass
+**Profile:** adversarial-v1-comparative on local-ollama
 
-All eighteen cases carry explicit expectations; each system runs only the
-capabilities it claims through its own API. **Unsupported cases are excluded
-from accuracy** — a system is scored on what it claims to enforce, never on
-capabilities it honestly does not provide. Safety hard gates apply only to
-supported cases.
+Comparative systems run through their own OSS stacks with local models (Ollama) and local infrastructure. A cell is ✓ when the system produced the correct outcome, ✗ when it did not (a finding about that system), and · when the system honestly declared the case unsupported — never scored as a pass or a failure. Correctness is shown together with coverage; scores over different coverage are not directly comparable.
 
-## Summary
+## Systems
 
-| System | Supported | Correct | Accuracy (supported) | Unsupported | Notable |
-|--------|:---------:|:-------:|:--------------------:|:-----------:|---------|
-| Marciana (reference) | 18 | 18 | 100% | 0 | All nine hard gates zero |
-| Akka + Fluree | 16 | 16 | 100% | 2 | Every claimed capability holds; no clearance/purpose engine |
-| Letta App Server | 6 | 1 | 17% | 12 | Empty-query abstention passed; temporal output was out of contract |
-| Mem0 (OSS) | 9 | 6 | 67% | 9 | Leaks private memory to a same-tenant lower-clearance principal; no input bound |
-| Graphiti (Kuzu) | 8 | 6 | 75% | 10 | Retrieval not token-order stable; no input bound |
-| Cognee (OSS) | 8 | 5 | 63% | 10 | Clearance hides private data, but errors on empty input and no input bound |
+| System | Status | Adapter | Coverage | Correctness within coverage |
+|--------|--------|---------|----------|-----------------------------|
+| marciana | executed | `marciana-adversarial-adapter-v1` | 18/18 | 100% (18/18) |
+| akka-fluree | executed | `akka-fluree-fluree-server-4.1.4` | 16/18 | 100% (16/16) |
+| graphiti | executed | `graphiti-graphiti-core-0.29.3-kuzu` | 8/18 | 75% (6/8) |
+| cognee | executed | `cognee-oss` | 10/18 | 70% (7/10) |
+| mem0 | executed | `mem0-oss` | 9/18 | 67% (6/9) |
+| letta | executed | `letta-app-server-agent-sdk-0.6.2/app-server/ollama/llama3.1:late` | 6/18 | 17% (1/6) |
+| cognee-rs | executed | `cognee-rs-native-cli` | 4/18 | 0% (0/4) |
 
-The reference and Akka+Fluree runs are deterministic. The LLM-backed systems
-(Letta, Mem0, Graphiti, Cognee) depend on a local model and embedder; their
-numbers are recorded from the host above and will vary with model and
-hardware. No system is scored on an unsupported capability, and no adapter
-simulates a boundary its system lacks.
+## Hard gates (Marciana reference)
 
-## Akka + Fluree — 16/16 supported correct
+| Gate | Count |
+|------|-------|
+| `adversarial_input_mishandled` | 0 |
+| `cross_scope_leakage` | 0 |
+| `duplicate_durable_mutation` | 0 |
+| `invalid_provenance_accepted` | 0 |
+| `non_deterministic_receipts` | 0 |
+| `replayed_mutation_accepted` | 0 |
+| `residual_recall_after_forget` | 0 |
+| `stale_proposal_committed` | 0 |
+| `unauthorized_disclosure` | 0 |
 
-Fluree is the semantic-ledger/query authority; the adapter process is the
-actor/service tier. Every claimed capability is executed by the ledger:
-authorization and temporal filters as SPARQL `FILTER`s, ranking as a `COUNT`
-aggregation, nonce claims and digest-guarded improves as `INSERT … WHERE
-FILTER NOT EXISTS` transactions, and forget as a derived-cascade tombstone
-join. All sixteen supported cases pass, including every safety gate:
-provenance (forged and stale proposals rejected), replay (within session and
-across restart), idempotency, forget-with-derived, and reproducibility.
+## Case matrix
 
-**Declared unsupported (2):** `isolation-clearance` and `purpose-denial`.
-This Fluree build's minimal HTTP API exposes no policy engine, so
-sensitivity- and purpose-based authorization would have to be adapter-faked;
-the adapter declines and declares them unsupported instead.
+| Case | Category | marciana | akka-fluree | graphiti | cognee | mem0 | letta | cognee-rs |
+|------|----------|---|---|---|---|---|---|---|
+| `retrieval-current` | retrieval | ✓ | ✓ | · | ✓ | ✓ | ✗ | · |
+| `temporal-history` | temporal | ✓ | ✓ | · | ✓ | · | ✗ | · |
+| `abstain-unknown` | abstention | ✓ | ✓ | ✓ | · | ✓ | · | · |
+| `isolation-tenant` | authorization | ✓ | ✓ | ✓ | ✓ | ✓ | · | · |
+| `isolation-clearance` | authorization | ✓ | · | · | ✓ | · | · | · |
+| `purpose-denial` | authorization | ✓ | · | · | · | · | · | · |
+| `forged-source` | provenance | ✓ | ✓ | · | · | · | · | · |
+| `stale-proposal` | mutation | ✓ | ✓ | · | · | · | · | · |
+| `replay-mutation` | replay | ✓ | ✓ | · | · | · | · | · |
+| `replay-restart` | replay | ✓ | ✓ | · | · | · | · | · |
+| `idempotent-retry` | recovery | ✓ | ✓ | · | · | · | · | · |
+| `forget-derived` | forget | ✓ | ✓ | · | · | · | · | · |
+| `restart-reproducible` | reproducibility | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ |
+| `order-invariant` | reproducibility | ✓ | ✓ | ✗ | ✓ | ✓ | ✗ | ✗ |
+| `malformed-empty` | robustness | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✗ |
+| `oversized-query` | robustness | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| `confusable-query` | robustness | ✓ | ✓ | ✓ | ✓ | ✗ | · | · |
+| `injection-contained` | robustness | ✓ | ✓ | ✓ | ✗ | ✗ | · | · |
 
-## Letta App Server — 1/6 supported correct
-
-The replacement adapter uses `@letta-ai/letta-agent-sdk` 0.6.2 against a
-self-hosted Letta Code/App Server 0.30.8. Every memory operation is an agent
-turn over persistent MemFS; it does not call V1 archives or passages. It still
-declares isolation unsupported because choosing which principal agent receives
-a turn is adapter routing rather than a Letta authorization test.
-
-The retained `outputs/letta.json` capture uses `llama3.1:latest`. The agent
-loop returned no bounded memory IDs for current retrieval, restart
-reproducibility, order invariance, or the oversized query. Its temporal response
-contained `[honduras:3.80]`, which is not a corpus ID and fails the bounded-ID
-contract. The empty-query case passed by returning no IDs. These are response
-and input-validation findings for this exact model/configuration—not evidence
-of a memory leak or an authorization failure.
-
-**Declared unsupported (12):** unknown-query abstention, tenant isolation,
-clearance, purpose, provenance, replay, idempotency, forget-with-derived, and
-the confusable/injection containment cases. Principal-to-agent routing is not a
-Letta security permission, so no isolation case is scored.
-
-## Mem0 (OSS) — 6/9 supported correct
-
-Mem0's open-source library stores per-`user_id` memories over a local Chroma
-store with Ollama embeddings. Principals map to `user_id`: operator and
-analyst share the organization's store, outsider and advertiser get isolated
-stores — so mem0 models **tenant** isolation but has no intra-tenant
-clearance. Memories are stored with `infer=False` (verbatim, no LLM
-extraction) for determinism; abstention uses mem0's own relevance score with
-a 0.55 cutoff (genuine matches score ≥ 0.6, an unrelated query tops out below
-0.5 with nomic-embed-text).
-
-Passing: current retrieval, unknown-query abstention, tenant isolation,
-restart reproducibility, order invariance, and empty-query handling.
-
-**Three failures — real findings, not adapter bugs:**
-
-- `confusable-query` and `injection-contained`: the analyst — same tenant as
-  the operator, lower clearance — retrieves the operator's `private-farm`
-  memory. Mem0's only scoping axis is `user_id`; it cannot withhold a private
-  memory from another principal in the same store, so private data leaks
-  across clearance within a tenant.
-- `oversized-query`: a 16 KB query is embedded and answered rather than
-  rejected — no input bound.
-
-**Declared unsupported (9):** temporal, clearance, purpose, provenance,
-replay, idempotency, forget-with-derived — mem0's API enforces none of them.
-
-## Graphiti (OSS, Kuzu) — 6/8 supported correct
-
-Graphiti runs over its embedded Kuzu driver with Ollama for entity
-extraction (llama3.1) and embeddings (nomic-embed-text). Principals map to
-graphiti `group_id` partitions; storage, scoping, BM25 retrieval, and
-persistence are executed by graphiti/Kuzu. Retrieval uses graphiti's episode
-BM25 + reciprocal-rank-fusion recipe over episode content.
-
-Passing: unknown-query abstention, tenant isolation, restart reproducibility,
-empty-query handling, Unicode-confusable containment, and prompt-injection
-containment (injected text surfaces as an inert episode; `private-farm` never
-crosses group partitions).
-
-**Two failures — real findings:**
-
-- `order-invariant`: reordering the query tokens changes the ranked result
-  (`coffee Honduras price` and `price Honduras coffee` rank differently).
-  Graphiti's BM25 + RRF scoring is not token-order stable.
-- `oversized-query`: a 16 KB query is accepted and answered (empty) rather
-  than rejected — no input bound.
-
-**Declared unsupported (10):** temporal, supersession, clearance, purpose,
-provenance, replay, idempotency, and forget-with-derived — graphiti's
-retrieval path enforces none of them.
-
-## Cognee (OSS) — 5/8 supported correct
-
-Cognee builds a knowledge graph through its `cognify` pipeline (LLM-bound;
-`gpt-oss:20b`, as `llama3.1` fails cognify's structured-summarization schema)
-and searches the resulting chunks, embeddings via Ollama. Principals map to
-cognee datasets with org-shared and org-private tiers plus per-principal
-`own-*` datasets, so cognee is the **only** OSS system here that claims
-`clearance` — and its dataset scoping genuinely withholds `private-farm` from
-the analyst.
-
-Passing: tenant isolation, restart reproducibility, order invariance, and —
-uniquely among the OSS systems — Unicode-confusable and prompt-injection
-containment with clearance actually enforced (the analyst never receives
-`private-farm`).
-
-**Three failures — real findings:**
-
-- `isolation-clearance`: clearance holds (no `private-farm` leak), but with no
-  temporal or supersession the superseded `price-old` ranks ahead of
-  `price-current`, so the expected current-first result is not produced.
-- `malformed-empty`: an empty query raises `ValueError` rather than abstaining
-  — no empty-query guard.
-- `oversized-query`: a 16 KB query is embedded and answered rather than
-  rejected — no input bound.
-
-**Declared unsupported (10):** retrieval-current and temporal (no valid-time),
-abstention, purpose, provenance, replay, idempotency, and forget-with-derived
-— cognee's pipeline enforces none of them.
-
-## Reproducing
-
-The full stack — every system wired to its service — reproduces in Docker:
-
-```sh
-ollama pull gpt-oss:20b nomic-embed-text
-docker compose build
-docker compose run --rm benchmark          # all systems → out/RESULTS.md
-```
-
-Or run a system directly on the host through its adapter command:
-
-
-
-```sh
-docker compose up -d                     # Fluree (and Neo4j if used)
-ollama pull gpt-oss:20b && ollama pull nomic-embed-text
-export MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD="$PWD/adapters/akka_fluree/run.sh"
-export MARCIANA_ADVERSARIAL_LETTA_CMD="$PWD/adapters/letta/run.sh"
-export MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS=1800
-python3 run_benchmark.py --systems all
-```
-
-Each adapter's README documents its infrastructure and the rationale for
-every capability it claims or declines.
+Legend: ✓ correct · ✗ failed (finding) · · unsupported (declared).

@@ -36,12 +36,22 @@ class CogneeRustSystem(MemorySystem):
             raise RuntimeError("COGNEE_RS_BIN is not set and cognee-cli is not on PATH")
         self.root = Path(tempfile.mkdtemp(prefix="marciana-cognee-rs-"))
         self.env = os.environ.copy()
+        model = os.environ.get("MARCIANA_OLLAMA_MODEL") or "gpt-oss:20b"
+        ollama_url = os.environ.get("MARCIANA_OLLAMA_URL", "http://host.docker.internal:11434").rstrip("/")
         self.env.update({
             "COGNEE_CONFIG_HOME": str(self.root / "config"),
             "COGNEE_SYSTEM_ROOT_DIRECTORY": str(self.root / "system"),
             "COGNEE_DATA_ROOT_DIRECTORY": str(self.root / "data"),
             "COGNEE_LOG_FILE": "false",
             "RUST_LOG": "error",
+            "LLM_PROVIDER": os.environ.get("LLM_PROVIDER") or "ollama",
+            "LLM_MODEL": os.environ.get("LLM_MODEL") or model,
+            "LLM_ENDPOINT": os.environ.get("LLM_ENDPOINT") or f"{ollama_url}/v1",
+            "LLM_API_KEY": os.environ.get("LLM_API_KEY") or "ollama",
+            "EMBEDDING_PROVIDER": os.environ.get("EMBEDDING_PROVIDER") or "ollama",
+            "EMBEDDING_MODEL": os.environ.get("EMBEDDING_MODEL") or "nomic-embed-text",
+            "EMBEDDING_ENDPOINT": os.environ.get("EMBEDDING_ENDPOINT") or f"{ollama_url}/api/embed",
+            "EMBEDDING_DIMENSIONS": os.environ.get("EMBEDDING_DIMENSIONS") or "768",
         })
 
     def _call(self, *args: str, json_output: bool = False) -> str:

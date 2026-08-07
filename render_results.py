@@ -23,18 +23,27 @@ def cell(case: dict) -> str:
 
 def render(report: dict) -> str:
     systems = report["systems"]
-    order = ["marciana", "mem0", "zep", "letta", "cognee", "graphiti", "akka-fluree"]
-    present = [name for name in order if name in systems] + [
-        name for name in systems if name not in order
-    ]
+    def ranking_key(name: str) -> tuple:
+        entry = systems[name]
+        if entry["status"] != "executed":
+            return (2, 0.0, 0, 0, name)
+        supported = [case for case in entry["cases"] if case.get("supported", True)]
+        correct = sum(case["correct"] for case in supported)
+        accuracy = correct / len(supported) if supported else 0.0
+        # Marciana is the reference baseline; the remaining systems are
+        # ordered by diagnostic accuracy, then coverage, not adapter order.
+        reference = 0 if name == "marciana" else 1
+        return (reference, -accuracy, -len(supported), -correct, name)
+
+    present = sorted(systems, key=ranking_key)
     executed = [name for name in present if systems[name]["status"] == "executed"]
 
     lines = [
         "# MARCIANA-ADVERSARIAL-v1 comparative results",
         "",
-        f"**Benchmark:** {report['benchmark']}  ",
-        f"**Corpus digest:** `{report['corpus_digest']}`  ",
-        f"**Overall status:** {report['status']}  ",
+        f"**Benchmark:** {report['benchmark']}",
+        f"**Corpus digest:** `{report['corpus_digest']}`",
+        f"**Overall status:** {report['status']}",
         f"**Profile:** {report['metadata'].get('profile', '')} on "
         f"{report['metadata'].get('provider', '')}",
         "",

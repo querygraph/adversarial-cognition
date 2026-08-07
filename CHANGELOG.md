@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Align comparative results wording with the 24 KB oversized-query fixture and
+  make coverage-scoped accuracy explicit rather than presenting an ordinal
+  ranking.
+
+- Refresh the comparative report from the preserved adapter captures, include
+  the merged Cognee 1.4.1 result, and order the systems by coverage-scoped
+  diagnostic accuracy (with unsupported systems last).
+
+- Remove the unconfigured Zep placeholder from the active adapter inventory,
+  documentation, tests, and comparative output.
+
 - Add a separate native `cognee-rs` benchmark adapter and entry. It invokes
   the official Rust CLI in an isolated store and claims only retrieval and
   persistence; Python Cognee remains a distinct adapter.
