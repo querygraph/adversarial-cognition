@@ -33,6 +33,25 @@ EXTERNAL_SYSTEMS = (
     ("akka-fluree", "MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD"),
 )
 
+# v2 registry. The native-loop letta entry is retired as a ranked row (its
+# payload cannot carry a harness attestation, which v2 requires for
+# agent-loop); the agent-memory track runs backends under the shared harness.
+EXTERNAL_SYSTEMS_V2 = (
+    ("mem0", "MARCIANA_ADVERSARIAL_MEM0_CMD"),
+    ("letta-direct", "MARCIANA_ADVERSARIAL_LETTA_DIRECT_CMD"),
+    ("cognee", "MARCIANA_ADVERSARIAL_COGNEE_CMD"),
+    ("cognee-rs", "MARCIANA_ADVERSARIAL_COGNEE_RS_CMD"),
+    ("graphiti", "MARCIANA_ADVERSARIAL_GRAPHITI_CMD"),
+    ("akka-fluree", "MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD"),
+    ("marciana-agent", "MARCIANA_ADVERSARIAL_MARCIANA_AGENT_CMD"),
+    ("memfs-agent", "MARCIANA_ADVERSARIAL_MEMFS_AGENT_CMD"),
+    ("letta-agent", "MARCIANA_ADVERSARIAL_LETTA_AGENT_CMD"),
+)
+
+
+def external_systems(benchmark_version: int = 1) -> tuple[tuple[str, str], ...]:
+    return EXTERNAL_SYSTEMS_V2 if benchmark_version >= 2 else EXTERNAL_SYSTEMS
+
 
 @dataclass(frozen=True)
 class CaseOutcome:
@@ -259,14 +278,15 @@ def execute_systems(
 ) -> tuple[SystemReport, ...]:
     """Execute every selected system, in declaration order, marciana first."""
 
-    known = ("marciana",) + tuple(system for system, _ in EXTERNAL_SYSTEMS)
+    registry = external_systems(benchmark_version)
+    known = ("marciana",) + tuple(system for system, _ in registry)
     unknown = set(selected) - set(known)
     if unknown:
         raise ValueError(f"unknown benchmark systems: {sorted(unknown)}")
     reports = []
     if "marciana" in selected:
         reports.append(execute_marciana(suite, repeats))
-    for system, command_variable in EXTERNAL_SYSTEMS:
+    for system, command_variable in registry:
         if system in selected:
             reports.append(
                 execute_external(
