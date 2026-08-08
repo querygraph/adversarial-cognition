@@ -1,0 +1,89 @@
+# CATALOG-PROVENANCE-v1 — self-contained provable-transaction comparison.
+#
+#   docker compose up -d minio minio-init nessie gravitino polaris
+#   docker compose run --rm bench
+#
+# Every catalog writes its Iceberg metadata to the same MinIO bucket, so the
+# comparison is of catalogs, not object stores. The bench container runs the
+# reference catalog in-process and drives each reachable catalog through its
+# adapter command. Polaris needs an OAuth bootstrap (polaris-bootstrap service).
+#
+# LakeCat participates through the reference model here (its provable-transaction
+# boundary); running the live lakecat-service is the `lakecat` profile once the
+# service image is built (see adapters/lakecat).
+services:
+  minio:
+    image: minio/minio:latest
+    networks: [lakehouse-net]
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+      MINIO_REGION: us-east-1
+    ports: ["9000:9000", "9001:9001"]
+    command: ["server", "/data", "--console-address", ":9001"]
+
+  minio-init:
+    image: minio/mc
+    networks: [lakehouse-net]
+    depends_on: [minio]
+    entrypoint: >
+      sh -c "until mc alias set m http://minio:9000 admin password; do sleep 1; done;
+             mc mb -p m/warehouse; mc anonymous set public m/warehouse; echo bucket-ready"
+
+  nessie:
+    image: ghcr.io/projectnessie/nessie:0.107.5
+    networks: [lakehouse-net]
+    depends_on: [minio]
+    ports: ["19120:19120"]
+    environment:
+      NESSIE_CATALOG_DEFAULT_WAREHOUSE: warehouse
+      NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION: s3://warehouse/nessie
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: http://minio:9000
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS: "true"
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION: us-east-1
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_AUTH_TYPE: STATIC
+      NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ACCESS_KEY: urn:nessie-secret:quarkus:s3creds
+      S3CREDS_NAME: admin
+      S3CREDS_SECRET: password
+
+  gravitino:
+    image: apache/gravitino-iceberg-rest:latest
+    networks: [lakehouse-net]
+    depends_on: [minio]
+    ports: ["9002:9001"]
+    environment:
+      GRAVITINO_WAREHOUSE: s3://warehouse/gravitino
+      GRAVITINO_IO_IMPL: org.apache.iceberg.aws.s3.S3FileIO
+      GRAVITINO_S3_ACCESS_KEY: admin
+      GRAVITINO_S3_SECRET_KEY: password
+      GRAVITINO_S3_ENDPOINT: http://minio:9000
+      GRAVITINO_S3_PATH_STYLE_ACCESS: "true"
+
+  polaris:
+    image: apache/polaris:1.5.0
+    networks: [lakehouse-net]
+    depends_on: [minio]
+    ports: ["8185:8181"]
+    environment:
+      POLARIS_BOOTSTRAP_CREDENTIALS: POLARIS,root,secret
+      polaris.realm-context.realms: POLARIS
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: password
+
+  bench:
+    build: .
+    networks: [lakehouse-net]
+    profiles: ["bench"]
+    environment:
+      AWS_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: password
+      AWS_REGION: us-east-1
+      POLARIS_TOKEN: ${POLARIS_TOKEN:-}
+    volumes:
+      - ./out:/bench/out
+
+networks:
+  lakehouse-net:
+    name: catalog_provenance_net

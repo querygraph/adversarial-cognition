@@ -1,0 +1,20 @@
+# The relationship-based access control servers for CAPABILITY-ADVERSARIAL-v1.
+# The other seven systems are libraries and run in-process; only OpenFGA and
+# SpiceDB are servers, so only they live here.
+#
+#   docker compose up -d          # start the ReBAC servers
+#   ./run-all.sh                  # run the full roster (starts these if needed)
+services:
+  openfga:
+    image: openfga/openfga:latest
+    command: run
+    ports: ["8085:8080"]
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/grpc_health_probe", "-addr=:8081"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  spicedb:
+    image: authzed/spicedb:latest
+    command: serve --grpc-preshared-key "capadv" --http-enabled
+    ports: ["8446:8443"]

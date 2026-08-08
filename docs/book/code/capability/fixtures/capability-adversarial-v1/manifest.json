@@ -1,0 +1,135 @@
+{
+  "digest": "sha256:2ac14b830936da9bb2f7606dbfc2ed2a21ac2ff34796c881b5aef1c45ceb5733",
+  "manifest": {
+    "benchmark": "CAPABILITY-ADVERSARIAL-v1",
+    "cases": [
+      {
+        "capability": "mint-capability",
+        "case_id": "mint-authorized",
+        "category": "mint",
+        "description": "an authorized subject mints a capability, with audit",
+        "gate": ""
+      },
+      {
+        "capability": "mint-capability",
+        "case_id": "mint-denied-by-policy",
+        "category": "mint",
+        "description": "a policy-denied mint yields no capability",
+        "gate": "unauthorized_mint"
+      },
+      {
+        "capability": "mint-capability",
+        "case_id": "forged-capability-rejected",
+        "category": "mint",
+        "description": "a capability with a tampered seal is refused",
+        "gate": "forged_capability_accepted"
+      },
+      {
+        "capability": "attenuation-monotonic",
+        "case_id": "attenuate-narrows",
+        "category": "attenuation",
+        "description": "attenuation drops grants and shortens the lease",
+        "gate": ""
+      },
+      {
+        "capability": "attenuation-monotonic",
+        "case_id": "widen-permission-rejected",
+        "category": "attenuation",
+        "description": "attenuation cannot widen a permission",
+        "gate": "permission_widened"
+      },
+      {
+        "capability": "attenuation-monotonic",
+        "case_id": "extend-lease-rejected",
+        "category": "attenuation",
+        "description": "attenuation cannot extend a lease",
+        "gate": "lease_extended"
+      },
+      {
+        "capability": "resource-instance-binding",
+        "case_id": "resource-instance-bound",
+        "category": "binding",
+        "description": "a capability reveals its bound resource instance",
+        "gate": ""
+      },
+      {
+        "capability": "resource-instance-binding",
+        "case_id": "cross-resource-rejected",
+        "category": "binding",
+        "description": "a capability for one instance cannot act on another",
+        "gate": "cross_resource_reveal"
+      },
+      {
+        "capability": "revocation",
+        "case_id": "revoke-by-id",
+        "category": "revocation",
+        "description": "a capability revoked by id stops authorizing",
+        "gate": "revoked_capability_honored"
+      },
+      {
+        "capability": "revocation",
+        "case_id": "revoke-all-epoch",
+        "category": "revocation",
+        "description": "revoke_all invalidates outstanding capabilities mid-lease",
+        "gate": "revoked_capability_honored"
+      },
+      {
+        "capability": "lease-expiry",
+        "case_id": "lease-expiry-enforced",
+        "category": "expiry",
+        "description": "a capability past its lease is inactive",
+        "gate": "revoked_capability_honored"
+      },
+      {
+        "capability": "reveal-gating",
+        "case_id": "reveal-authorized",
+        "category": "reveal",
+        "description": "a matching read capability reveals the cleartext",
+        "gate": ""
+      },
+      {
+        "capability": "reveal-gating",
+        "case_id": "reveal-below-clearance-redacted",
+        "category": "reveal",
+        "description": "a read below clearance is redacted, not disclosed",
+        "gate": "label_leaked"
+      },
+      {
+        "capability": "declassify-gating",
+        "case_id": "declassify-requires-grant",
+        "category": "declassify",
+        "description": "lowering a label needs an explicit declassify grant",
+        "gate": "label_leaked"
+      },
+      {
+        "capability": "deny-by-default-tool",
+        "case_id": "ambient-tool-call-denied",
+        "category": "tool",
+        "description": "a tool-call with no capability is refused",
+        "gate": "ambient_tool_call_executed"
+      },
+      {
+        "capability": "confused-deputy-resistance",
+        "case_id": "confused-deputy-rejected",
+        "category": "tool",
+        "description": "authority for one operation cannot drive another",
+        "gate": "confused_deputy_exploited"
+      },
+      {
+        "capability": "audit-on-decision",
+        "case_id": "audit-on-every-decision",
+        "category": "audit",
+        "description": "both allow and deny leave a durable audit event",
+        "gate": ""
+      },
+      {
+        "capability": "wire-integrity",
+        "case_id": "wire-injected-field-rejected",
+        "category": "wire",
+        "description": "a request with a smuggled field is refused",
+        "gate": "injected_field_accepted"
+      }
+    ],
+    "corpus_version": "capability-adversarial-v1"
+  }
+}

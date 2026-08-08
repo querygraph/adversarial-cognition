@@ -1,0 +1,17 @@
+[package]
+name = "capability-adversarial-cedar-adapter"
+version = "0.1.0"
+edition = "2021"
+description = "Cedar policy-engine adapter for CAPABILITY-ADVERSARIAL-v1"
+license = "MIT OR Apache-2.0"
+
+[[bin]]
+name = "cedar-adapter"
+path = "src/main.rs"
+
+[dependencies]
+cedar-policy = "4"
+serde_json = "1"
+
+[profile.release]
+opt-level = 1

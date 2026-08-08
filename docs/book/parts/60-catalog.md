@@ -176,6 +176,25 @@ established but confidently presented. Nessie and Polaris ignored it; Gravitino
 all — and the moral is the same invariant this stack enforces at every layer: an
 authority you did not actually establish must never be presented as if you had.
 
+The fix is three lines, and it reads like a footnote to the whole book:
+
+```python
+# Without an OAuth credential, pyiceberg 0.11 still installs its legacy
+# OAuth2 manager, which sends a literal `Authorization: Bearer None`.
+# Gravitino's authenticator validates that bogus bearer and returns 401;
+# Nessie ignores it. Select the no-auth manager so no bearer is sent.
+# Polaris (which supplies a real `token`) keeps the OAuth manager.
+if "token" not in self._props:
+    props["auth"] = {"type": "noop"}
+```
+
+Absence of authority had been getting encoded as the *string* `"None"` and then
+presented as a credential; the correct behavior is to present nothing at all.
+Gravitino, alone among the three, was strict enough to catch it — which is
+exactly the disposition you want in the thing that guards a boundary. *Full
+source in the vault:
+[catalog-provenance/adapters/iceberg_rest.py](../Evidence/catalog-provenance/adapters/iceberg_rest.py).*
+
 ## The other axis: what the proof costs
 
 Provenance is the axis you cannot see until something goes wrong. The axis you

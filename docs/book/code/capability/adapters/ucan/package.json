@@ -1,0 +1,1 @@
+{ "name": "capability-adversarial-ucan-adapter", "version": "0.1.0", "private": true, "type": "module", "dependencies": { "@ucans/ucans": "^0.12.0" } }

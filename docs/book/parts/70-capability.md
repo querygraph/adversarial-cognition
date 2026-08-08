@@ -131,6 +131,39 @@ token system falls off the same cliff: nothing gates the *mint* — anyone holdi
 a root key may issue anything — and nothing in any of them has ever heard of a
 clearance label.
 
+What a *gated* mint looks like is worth seeing directly. In the reference
+adapter, authority has no public constructor: the only way to obtain a
+`Capability` is `mint_capability`, which consults the policy engine, so the mere
+existence of one is proof the policy approved it. There is nothing to forge, and
+attenuation can only travel down the lattice:
+
+```rust
+"mint-authorized" => {
+    let ok = mint_capability::<CanReadSensitive, _>(&engine, OPERATOR, &r(R2)).is_ok();
+    (true, ok)
+}
+"mint-denied-by-policy" => {
+    // The analyst was never granted write on customer/2 → no capability.
+    let denied = mint_capability::<CanWrite, _>(&engine, ANALYST, &r(R2)).is_err();
+    (true, denied)
+}
+"forged-capability-rejected" => {
+    // A `Capability` has no public constructor; the only source is the
+    // gated mint, which denies an unauthorized subject. There is no
+    // forged token to present — authority cannot be fabricated.
+    let denied =
+        mint_capability::<CanReadSensitive, _>(&engine, "agent:forger", &r(R2)).is_err();
+    (true, denied)
+}
+```
+
+The forge case is the one that cannot even be *written* against a token system:
+there, forging means presenting bytes; here, there is no constructor to present
+bytes to. The adapter never re-implements a check — it exercises the real
+`typesec-core` primitives and only records whether the outcome was correct.
+*Full source in the vault:
+[capability/adapters/typesec/src/main.rs](../Evidence/capability/adapters/typesec/src/main.rs).*
+
 TypeSec sits at the top of the cross-section, one case short of the idealized
 reference — holding the policy-gated mint *and* the monotone attenuation *and*
 the instance binding, the epoch and id revocation, the leases, the label-gated

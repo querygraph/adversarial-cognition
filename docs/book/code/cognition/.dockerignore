@@ -1,0 +1,11 @@
+.git
+outputs/
+reports/
+out/
+adapters/*/data/
+adapters/*/.venv/
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+docs/*.pdf

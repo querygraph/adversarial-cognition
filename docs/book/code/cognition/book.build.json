@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "bookRoot": "docs/book",
+  "manuscript": "docs/book/manuscript.md",
+  "metadata": "docs/book/metadata.yaml",
+  "cover": "docs/book/cover.md",
+  "css": "docs/book/epub.css",
+  "stem": "adversarial-cognition",
+  "headboardImage": "docs/book/cover/adversarial-cognition-headboard.png",
+  "version": {
+    "source": "literal",
+    "value": "0.1.0"
+  },
+  "kindleName": "${stem} (${versionStamp})",
+  "dist": "docs/book/dist",
+  "buildDir": "docs/book/build/firstpair",
+  "edition": "full",
+  "primaryFormat": "typst",
+  "mobi": true,
+  "environment": {
+    "MERMAID_OUT": "${tmpDir}/diagrams",
+    "MERMAID_PUPPETEER": "${repoRoot}/docs/book/puppeteer-config.json"
+  },
+  "pandoc": {
+    "reader": "markdown+smart",
+    "tocDepth": 2,
+    "resourcePaths": [
+      "${repoRoot}",
+      "${repoRoot}/docs/book",
+      "${tmpDir}",
+      "${tmpDir}/diagrams"
+    ],
+    "commonArgs": [
+      "--lua-filter",
+      "${repoRoot}/docs/book/mermaid.lua"
+    ]
+  },
+  "pdf": {
+    "coverImage": "docs/book/cover/adversarial-cognition-cover.png",
+    "coverWidth": "8.5in",
+    "coverHeight": "11in",
+    "coverFit": "stretch"
+  },
+  "epub": {
+    "coverImage": "docs/book/cover/adversarial-cognition-cover.png",
+    "includeRenderedCover": false
+  },
+  "html": {
+    "luaFilter": "docs/book/mermaid.lua",
+    "splitLevel": 1
+  },
+  "hooks": {
+    "prepare": [
+      "\"${repoRoot}/docs/book/assemble.sh\"",
+      "mkdir -p \"${tmpDir}/diagrams\""
+    ]
+  }
+}

@@ -148,6 +148,28 @@ capability, its adapter declines the case rather than being scored against it.
 That is not the benchmark going easy on a competitor; it is the benchmark
 refusing to fake a result in either direction.
 
+That refusal is not a matter of etiquette; it is written into the shared adapter
+contract every system runs through. An adapter enumerates exactly the
+capabilities its system enforces, and the driver treats any case outside that
+set as *unsupported* — present in the report, absent from the score:
+
+```python
+CAPABILITIES = frozenset({
+    "retrieval", "temporal", "supersession", "abstention", "isolation",
+    "clearance", "purpose", "provenance", "replay-protection", "idempotency",
+    "forget", "derived-tracking", "persistence",
+})
+```
+
+The four principals the driver replays against are just as deliberate:
+`operator` owns the seeded space and its one private memory, `analyst` shares the
+organization but is not cleared for that memory, `outsider` belongs to a foreign
+tenant, and `advertiser` carries a mismatched purpose. Isolation, clearance, and
+purpose are therefore not asserted in prose — they are *exercised* by handing the
+same query to four principals and checking who is answered. *Full source in the
+vault: [cognition/adapters/protocol.py](../Evidence/cognition/adapters/protocol.py)
+(the shared scenario driver).*
+
 ## A claim is a boundary
 
 Two objections arrive predictably whenever a benchmark of this kind is turned on

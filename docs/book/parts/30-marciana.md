@@ -51,6 +51,42 @@ Vector search, graph traversal, semantic extraction, and agent tools are ways to
 *propose* or *rank*. They are not alternate verbs, and they do not get their own
 private path to a mutation. There is one door, and it is guarded.
 
+What the guard actually checks is small enough to read in one sitting. Every
+authorization reduces to a single predicate — same tenant, same space, adequate
+clearance, matching purpose — and every mutation runs that predicate *before* it
+touches durable state, denying with a named reason rather than silently doing
+less:
+
+```python
+def _authorized(self, memory: Memory, actor: Actor) -> bool:
+    return (
+        memory.tenant == actor.tenant
+        and memory.space == actor.space
+        and memory.sensitivity <= actor.clearance
+        and memory.purpose == actor.purpose
+    )
+
+def remember(self, memory: Memory, actor: Actor, nonce: str) -> Decision:
+    if not self._claim(actor, nonce) or not actor.can_mutate:
+        return Decision(False, error="replay-or-mutation-denied")
+    if len(memory.text) > MAX_TEXT_CHARS:
+        return Decision(False, error="oversized-memory")
+    if memory.tenant != actor.tenant or memory.space != actor.space:
+        return Decision(False, error="scope-denied")
+    if memory.sensitivity > actor.clearance:
+        return Decision(False, error="clearance-denied")
+    self.memories[memory.memory_id] = memory
+    receipt = digest(f"remember:{memory.memory_id}:{memory.source_digest}")
+    return Decision(True, (memory.memory_id,), receipt=receipt)
+```
+
+Every branch is a boundary the benchmark later attacks: replay, mutation without
+authority, an unbounded input, a cross-scope write, a clearance breach. The
+successful path is the last two lines — and it ends by issuing a receipt, so even
+the *permitted* write leaves proof. *Full source in the vault:
+[cognition/adversarial_cognition/backend.py](../Evidence/cognition/adversarial_cognition/backend.py)
+(the reference boundary, lines 121–140).*
+
 ## Why the enterprise needs governed cognition
 
 It is worth being blunt about why this matters, because "governed" can sound like

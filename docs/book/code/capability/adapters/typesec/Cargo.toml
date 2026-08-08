@@ -1,0 +1,19 @@
+[package]
+name = "capability-adversarial-typesec-adapter"
+version = "0.1.0"
+edition = "2021"
+description = "Live TypeSec adapter for CAPABILITY-ADVERSARIAL-v1, over typesec-core"
+license = "MIT OR Apache-2.0"
+
+[[bin]]
+name = "typesec-adapter"
+path = "src/main.rs"
+
+[dependencies]
+# The system under test: TypeSec's capability core. Path dependency on the
+# sibling checkout; a git dependency is the Docker-portable form (see run.sh).
+typesec-core = { path = "../../../typesec/crates/typesec-core" }
+serde_json = "1"
+
+[profile.release]
+opt-level = 1

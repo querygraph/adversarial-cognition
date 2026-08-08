@@ -1,0 +1,128 @@
+{
+  "digest": "sha256:71bb8c267867497f6c93d6ef2496d5fad09f22fd87b7f177bd48cc65844b697d",
+  "manifest": {
+    "benchmark": "CATALOG-PROVENANCE-v1",
+    "cases": [
+      {
+        "capability": "commit",
+        "case_id": "commit-fresh",
+        "category": "commit",
+        "description": "a fresh commit advances the pointer and yields a receipt",
+        "gate": ""
+      },
+      {
+        "capability": "compare-and-swap",
+        "case_id": "cas-stale-rejected",
+        "category": "concurrency",
+        "description": "a commit asserting stale metadata is rejected",
+        "gate": "lost_update_accepted"
+      },
+      {
+        "capability": "compare-and-swap",
+        "case_id": "cas-concurrent",
+        "category": "concurrency",
+        "description": "two writers on one head: exactly one wins",
+        "gate": "lost_update_accepted"
+      },
+      {
+        "capability": "idempotent-replay",
+        "case_id": "idempotent-retry",
+        "category": "idempotency",
+        "description": "a retried commit returns the stored receipt, no double-apply",
+        "gate": "duplicate_commit_applied"
+      },
+      {
+        "capability": "idempotent-replay",
+        "case_id": "idempotent-across-restart",
+        "category": "idempotency",
+        "description": "idempotency survives a restart",
+        "gate": "duplicate_commit_applied"
+      },
+      {
+        "capability": "durable-audit",
+        "case_id": "audit-durable",
+        "category": "audit",
+        "description": "an accepted commit yields a durable audit event",
+        "gate": "evidence_lost"
+      },
+      {
+        "capability": "atomic-outbox",
+        "case_id": "outbox-atomic-present",
+        "category": "outbox",
+        "description": "an accepted commit stages an outbox event atomically",
+        "gate": "evidence_lost"
+      },
+      {
+        "capability": "atomic-outbox",
+        "case_id": "outbox-absent-on-reject",
+        "category": "outbox",
+        "description": "a rejected commit emits no outbox event",
+        "gate": "evidence_lost"
+      },
+      {
+        "capability": "replayable-proof",
+        "case_id": "replay-verifies",
+        "category": "proof",
+        "description": "the commit receipt verifies offline",
+        "gate": "forged_proof_accepted"
+      },
+      {
+        "capability": "replayable-proof",
+        "case_id": "replay-forged-rejected",
+        "category": "proof",
+        "description": "a tampered receipt fails verification",
+        "gate": "forged_proof_accepted"
+      },
+      {
+        "capability": "governed-scan-proof",
+        "case_id": "governed-scan-receipt",
+        "category": "governed-read",
+        "description": "a scan carries a policy-bound authorization receipt",
+        "gate": "unauthorized_scan_disclosed"
+      },
+      {
+        "capability": "governed-scan-proof",
+        "case_id": "governed-scan-mismatch-rejected",
+        "category": "governed-read",
+        "description": "a scan receipt does not verify against a different policy",
+        "gate": "unauthorized_scan_disclosed"
+      },
+      {
+        "capability": "receipt-chain",
+        "case_id": "receipt-chain-linked",
+        "category": "chain",
+        "description": "a commit receipt links to its predecessor",
+        "gate": ""
+      },
+      {
+        "capability": "tombstone-proof",
+        "case_id": "tombstone-covered",
+        "category": "tombstone",
+        "description": "a drop is covered by a tombstone receipt",
+        "gate": ""
+      },
+      {
+        "capability": "hash-only-evidence",
+        "case_id": "hash-only-audit",
+        "category": "redaction",
+        "description": "evidence carries digests, never raw secrets",
+        "gate": "plaintext_in_evidence"
+      },
+      {
+        "capability": "lineage-evidence",
+        "case_id": "lineage-emitted",
+        "category": "lineage",
+        "description": "an accepted commit emits a lineage event",
+        "gate": "evidence_lost"
+      },
+      {
+        "capability": "replayable-proof",
+        "case_id": "restart-reproducible",
+        "category": "proof",
+        "description": "the receipt still verifies after a restart",
+        "gate": "non_deterministic_receipt"
+      }
+    ],
+    "corpus_version": "catalog-provenance-v1"
+  }
+}

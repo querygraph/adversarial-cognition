@@ -1,0 +1,74 @@
+# MARCIANA-ADVERSARIAL-v1 — full reproducible benchmark stack.
+#
+#   docker compose build
+#   docker compose run --rm benchmark            # runs all systems, writes ./out
+#
+# The LLM backend is Ollama. By default the stack uses an Ollama already
+# running on the host (fast, GPU-accelerated on macOS/Windows). To run a fully
+# self-contained stack on a Linux GPU host instead, start the bundled Ollama:
+#
+#   docker compose --profile bundled-ollama up -d ollama
+#   MARCIANA_OLLAMA_URL=http://ollama:11434 docker compose run --rm benchmark
+#
+# Pull the models first (host Ollama): ollama pull gpt-oss:20b nomic-embed-text
+services:
+  fluree:
+    image: fluree/server:latest
+    ports:
+      - "58090:8090"
+    volumes:
+      - fluree-data:/opt/fluree-server/data
+
+  letta:
+    build: adapters/letta
+    ports:
+      - "4500:4500"
+    environment:
+      MARCIANA_OLLAMA_URL: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}
+      MARCIANA_LETTA_TOKEN: ${MARCIANA_LETTA_TOKEN:-benchmark-local-token}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - letta-data:/var/lib/letta
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["bundled-ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+
+  benchmark:
+    build: .
+    depends_on:
+      - fluree
+      - letta
+    environment:
+      MARCIANA_OLLAMA_URL: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}
+      MARCIANA_OLLAMA_MODEL: ${MARCIANA_OLLAMA_MODEL:-}
+      MARCIANA_FLUREE_URL: http://fluree:8090/v1/fluree
+      MARCIANA_LETTA_URL: http://letta:4500
+      MARCIANA_LETTA_MODEL: ${MARCIANA_LETTA_MODEL:-ollama/llama3.1:latest}
+      MARCIANA_LETTA_TOKEN: ${MARCIANA_LETTA_TOKEN:-benchmark-local-token}
+      LETTA_EXTERNAL: "1"
+      MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS: ${MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS:-3600}
+      MARCIANA_ADVERSARIAL_COGNEE_RS_CMD: /benchmark/adapters/cognee_rs/run.sh
+      COGNEE_RS_BIN: /usr/local/bin/cognee-cli
+      LLM_PROVIDER: ollama
+      LLM_MODEL: ${MARCIANA_OLLAMA_MODEL:-gpt-oss:20b}
+      LLM_ENDPOINT: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}/v1
+      LLM_API_KEY: ollama
+      EMBEDDING_PROVIDER: ollama
+      EMBEDDING_MODEL: nomic-embed-text
+      EMBEDDING_ENDPOINT: ${MARCIANA_OLLAMA_URL:-http://host.docker.internal:11434}/api/embed
+      EMBEDDING_DIMENSIONS: "768"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./out:/benchmark/out
+
+volumes:
+  fluree-data:
+  letta-data:
+  ollama-models:

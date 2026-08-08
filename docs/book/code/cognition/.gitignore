@@ -1,0 +1,14 @@
+__pycache__/
+/reports/
+.venv/
+adapters/*/.venv/
+adapters/*/node_modules/
+adapters/*/data/
+*.log
+.DS_Store
+uv.lock
+
+openapi_letta.json
+out/
+docs/book/dist/
+docs/book/build/

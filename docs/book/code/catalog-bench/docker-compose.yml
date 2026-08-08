@@ -1,0 +1,90 @@
+# Reproducible commit-benchmark harness for Iceberg REST catalogs.
+#
+# LakeCat is fully wired and verified here. Polaris, Gravitino, and Unity are
+# included behind compose profiles with best-effort upstream images + config;
+# each needs a bootstrap or auth step that is NOT hands-off (see README
+# "Bootstrap caveats"). Bring up only what you need, e.g.:
+#
+#   docker/build-lakecat.sh && docker compose up -d lakecat
+#   docker compose run --rm bench --base-url http://lakecat:8181/catalog --create
+#
+# or enable an external catalog by profile:
+#   docker compose --profile gravitino up -d gravitino
+services:
+  # --- LakeCat (verified) -------------------------------------------------
+  # Joins the shared lakehouse network and points its object_store at the same
+  # MinIO the other catalogs use, so its Iceberg metadata.json writes hit S3 too
+  # (fair comparison). Turso stays as LakeCat's local catalog-state store — the
+  # analogue of Polaris/Nessie/Gravitino's own metastores, which are also local.
+  # Create tables with --location s3://warehouse/lakecat so commits write to MinIO.
+  lakecat:
+    build:
+      context: ./docker/lakecat
+    image: lakecat-service:bench
+    networks: [lakehouse-net]
+    ports: ["8181:8181"]
+    environment:
+      LAKECAT_BIND_ADDR: 0.0.0.0:8181
+      LAKECAT_WAREHOUSE: local
+      LAKECAT_TURSO_PATH: /data/lakecat.db
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: password
+      AWS_REGION: us-east-1
+      AWS_ENDPOINT: http://minio:9000
+      AWS_ALLOW_HTTP: "true"
+    volumes:
+      - lakecat-data:/data
+
+  # --- Apache Polaris (best-effort; OAuth2 bootstrap required) -------------
+  # Polaris bootstraps a root principal on first run and prints its
+  # client_id/secret to the logs. Exchange them for a bearer token, then pass it
+  # to the bench with --token. There is no fully hands-off default.
+  polaris:
+    image: apache/polaris:latest
+    ports: ["8182:8181"]
+    profiles: ["polaris"]
+    environment:
+      POLARIS_BOOTSTRAP_CREDENTIALS: "default-realm,root,s3cr3t"
+
+  # --- Apache Gravitino Iceberg REST server (best-effort) -----------------
+  # Memory-backed Iceberg REST catalog. Confirm the image tag exposes the REST
+  # service on 9001; older tags differ.
+  gravitino:
+    image: apache/gravitino-iceberg-rest:latest
+    ports: ["9001:9001"]
+    profiles: ["gravitino"]
+    environment:
+      GRAVITINO_ICEBERG_REST_CATALOG_BACKEND: memory
+      GRAVITINO_ICEBERG_REST_CATALOG_WAREHOUSE: /tmp/gravitino-warehouse
+
+  # --- Unity Catalog OSS (read-only Iceberg REST; NOT in the comparison) ---
+  # Released Unity OSS (latest 0.5.0) exposes its Iceberg REST endpoint at
+  # /api/2.1/unity-catalog/iceberg as READ-ONLY: it has no external updateTable /
+  # set-properties commit path, so it cannot be benchmarked on the commit path.
+  # Write/commit support exists only in unmerged draft PR #1618 (targeting an
+  # unreleased 0.6.0); build from that branch to include Unity. Server is on 8080
+  # (UI on 3000); remap the host port here if 8080 is taken. See README / DOCKER.md.
+  unitycatalog:
+    image: unitycatalog/unitycatalog:0.5.0
+    ports: ["8080:8080"]         # remap (e.g. 8087:8080) if host 8080 is taken
+    profiles: ["unity"]
+
+  # --- The benchmark itself -----------------------------------------------
+  # Override the command per target, e.g.:
+  #   docker compose run --rm bench --base-url http://lakecat:8181/catalog --create
+  bench:
+    build:
+      context: .
+      dockerfile: docker/bench.Dockerfile
+    image: catalog-commit-bench:latest
+    profiles: ["bench"]
+    entrypoint: ["/usr/local/bin/catalog-commit-bench"]
+
+volumes:
+  lakecat-data:
+
+networks:
+  # Shared with the ~/src/boat catalog stack so LakeCat can reach the same MinIO.
+  lakehouse-net:
+    name: iceberg_lakehouse-net
+    external: true

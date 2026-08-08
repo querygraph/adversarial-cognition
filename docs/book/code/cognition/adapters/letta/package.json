@@ -1,0 +1,8 @@
+{
+  "name": "marciana-adversarial-letta-adapter",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@letta-ai/letta-agent-sdk": "0.6.2"
+  }
+}
