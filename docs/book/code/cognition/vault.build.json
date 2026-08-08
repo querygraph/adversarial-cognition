@@ -1,0 +1,73 @@
+{
+  "$schema": "https://firstpair.org/schemas/vault.build.schema.json",
+  "schemaVersion": 1,
+  "slug": "adversarial-cognition-trilogy",
+  "title": "Adversarial Cognition Trilogy",
+  "profile": "code",
+  "sourceCommit": "HEAD",
+  "plugin": true,
+  "guide": {
+    "bookSpecific": "docs/book/VAULT-GUIDE.md"
+  },
+  "reader": [
+    { "id": "preface", "title": "Preface: When Memory Becomes a Liability", "source": "docs/book/vault/00-preface.md", "preview": true },
+    { "id": "introduction", "title": "Introduction: Security in the Types", "source": "docs/book/parts/05-introduction.md", "preview": true },
+    { "id": "memory-problem", "title": "Part I: The Enterprise Memory Problem", "source": "docs/book/parts/10-memory-problem.md" },
+    { "id": "foundations", "title": "Part II: The Stack from First Principles", "source": "docs/book/parts/20-foundations.md" },
+    { "id": "marciana", "title": "Part III: Marciana", "source": "docs/book/parts/30-marciana.md" },
+    { "id": "benchmarking", "title": "Part IV: Benchmarking a Boundary", "source": "docs/book/parts/40-benchmarking.md" },
+    { "id": "findings", "title": "Part V: What the Benchmark Found", "source": "docs/book/parts/50-findings.md" },
+    { "id": "catalog", "title": "Part VI: The Catalog Beneath the Lake", "source": "docs/book/parts/60-catalog.md" },
+    { "id": "capability", "title": "Part VII: Authority as an Object", "source": "docs/book/parts/70-capability.md" },
+    { "id": "conclusion", "title": "Conclusion: One Boundary, Composed", "source": "docs/book/parts/90-conclusion.md" },
+    { "id": "appendix-a", "title": "Appendix A: Cognition Cases", "source": "docs/book/parts/92-appendix-a.md" },
+    { "id": "appendix-b", "title": "Appendix B: Cognition Systems", "source": "docs/book/parts/94-appendix-b.md" },
+    { "id": "appendix-c", "title": "Appendix C: Catalog Provenance", "source": "docs/book/parts/95-appendix-c.md" },
+    { "id": "appendix-d", "title": "Appendix D: Capability Cases", "source": "docs/book/parts/96-appendix-d.md" },
+    { "id": "glossary", "title": "Glossary", "source": "docs/book/parts/97-glossary.md" },
+    { "id": "index", "title": "Index", "source": "docs/book/parts/98-index.md" }
+  ],
+  "evidence": [
+    {
+      "id": "trilogy-headboard",
+      "kind": "diagram",
+      "source": "docs/book/cover/adversarial-cognition-headboard.png",
+      "label": "Frontispiece: Plato and Diogenes at the Academy",
+      "referencedBy": ["preface"]
+    }
+  ],
+  "collections": [
+    {
+      "id": "cognition",
+      "kind": "code-tree",
+      "source": "docs/book/code/cognition",
+      "referencedBy": ["marciana", "benchmarking", "findings"]
+    },
+    {
+      "id": "catalog-provenance",
+      "kind": "code-tree",
+      "source": "docs/book/code/catalog-provenance",
+      "referencedBy": ["catalog"]
+    },
+    {
+      "id": "catalog-bench",
+      "kind": "code-tree",
+      "source": "docs/book/code/catalog-bench",
+      "referencedBy": ["catalog"]
+    },
+    {
+      "id": "capability",
+      "kind": "code-tree",
+      "source": "docs/book/code/capability",
+      "referencedBy": ["capability"]
+    }
+  ],
+  "products": {
+    "desktop": {
+      "output": "docs/book/vault-build/Adversarial Cognition Trilogy",
+      "edition": "full",
+      "maxFiles": 3000,
+      "maxBytes": 40000000
+    }
+  }
+}

@@ -57,6 +57,9 @@ for entry in "${repos[@]}"; do
   rm -rf "$dest"
   mkdir -p "$dest"
   rsync -a "${excludes[@]}" "$repo"/ "$dest"/
+  # GitHub-relative README links (to excluded docs/, generated dirs, folders)
+  # do not resolve inside the vault; rewrite the broken ones to plain text.
+  python3 "$here/sanitize_links.py" "$dest"
   echo "| \`$name\` | $(basename "$repo") | \`$commit\` |" >> "$provenance"
 done
 

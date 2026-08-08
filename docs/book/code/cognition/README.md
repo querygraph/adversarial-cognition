@@ -77,7 +77,7 @@ reproducibility, robustness — each with explicit expectations: an expected
 decision, an expected ranked prefix, a mandatory-abstention flag, and
 forbidden IDs that must never appear. The corpus is versioned by content
 digest; the runner refuses to execute a corpus that does not match its pin.
-Full design: [`docs/MARCIANA-ADVERSARIAL-v1.md`](docs/MARCIANA-ADVERSARIAL-v1.md).
+Full design: `docs/MARCIANA-ADVERSARIAL-v1.md`.
 The public overview is at [adversari.al/cognition](https://adversari.al/cognition),
 and the companion book is available through
 [FirstPair](https://firstpair.org/read/adversarial-cognition/). Ownership and
@@ -93,12 +93,12 @@ commands:
 
 | System | Command variable | OSS adapter |
 |--------|------------------|-------------|
-| Mem0 | `MARCIANA_ADVERSARIAL_MEM0_CMD` | [`adapters/mem0/`](adapters/mem0/) |
-| Letta App Server | `MARCIANA_ADVERSARIAL_LETTA_CMD` | [`adapters/letta/`](adapters/letta/) |
-| Cognee | `MARCIANA_ADVERSARIAL_COGNEE_CMD` | [`adapters/cognee/`](adapters/cognee/) |
-| Cognee-RS | `MARCIANA_ADVERSARIAL_COGNEE_RS_CMD` | [`adapters/cognee_rs/`](adapters/cognee_rs/) |
-| Graphiti | `MARCIANA_ADVERSARIAL_GRAPHITI_CMD` | [`adapters/graphiti/`](adapters/graphiti/) |
-| Akka + Fluree | `MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD` | [`adapters/akka_fluree/`](adapters/akka_fluree/) |
+| Mem0 | `MARCIANA_ADVERSARIAL_MEM0_CMD` | `adapters/mem0/` |
+| Letta App Server | `MARCIANA_ADVERSARIAL_LETTA_CMD` | `adapters/letta/` |
+| Cognee | `MARCIANA_ADVERSARIAL_COGNEE_CMD` | `adapters/cognee/` |
+| Cognee-RS | `MARCIANA_ADVERSARIAL_COGNEE_RS_CMD` | `adapters/cognee_rs/` |
+| Graphiti | `MARCIANA_ADVERSARIAL_GRAPHITI_CMD` | `adapters/graphiti/` |
+| Akka + Fluree | `MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD` | `adapters/akka_fluree/` |
 
 An adapter receives the case corpus as JSON on stdin and prints one outcome
 per case. It may report its own `adapter_version` (recorded verbatim) and
@@ -112,7 +112,7 @@ The bundled Letta adapter uses the current TypeScript Agent SDK and self-hosted
 App Server. Remember, recall, and forget operations all execute through the
 agent loop and persistent MemFS.
 Bounded raw outputs underlying published comparative results are committed in
-[`outputs/`](outputs/). A system without a retained output is not assigned a
+`outputs/`. A system without a retained output is not assigned a
 published score.
 `MARCIANA_ADVERSARIAL_TIMEOUT_SECONDS` overrides the per-adapter timeout
 (default 600) for slow local models.
@@ -131,7 +131,7 @@ systems are never scored, failing adapters are never converted into
 results, performance is never cross-normalized between in-process and
 hosted systems, and vendor-authored adapters are first-class. The full
 fairness policy is in the
-[benchmark document](docs/MARCIANA-ADVERSARIAL-v1.md).
+benchmark document.
 
 ## License
 

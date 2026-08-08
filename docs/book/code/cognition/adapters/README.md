@@ -54,17 +54,17 @@ ollama pull llama3.1 && ollama pull nomic-embed-text
 ```
 
 The Akka + Fluree adapter is standard-library only and needs just the Fluree
-container. See [`RESULTS.md`](../docs/RESULTS.md) for the recorded run and
+container. See `RESULTS.md` for the recorded run and
 per-system status.
 
 | Adapter | Infrastructure | Backend |
 |---------|----------------|---------|
-| [akka_fluree](akka_fluree/) | Fluree container (`docker compose`) | Fluree semantic ledger over HTTP; stdlib-only |
-| [mem0](mem0/) | Ollama | Mem0 OSS with a local vector store |
-| [graphiti](graphiti/) | Ollama | graphiti-core over embedded Kuzu (no external DB) |
-| [cognee](cognee/) | Ollama | Cognee OSS knowledge graph + vector index |
-| [cognee_rs](cognee_rs/) | Native Rust CLI + Ollama | Official cognee-rs memory engine |
-| [letta](letta/) | Letta App Server + Agent SDK + Ollama | Agent-loop memory over persistent MemFS |
+| akka_fluree | Fluree container (`docker compose`) | Fluree semantic ledger over HTTP; stdlib-only |
+| mem0 | Ollama | Mem0 OSS with a local vector store |
+| graphiti | Ollama | graphiti-core over embedded Kuzu (no external DB) |
+| cognee | Ollama | Cognee OSS knowledge graph + vector index |
+| cognee_rs | Native Rust CLI + Ollama | Official cognee-rs memory engine |
+| letta | Letta App Server + Agent SDK + Ollama | Agent-loop memory over persistent MemFS |
 
 Each adapter's own README and module docstring is the authoritative record
 of the capabilities it claims and the rationale for each — they are tuned to

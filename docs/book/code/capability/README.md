@@ -47,7 +47,7 @@ minting under policy, monotone attenuation over an `Implies` lattice,
 resource-instance binding, revocation (by id and by mid-lease epoch), lease
 expiry, reveal/declassify gating on an information-flow label, deny-by-default
 tool-calls, confused-deputy resistance, audit on every decision, and wire
-integrity. See [`docs/CAPABILITY-ADVERSARIAL-v1.md`](docs/CAPABILITY-ADVERSARIAL-v1.md)
+integrity. See `docs/CAPABILITY-ADVERSARIAL-v1.md`
 for the full threat model, capabilities, gates, and competitor matrix.
 
 ## License

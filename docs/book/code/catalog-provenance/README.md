@@ -40,7 +40,7 @@ Seventeen cases across the provable-transaction properties, each exercising one
 **capability** with an explicit expected outcome. A catalog is scored only on
 the capabilities it declares — a case whose capability a catalog does not claim
 is reported *unsupported*, never a pass or a failure, never faked. Full design:
-[`docs/CATALOG-PROVENANCE-v1.md`](docs/CATALOG-PROVENANCE-v1.md).
+`docs/CATALOG-PROVENANCE-v1.md`.
 
 The reference catalog (`catalog_provenance/backend.py`) is a small,
 dependency-free model of a governed catalog's provable-transaction boundary —
@@ -55,7 +55,7 @@ explicitly configured adapter command:
 
 | Catalog | Command variable | Adapter |
 |---------|------------------|---------|
-| LakeCat | `CATALOG_PROVENANCE_LAKECAT_CMD` | [`adapters/lakecat/`](adapters/lakecat/) |
+| LakeCat | `CATALOG_PROVENANCE_LAKECAT_CMD` | `adapters/lakecat/` |
 | Nessie | `CATALOG_PROVENANCE_NESSIE_CMD` | [`adapters/rest_adapter.py`](adapters/rest_adapter.py) |
 | Gravitino | `CATALOG_PROVENANCE_GRAVITINO_CMD` | [`adapters/rest_adapter.py`](adapters/rest_adapter.py) |
 | Polaris | `CATALOG_PROVENANCE_POLARIS_CMD` | [`adapters/rest_adapter.py`](adapters/rest_adapter.py) |
@@ -66,7 +66,7 @@ concurrency — and honestly declare the governance capabilities they do not
 expose. Unity Catalog OSS is intentionally excluded: its Iceberg REST surface is
 read-only, with no commit path to make provable. The whole comparison runs
 locally against a shared MinIO through Docker; see
-[`docs/CATALOG-PROVENANCE-v1.md`](docs/CATALOG-PROVENANCE-v1.md) and
+`docs/CATALOG-PROVENANCE-v1.md` and
 [`docker-compose.yml`](docker-compose.yml).
 
 ## License
