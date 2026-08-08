@@ -1,0 +1,930 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Governed Boundary — A Graphic Novel</title>
+    <meta name="description" content="A graphic novel of the TypeSec and LakeCat security model — companion to Adversarial Cognition." />
+    <meta name="theme-color" content="#0a0d15" />
+  </head>
+  <body>
+<style>
+  :root{
+    --ink:#0a0d15; --night:#0c1020; --panel-ink:#070a12;
+    --paper:#f3ead4; --paper-line:#e4d7b6;
+    --signal:#7f9cff; --signal-deep:#3550b8;
+    --seal:#d99a45; --seal-deep:#a9722a; --gold:#efc663;
+    --pass:#46d08a; --fail:#ff6b78; --skin:#f4d0ad;
+    --page-bg:#0a0d15; --page-fg:#efe7d3; --frame:#0a0d15;
+    --cap-bg:#f4d874; --cap-fg:#20180a; --cap-edge:#0a0d15;
+    --tag-bg:#121728; --tag-fg:#c9d4f5; --tag-edge:#2b3556; --muted:#9aa6c4;
+    --maxw:1120px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --page-bg:#efe4c8; --page-fg:#221b0d; --muted:#5f5638;
+      --tag-bg:#fbf4de; --tag-fg:#3a3220; --tag-edge:#cbb98a; }
+  }
+  :root[data-theme="dark"]{ --page-bg:#0a0d15; --page-fg:#efe7d3; --muted:#9aa6c4;
+    --tag-bg:#121728; --tag-fg:#c9d4f5; --tag-edge:#2b3556; }
+  :root[data-theme="light"]{ --page-bg:#efe4c8; --page-fg:#221b0d; --muted:#5f5638;
+    --tag-bg:#fbf4de; --tag-fg:#3a3220; --tag-edge:#cbb98a; }
+
+  *{ box-sizing:border-box; }
+  body,.novel{ margin:0; }
+  .novel{
+    background:
+      radial-gradient(circle at 12% 8%, rgba(127,156,255,.10), transparent 42%),
+      radial-gradient(circle at 88% 92%, rgba(217,154,69,.10), transparent 46%),
+      var(--page-bg);
+    color:var(--page-fg);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:0 18px 90px;
+    overflow-x:hidden;
+  }
+  .wrap{ max-width:var(--maxw); margin:0 auto; }
+
+  /* ---------- COVER ---------- */
+  .cover{ max-width:var(--maxw); margin:0 auto; padding:54px 0 26px; text-align:center; }
+  .kicker{ font-family:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+    letter-spacing:.42em; text-transform:uppercase; font-size:12px; color:var(--seal);
+    font-weight:700; }
+  .cover h1{
+    font-family:"Arial Black","Helvetica Neue",Arial,sans-serif; font-weight:900;
+    letter-spacing:.005em; line-height:.92; text-transform:uppercase;
+    font-size:clamp(42px,10vw,116px); margin:.16em 0 .04em; text-wrap:balance;
+    color:#fff; text-shadow:0 3px 0 var(--seal-deep), 0 6px 0 rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: light){ :root:not([data-theme]) .cover h1{ color:#141a2e;} }
+  :root[data-theme="light"] .cover h1{ color:#141a2e; }
+  :root[data-theme="dark"] .cover h1{ color:#fff; }
+  .cover h1 .lite{ color:var(--seal); -webkit-text-stroke:0; text-shadow:0 3px 0 rgba(0,0,0,.3);}
+  .cover .sub{ max-width:660px; margin:14px auto 0; font-size:clamp(15px,2.2vw,19px);
+    line-height:1.5; color:var(--muted); }
+  .cover .meta{ margin-top:18px; font-family:ui-monospace,Menlo,monospace; font-size:12px;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+
+  /* ---------- CAST ---------- */
+  .cast{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:34px auto 8px; }
+  .cast .who{ background:var(--tag-bg); border:2px solid var(--tag-edge); border-radius:14px;
+    padding:14px 10px 12px; text-align:center; }
+  .cast svg{ width:74px; height:92px; display:block; margin:0 auto 6px; }
+  .cast b{ display:block; font-family:"Arial Black",Arial,sans-serif; text-transform:uppercase;
+    letter-spacing:.05em; font-size:14px; color:var(--page-fg); }
+  .cast span{ display:block; font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.35; }
+  @media(max-width:680px){ .cast{ grid-template-columns:repeat(2,1fr); } }
+
+  /* ---------- ACT HEADERS ---------- */
+  .act{ max-width:var(--maxw); margin:56px auto 22px; display:flex; align-items:center; gap:16px; }
+  .act .num{ font-family:"Arial Black",Arial,sans-serif; font-size:clamp(40px,7vw,74px);
+    line-height:1; color:transparent; -webkit-text-stroke:2px var(--seal); }
+  .act .txt h2{ font-family:"Arial Black",Arial,sans-serif; text-transform:uppercase;
+    letter-spacing:.02em; font-size:clamp(22px,4.4vw,40px); margin:0; line-height:1; }
+  .act .txt p{ margin:6px 0 0; color:var(--muted); font-size:15px; max-width:70ch; }
+  .rule{ height:5px; background:
+    repeating-linear-gradient(90deg,var(--seal) 0 22px, transparent 22px 30px);
+    max-width:var(--maxw); margin:0 auto; opacity:.6; border-radius:3px; }
+
+  /* ---------- PANEL GRID ---------- */
+  .strip{ max-width:var(--maxw); margin:20px auto; display:grid; gap:20px;
+    grid-template-columns:1fr 1fr; }
+  .strip.solo{ grid-template-columns:1fr; }
+  @media(max-width:760px){ .strip{ grid-template-columns:1fr; } }
+
+  .panel{ position:relative; border:4px solid var(--frame); border-radius:10px;
+    overflow:hidden; background:var(--panel-ink);
+    box-shadow:7px 7px 0 rgba(0,0,0,.30); }
+  .stage{ position:relative; aspect-ratio:400/260; }
+  .stage > svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+  /* halftone dots overlay */
+  .stage::after{ content:""; position:absolute; inset:0; pointer-events:none;
+    background-image:radial-gradient(rgba(0,0,0,.16) 1px, transparent 1.4px);
+    background-size:7px 7px; mix-blend-mode:multiply; opacity:.5; }
+
+  /* speech bubbles */
+  .bubble{ position:absolute; background:#fbf7ec; color:#141019; border:3px solid #0a0d15;
+    border-radius:16px; padding:7px 11px; font-weight:800; text-transform:uppercase;
+    letter-spacing:.02em; font-size:clamp(9.5px,1.55vw,13px); line-height:1.12; max-width:57%;
+    box-shadow:2px 2px 0 rgba(0,0,0,.35); z-index:4; }
+  .bubble::after{ content:""; position:absolute; width:0; height:0; }
+  .bubble.tl::after{ left:16px; bottom:-15px; border:8px solid transparent;
+    border-top-color:#0a0d15; border-bottom:0; }
+  .bubble.tl::before{ content:""; position:absolute; left:19px; bottom:-9px; width:0;height:0;
+    border:5px solid transparent; border-top-color:#fbf7ec; border-bottom:0; z-index:5;}
+  .bubble.tr{ } .bubble.tr::after{ right:16px; bottom:-15px; border:8px solid transparent;
+    border-top-color:#0a0d15; border-bottom:0; }
+  .bubble.tr::before{ content:""; position:absolute; right:19px; bottom:-9px; width:0;height:0;
+    border:5px solid transparent; border-top-color:#fbf7ec; border-bottom:0; z-index:5;}
+  .bubble.villain{ background:#2a0e12; color:#ffd7db; border-color:#ff6b78; }
+  .bubble.villain::after{ border-top-color:#ff6b78; }
+  .bubble.villain.tl::before,.bubble.villain.tr::before{ border-top-color:#2a0e12; }
+  .bubble.think{ border-radius:50%/44%; }
+
+  /* narration caption box */
+  .cap{ position:absolute; z-index:4; background:var(--cap-bg); color:var(--cap-fg);
+    border:3px solid var(--cap-edge); padding:8px 10px; font-size:clamp(10px,1.6vw,13.5px);
+    line-height:1.28; font-weight:600; max-width:62%;
+    box-shadow:3px 3px 0 rgba(0,0,0,.32);
+    font-family:Georgia,"Times New Roman",serif; }
+  .cap.bl{ left:10px; bottom:10px; } .cap.tlft{ left:10px; top:10px; }
+  .cap b{ font-family:"Arial Black",Arial,sans-serif; }
+
+  .tag{ display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 10px;
+    padding:10px 13px; background:var(--tag-bg); color:var(--tag-fg);
+    border-top:3px solid var(--frame);
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12.5px; }
+  .tag .who{ font-weight:800; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--seal); }
+  .tag .term{ font-weight:700; color:var(--page-fg); letter-spacing:.02em; }
+  .tag em{ color:var(--muted); font-style:italic; font-family:Georgia,serif; font-size:13px; }
+
+  /* full-bleed dramatic panels */
+  .strip.solo .stage{ aspect-ratio:1000/300; }
+
+  /* ---------- RECAP ---------- */
+  .recap{ max-width:var(--maxw); margin:64px auto 0; }
+  .recap h2{ font-family:"Arial Black",Arial,sans-serif; text-transform:uppercase;
+    font-size:clamp(22px,4vw,34px); margin:0 0 4px; }
+  .recap p.lead{ color:var(--muted); margin:0 0 18px; max-width:75ch; }
+  .table-scroll{ overflow-x:auto; border:3px solid var(--tag-edge); border-radius:12px; }
+  table{ border-collapse:collapse; width:100%; min-width:640px; font-size:13.5px; }
+  th,td{ text-align:left; padding:10px 13px; border-bottom:1px solid var(--tag-edge);
+    vertical-align:top; }
+  thead th{ background:var(--tag-bg); font-family:ui-monospace,monospace; text-transform:uppercase;
+    letter-spacing:.08em; font-size:11px; color:var(--seal); position:sticky; top:0; }
+  tbody tr:nth-child(odd) td{ background:color-mix(in srgb,var(--tag-bg) 40%, transparent); }
+  td .who{ font-family:ui-monospace,monospace; font-size:11px; color:var(--signal);
+    text-transform:uppercase; letter-spacing:.06em; }
+  td b{ display:block; margin-bottom:2px; }
+  td.an{ color:var(--muted); font-family:Georgia,serif; font-style:italic; }
+
+  footer{ max-width:var(--maxw); margin:48px auto 0; text-align:center; color:var(--muted);
+    font-size:13px; line-height:1.6; }
+  footer .line{ height:4px; background:repeating-linear-gradient(90deg,var(--seal) 0 18px,transparent 18px 26px);
+    opacity:.55; margin:0 0 20px; border-radius:2px; }
+  footer b{ color:var(--page-fg); }
+
+  .revealable{ opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease; }
+  .revealable.in{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion:reduce){ .revealable{ opacity:1; transform:none; transition:none; } }
+</style>
+
+<!-- ============ REUSABLE CAST + PROPS ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- NIA — the newcomer -->
+    <symbol id="c-nia" viewBox="0 0 120 150">
+      <ellipse cx="60" cy="143" rx="33" ry="7" fill="#000" opacity=".35"/>
+      <path d="M26 140 Q24 86 60 82 Q96 86 94 140 Z" fill="#3fb6c9" stroke="#0a0d15" stroke-width="4"/>
+      <circle cx="60" cy="56" r="25" fill="#f4d0ad" stroke="#0a0d15" stroke-width="4"/>
+      <path d="M36 50 Q60 26 84 50 Q80 34 60 32 Q40 34 36 50Z" fill="#2b2440" stroke="#0a0d15" stroke-width="3"/>
+      <circle cx="52" cy="56" r="3.1" fill="#0a0d15"/><circle cx="69" cy="56" r="3.1" fill="#0a0d15"/>
+      <path d="M53 67 Q60 71 67 67" fill="none" stroke="#0a0d15" stroke-width="3" stroke-linecap="round"/>
+      <text x="88" y="34" font-size="30" font-family="Arial Black,Arial" font-weight="900" fill="#efc663">?</text>
+    </symbol>
+
+    <!-- THE MINTER — TypeSec -->
+    <symbol id="c-minter" viewBox="0 0 120 150">
+      <ellipse cx="60" cy="143" rx="35" ry="7" fill="#000" opacity=".35"/>
+      <path d="M22 140 Q20 78 60 74 Q100 78 98 140 Z" fill="#3550b8" stroke="#0a0d15" stroke-width="4"/>
+      <path d="M60 74 L60 140" stroke="#26397f" stroke-width="3"/>
+      <path d="M22 140 Q20 78 60 74 L60 140Z" fill="#7f9cff" opacity=".25"/>
+      <circle cx="60" cy="52" r="24" fill="#f4d0ad" stroke="#0a0d15" stroke-width="4"/>
+      <path d="M37 46 Q60 22 83 46 L80 40 Q60 20 40 40Z" fill="#d99a45" stroke="#0a0d15" stroke-width="3"/>
+      <rect x="47" y="40" width="26" height="8" rx="3" fill="#efc663" stroke="#0a0d15" stroke-width="2.5"/>
+      <circle cx="53" cy="53" r="2.9" fill="#0a0d15"/><circle cx="68" cy="53" r="2.9" fill="#0a0d15"/>
+      <path d="M54 63 Q60 66 67 63" fill="none" stroke="#0a0d15" stroke-width="2.6" stroke-linecap="round"/>
+      <!-- chest emblem: type seal -->
+      <rect x="47" y="92" width="26" height="26" rx="6" fill="#0a0d15"/>
+      <text x="60" y="110" font-size="14" text-anchor="middle" font-family="Arial Black,Arial" fill="#efc663">⟨T⟩</text>
+    </symbol>
+
+    <!-- THE LEDGER-KEEPER — LakeCat -->
+    <symbol id="c-cat" viewBox="0 0 120 150">
+      <ellipse cx="60" cy="143" rx="35" ry="7" fill="#000" opacity=".35"/>
+      <path d="M22 140 Q20 80 60 76 Q100 80 98 140 Z" fill="#2c7a86" stroke="#0a0d15" stroke-width="4"/>
+      <path d="M22 140 Q20 80 60 76 L60 140Z" fill="#3fb6c9" opacity=".3"/>
+      <circle cx="60" cy="54" r="24" fill="#f4d0ad" stroke="#0a0d15" stroke-width="4"/>
+      <path d="M36 52 Q60 24 84 52 Q84 30 60 30 Q36 30 36 52Z" fill="#123f47" stroke="#0a0d15" stroke-width="3"/>
+      <circle cx="53" cy="55" r="2.9" fill="#0a0d15"/><circle cx="68" cy="55" r="2.9" fill="#0a0d15"/>
+      <path d="M54 65 Q60 68 67 65" fill="none" stroke="#0a0d15" stroke-width="2.6" stroke-linecap="round"/>
+      <!-- open ledger -->
+      <g stroke="#0a0d15" stroke-width="3">
+        <path d="M34 104 L60 98 L60 128 L34 132Z" fill="#efc663"/>
+        <path d="M86 104 L60 98 L60 128 L86 132Z" fill="#f4d874"/>
+      </g>
+      <path d="M40 110 H55 M40 116 H55 M65 110 H80 M65 116 H80" stroke="#a9722a" stroke-width="2"/>
+    </symbol>
+
+    <!-- THE FORGER — the adversary -->
+    <symbol id="c-forger" viewBox="0 0 120 150">
+      <ellipse cx="60" cy="143" rx="34" ry="7" fill="#000" opacity=".4"/>
+      <path d="M24 140 Q30 74 60 72 Q90 74 96 140 Z" fill="#7a1f2b" stroke="#0a0d15" stroke-width="4"/>
+      <path d="M60 72 Q34 78 30 120" fill="none" stroke="#ff6b78" stroke-width="2.5" opacity=".5"/>
+      <!-- hood -->
+      <path d="M32 60 Q60 20 88 60 Q92 78 60 80 Q28 78 32 60Z" fill="#4a121b" stroke="#0a0d15" stroke-width="4"/>
+      <ellipse cx="60" cy="58" rx="17" ry="15" fill="#160406"/>
+      <circle cx="53" cy="58" r="3" fill="#ff6b78"/><circle cx="68" cy="58" r="3" fill="#ff6b78"/>
+      <!-- crooked stamp in hand -->
+      <g transform="rotate(18 82 108)">
+        <rect x="74" y="96" width="18" height="10" rx="2" fill="#20242e" stroke="#0a0d15" stroke-width="2.5"/>
+        <rect x="80" y="86" width="6" height="12" fill="#20242e" stroke="#0a0d15" stroke-width="2.5"/>
+        <text x="83" y="104" font-size="8" text-anchor="middle" font-family="Arial Black" fill="#ff6b78">✗</text>
+      </g>
+    </symbol>
+
+    <!-- PROPS -->
+    <symbol id="p-door" viewBox="0 0 100 130">
+      <rect x="8" y="6" width="84" height="118" rx="6" fill="#1a2338" stroke="#0a0d15" stroke-width="4"/>
+      <rect x="18" y="16" width="64" height="98" rx="4" fill="#26324f" stroke="#0a0d15" stroke-width="3"/>
+      <circle cx="50" cy="65" r="17" fill="#0a0d15"/>
+      <circle cx="50" cy="65" r="12" fill="none" stroke="var(--dc,#7f9cff)" stroke-width="4"/>
+      <rect x="46" y="65" width="8" height="20" rx="2" fill="var(--dc,#7f9cff)"/>
+    </symbol>
+    <symbol id="p-seal" viewBox="0 0 80 80">
+      <circle cx="40" cy="40" r="30" fill="#d99a45" stroke="#a9722a" stroke-width="4"/>
+      <path d="M40 10 L47 30 L68 30 L51 43 L58 63 L40 51 L22 63 L29 43 L12 30 L33 30Z"
+        fill="#a9722a" opacity=".55"/>
+      <text x="40" y="47" font-size="18" text-anchor="middle" font-family="Arial Black" fill="#3a2408">⟨T⟩</text>
+    </symbol>
+    <symbol id="p-receipt" viewBox="0 0 80 110">
+      <path d="M14 8 H66 V96 L58 102 L50 96 L42 102 L34 96 L26 102 L18 96 L14 100Z"
+        fill="#fbf7ec" stroke="#0a0d15" stroke-width="3.5"/>
+      <path d="M22 26 H58 M22 38 H58 M22 50 H48" stroke="#8a7d63" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="40" cy="74" r="13" fill="#d99a45" stroke="#a9722a" stroke-width="3"/>
+      <text x="40" y="79" font-size="12" text-anchor="middle" font-family="Arial Black" fill="#3a2408">#</text>
+    </symbol>
+    <symbol id="p-key" viewBox="0 0 120 60">
+      <rect x="6" y="18" width="70" height="24" rx="8" fill="var(--kc,#7f9cff)" stroke="#0a0d15" stroke-width="3.5"/>
+      <text x="40" y="36" font-size="13" text-anchor="middle" font-family="Arial Black" fill="#0a0d15">P,R</text>
+      <circle cx="92" cy="30" r="18" fill="none" stroke="var(--kc,#7f9cff)" stroke-width="8"/>
+      <rect x="70" y="26" width="16" height="8" fill="var(--kc,#7f9cff)"/>
+    </symbol>
+    <symbol id="p-stamp-ok" viewBox="0 0 90 90">
+      <circle cx="45" cy="45" r="36" fill="none" stroke="#46d08a" stroke-width="7"/>
+      <path d="M28 47 L41 60 L64 32" fill="none" stroke="#46d08a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="p-stamp-no" viewBox="0 0 90 90">
+      <circle cx="45" cy="45" r="36" fill="none" stroke="#ff6b78" stroke-width="7"/>
+      <path d="M30 30 L60 60 M60 30 L30 60" stroke="#ff6b78" stroke-width="8" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="novel">
+
+  <!-- ================= COVER ================= -->
+  <header class="cover">
+    <div class="kicker">A QueryGraph Graphic Novel · TypeSec × LakeCat</div>
+    <h1>The Governed<br><span class="lite">Boundary</span></h1>
+    <p class="sub">One door decides who may reveal or change a thing — and whether you can
+      <em>prove</em> what happened. Watch every attack in the book run at that door, and bounce.
+      No formulas. Just a mint, a ledger, and a forger who never wins.</p>
+    <div class="meta">Read top to bottom · 20 panels · 1 boundary</div>
+  </header>
+
+  <!-- CAST -->
+  <section class="cast wrap revealable" aria-label="Cast">
+    <div class="who"><svg viewBox="0 0 120 150"><use href="#c-nia"/></svg><b>Nia</b><span>The newcomer. Asks the question you're thinking.</span></div>
+    <div class="who"><svg viewBox="0 0 120 150"><use href="#c-minter"/></svg><b>The Minter</b><span>TypeSec. Mints authority as an object — never by hand.</span></div>
+    <div class="who"><svg viewBox="0 0 120 150"><use href="#c-cat"/></svg><b>The Keeper</b><span>LakeCat. Guards the one ledger and its receipts.</span></div>
+    <div class="who"><svg viewBox="0 0 120 150"><use href="#c-forger"/></svg><b>The Forger</b><span>The adversary. Forge, replay, widen, overwrite — always denied.</span></div>
+  </section>
+
+  <!-- ================= ACT I ================= -->
+  <div class="rule"></div>
+  <section class="act wrap">
+    <div class="num">I</div>
+    <div class="txt"><h2>TypeSec — Authority You Cannot Fake</h2>
+      <p>In this world authority is not a password you could copy or a flag you could flip.
+        It is a <b>typed object</b> — mintable only by a policy, narrowable only downward, and
+        impossible to forge because there is no way to make one by hand.</p></div>
+  </section>
+
+  <div class="strip">
+    <!-- 1 · the mint / no public constructor -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#0f1a3a"/>
+          <rect width="400" height="260" fill="url(#g1)"/>
+          <defs><radialGradient id="g1" cx="70%" cy="35%" r="70%">
+            <stop offset="0" stop-color="#28407f" stop-opacity=".7"/><stop offset="1" stop-color="#0a1024" stop-opacity="0"/>
+          </radialGradient></defs>
+          <!-- anvil/altar -->
+          <rect x="250" y="150" width="120" height="20" rx="4" fill="#1b2444" stroke="#0a0d15" stroke-width="3"/>
+          <use href="#c-minter" x="228" y="40" width="120" height="150"/>
+          <!-- minted seal rising with sparks -->
+          <use href="#p-seal" x="286" y="86" width="66" height="66"/>
+          <g stroke="#efc663" stroke-width="3" stroke-linecap="round">
+            <path d="M356 96 l10 -8 M360 120 l12 -2 M352 150 l10 8"/></g>
+          <use href="#c-nia" x="40" y="96" width="96" height="120"/>
+          <text x="118" y="150" font-family="Arial Black" font-size="30" fill="#efc663"
+            transform="rotate(-8 118 150)" stroke="#0a0d15" stroke-width="1">MINTED!</text>
+        </svg>
+        <div class="cap tlft"><b>An object, not an announcement.</b> A capability comes into being
+          only when the policy engine says yes — and its mere existence proves it did.</div>
+        <div class="bubble tr" style="top:12%; right:5%;">There's no public constructor. You can't just <em>make</em> one.</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeSec</span><span class="term">mint_capability · no public constructor</span>
+        <em>— a wax seal only the signet ring can press.</em></figcaption>
+    </figure>
+
+    <!-- 2 · verified identity is not authority -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#141b30"/>
+          <use href="#p-door" x="250" y="70" width="110" height="143" style="--dc:#ff6b78"/>
+          <use href="#c-nia" x="60" y="86" width="104" height="130"/>
+          <!-- passport held up -->
+          <g transform="rotate(-10 150 120)">
+            <rect x="128" y="104" width="40" height="30" rx="3" fill="#2b6cb0" stroke="#0a0d15" stroke-width="3"/>
+            <circle cx="148" cy="116" r="6" fill="#efc663"/><path d="M136 128 H160" stroke="#efc663" stroke-width="2"/>
+          </g>
+          <use href="#p-stamp-no" x="268" y="96" width="78" height="78"/>
+        </svg>
+        <div class="cap bl"><b>Proving who you are grants nothing.</b> The passport is genuine —
+          and the vault stays shut. Identity must still be turned into a narrow, minted key.</div>
+        <div class="bubble tl" style="top:9%; left:5%;">But it's really me!</div>
+        <div class="bubble tr" style="top:9%; right:4%;">And I believe you. The door still doesn't open.</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeDID</span><span class="term">verified identity ≠ authority</span>
+        <em>— a passport proves your name; it does not open the vault.</em></figcaption>
+    </figure>
+  </div>
+
+  <div class="strip">
+    <!-- 3 · forgery rejected -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#1a0d14"/>
+          <use href="#c-forger" x="34" y="66" width="120" height="150"/>
+          <!-- fake token offered -->
+          <g transform="rotate(-12 210 120)">
+            <rect x="176" y="104" width="70" height="30" rx="6" fill="#3a2030" stroke="#ff6b78" stroke-width="3" stroke-dasharray="6 4"/>
+            <text x="211" y="124" font-size="12" text-anchor="middle" font-family="Arial Black" fill="#ff6b78">FAKE</text>
+          </g>
+          <!-- slot that doesn't exist -->
+          <rect x="286" y="96" width="86" height="70" rx="8" fill="#120a10" stroke="#5a2530" stroke-width="3"/>
+          <path d="M300 131 H358" stroke="#5a2530" stroke-width="6" stroke-linecap="round"/>
+          <text x="329" y="150" font-size="9" text-anchor="middle" font-family="ui-monospace" fill="#7a4550">NO SLOT</text>
+          <text x="250" y="60" font-family="Arial Black" font-size="34" fill="#ff6b78"
+            transform="rotate(-6 250 60)" stroke="#0a0d15" stroke-width="1.2">FORGED?</text>
+        </svg>
+        <div class="cap bl"><b>Nothing to hand over.</b> To forge a token you must present bytes.
+          Here there is no constructor to present them <em>to</em> — authority cannot be fabricated.</div>
+        <div class="bubble villain tl" style="top:8%; left:4%;">Here's my... uh... permission?</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeSec</span><span class="term">forged_capability rejected</span>
+        <em>— you can copy a note; you cannot copy a signet's authority.</em></figcaption>
+    </figure>
+
+    <!-- 4 · attenuation narrows -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#101a34"/>
+          <use href="#c-minter" x="20" y="66" width="120" height="150"/>
+          <!-- full key -> lesser key -->
+          <use href="#p-key" x="150" y="70" width="120" height="60" style="--kc:#7f9cff"/>
+          <text x="210" y="66" font-size="10" text-anchor="middle" font-family="ui-monospace" fill="#9db4ff">read · write · long lease</text>
+          <path d="M210 138 L210 168" stroke="#efc663" stroke-width="5" marker-end="url(#ar)"/>
+          <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto">
+            <path d="M0 0 L8 5 L0 10Z" fill="#efc663"/></marker></defs>
+          <use href="#p-key" x="176" y="176" width="90" height="45" style="--kc:#3fb6c9"/>
+          <text x="221" y="234" font-size="10" text-anchor="middle" font-family="ui-monospace" fill="#7fd0dd">read · short lease</text>
+          <use href="#c-nia" x="292" y="100" width="90" height="115"/>
+        </svg>
+        <div class="cap tlft"><b>You may pass on less — never more.</b> Handing a capability onward
+          can only shrink it: fewer powers, a shorter life.</div>
+        <div class="bubble tr" style="top:6%; right:4%;">Take a copy — read only, and it expires sooner.</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeSec</span><span class="term">attenuation is monotone</span>
+        <em>— a key card photocopied with floors blacked out.</em></figcaption>
+    </figure>
+  </div>
+
+  <div class="strip">
+    <!-- 5 · widen rejected -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#1a0d14"/>
+          <use href="#c-forger" x="30" y="66" width="118" height="150"/>
+          <use href="#p-key" x="150" y="150" width="80" height="40" style="--kc:#3fb6c9"/>
+          <text x="190" y="146" font-size="10" text-anchor="middle" font-family="ui-monospace" fill="#7fd0dd">read_internal</text>
+          <path d="M236 150 q30 -40 60 -6" fill="none" stroke="#ff6b78" stroke-width="4" stroke-dasharray="7 5"/>
+          <text x="300" y="110" font-size="11" text-anchor="middle" font-family="Arial Black" fill="#ff6b78">WRITE?</text>
+          <use href="#p-stamp-no" x="286" y="120" width="86" height="86"/>
+        </svg>
+        <div class="cap bl"><b>Authority only walks downhill.</b> A request to <em>widen</em> a held
+          capability — read into write — is refused at the mint. It cannot climb.</div>
+        <div class="bubble villain tl" style="top:8%; left:4%;">Upgrade me to write?</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeSec</span><span class="term">widen_permission rejected</span>
+        <em>— you can't un-black-out the floors you were denied.</em></figcaption>
+    </figure>
+
+    <!-- 6 · instance binding -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#141b30"/>
+          <use href="#p-door" x="40" y="80" width="96" height="125" style="--dc:#46d08a"/>
+          <text x="88" y="222" font-size="11" text-anchor="middle" font-family="ui-monospace" fill="#46d08a">customer/2</text>
+          <use href="#p-door" x="264" y="80" width="96" height="125" style="--dc:#ff6b78"/>
+          <text x="312" y="222" font-size="11" text-anchor="middle" font-family="ui-monospace" fill="#ff6b78">customer/1</text>
+          <use href="#p-key" x="158" y="110" width="84" height="42" style="--kc:#7f9cff"/>
+          <path d="M200 100 l-70 20" stroke="#46d08a" stroke-width="4" marker-end="url(#ar2)"/>
+          <path d="M228 150 l40 20" stroke="#ff6b78" stroke-width="4" stroke-dasharray="6 5"/>
+          <defs><marker id="ar2" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto">
+            <path d="M0 0 L8 5 L0 10Z" fill="#46d08a"/></marker></defs>
+          <use href="#p-stamp-no" x="300" y="120" width="60" height="60"/>
+        </svg>
+        <div class="cap bl"><b>Cut for one lock.</b> A capability names the exact resource it opens.
+          Aim it at the neighbouring door and it simply does not fit.</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeSec</span><span class="term">instance binding</span>
+        <em>— a hotel key coded for room 2, useless on room 1.</em></figcaption>
+    </figure>
+  </div>
+
+  <div class="strip">
+    <!-- 7 · leases expire -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#101a34"/>
+          <use href="#p-key" x="60" y="70" width="110" height="55" style="--kc:#7f9cff"/>
+          <!-- hourglass -->
+          <g transform="translate(210 70)" stroke="#0a0d15" stroke-width="3">
+            <path d="M0 0 H70 L40 55 L70 110 H0 L30 55Z" fill="#1b2748"/>
+            <path d="M8 6 H62 L37 52 H33Z" fill="#efc663" opacity=".9"/>
+            <path d="M30 58 L40 58 L58 104 H12Z" fill="#d99a45"/>
+          </g>
+          <use href="#p-key" x="250" y="150" width="110" height="55" style="--kc:#55617a"/>
+          <text x="305" y="224" font-size="11" text-anchor="middle" font-family="Arial Black" fill="#ff6b78">EXPIRED</text>
+          <path d="M300 176 l50 30 M350 176 l-50 30" stroke="#ff6b78" stroke-width="4"/>
+        </svg>
+        <div class="cap tlft"><b>Authority with a heartbeat.</b> Every capability carries a lease.
+          When the sand runs out it is dead weight — no revocation call required.</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeSec</span><span class="term">leases / expiry</span>
+        <em>— a key card that stops working at checkout.</em></figcaption>
+    </figure>
+
+    <!-- 8 · revocation -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#141b30"/>
+          <use href="#c-cat" x="20" y="66" width="118" height="150"/>
+          <!-- epoch dial -->
+          <g transform="translate(210 130)">
+            <circle r="52" fill="#0f1730" stroke="#0a0d15" stroke-width="4"/>
+            <circle r="52" fill="none" stroke="#7f9cff" stroke-width="4" stroke-dasharray="6 6"/>
+            <text y="-6" text-anchor="middle" font-size="12" font-family="ui-monospace" fill="#9db4ff">EPOCH</text>
+            <text y="20" text-anchor="middle" font-size="26" font-family="Arial Black" fill="#efc663">7→8</text>
+          </g>
+          <use href="#p-key" x="286" y="150" width="96" height="48" style="--kc:#55617a"/>
+          <text x="334" y="212" font-size="10" text-anchor="middle" font-family="ui-monospace" fill="#ff6b78">now dark</text>
+        </svg>
+        <div class="cap bl"><b>One turn kills the old set.</b> Bump the epoch — or name a capability on
+          the revocation list — and keys minted before go dark at once.</div>
+        <div class="bubble tl" style="top:8%; left:4%;">Rekey. Everything before is void.</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeSec</span><span class="term">RevocationEpoch · revocation list</span>
+        <em>— re-cutting the lock so yesterday's keys stop working.</em></figcaption>
+    </figure>
+  </div>
+
+  <div class="strip">
+    <!-- 9 · clearance labels + declassify -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#101a34"/>
+          <!-- sealed dossier -->
+          <g transform="translate(150 60)">
+            <rect x="0" y="0" width="120" height="150" rx="6" fill="#20305c" stroke="#0a0d15" stroke-width="4"/>
+            <rect x="0" y="0" width="120" height="34" fill="#ff6b78"/>
+            <text x="60" y="24" text-anchor="middle" font-size="15" font-family="Arial Black" fill="#2a0a0e">SENSITIVITY 3</text>
+            <path d="M14 60 H106 M14 78 H106 M14 96 H84" stroke="#3a4a72" stroke-width="4" stroke-linecap="round"/>
+          </g>
+          <use href="#p-seal" x="238" y="150" width="60" height="60"/>
+          <use href="#c-nia" x="300" y="104" width="86" height="108"/>
+          <use href="#c-forger" x="20" y="120" width="80" height="100"/>
+          <use href="#p-stamp-no" x="34" y="128" width="52" height="52"/>
+        </svg>
+        <div class="cap tlft"><b>Labels gate the reveal.</b> Sensitive content stays sealed to anyone
+          under-cleared. Lowering a label — <em>declassify</em> — is itself a deliberate, logged act.</div>
+        <div class="bubble tr" style="top:8%; right:3%;">Cleared. You may read it.</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeSec</span><span class="term">label-gated reveal · declassify</span>
+        <em>— a classified dossier: cleared eyes only, and unsealing is on the record.</em></figcaption>
+    </figure>
+
+    <!-- 10 · deny-by-default tool plane -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#141b30"/>
+          <!-- rack of tools, all locked, one lit -->
+          <g stroke="#0a0d15" stroke-width="3">
+            <rect x="40" y="60" width="60" height="60" rx="6" fill="#1b2444"/>
+            <rect x="120" y="60" width="60" height="60" rx="6" fill="#1b2444"/>
+            <rect x="200" y="60" width="60" height="60" rx="6" fill="#123f2a"/>
+            <rect x="280" y="60" width="60" height="60" rx="6" fill="#1b2444"/>
+            <rect x="40" y="140" width="60" height="60" rx="6" fill="#1b2444"/>
+            <rect x="120" y="140" width="60" height="60" rx="6" fill="#1b2444"/>
+            <rect x="200" y="140" width="60" height="60" rx="6" fill="#1b2444"/>
+            <rect x="280" y="140" width="60" height="60" rx="6" fill="#1b2444"/>
+          </g>
+          <g fill="#5a6a86"><g fill="#5a6a86">
+            <text x="70" y="98" text-anchor="middle" font-size="24">🔒</text>
+            <text x="150" y="98" text-anchor="middle" font-size="24">🔒</text>
+            <text x="310" y="98" text-anchor="middle" font-size="24">🔒</text>
+            <text x="70" y="178" text-anchor="middle" font-size="24">🔒</text>
+            <text x="150" y="178" text-anchor="middle" font-size="24">🔒</text>
+            <text x="230" y="178" text-anchor="middle" font-size="24">🔒</text>
+            <text x="310" y="178" text-anchor="middle" font-size="24">🔒</text>
+          </g></g>
+          <use href="#p-stamp-ok" x="206" y="66" width="48" height="48"/>
+          <text x="230" y="134" text-anchor="middle" font-size="10" font-family="ui-monospace" fill="#46d08a">unlocked by capability</text>
+        </svg>
+        <div class="cap bl"><b>Everything starts shut.</b> No tool acts by default. A tool opens only
+          when a valid capability is presented — and only that one.</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeSec</span><span class="term">deny-by-default tool plane</span>
+        <em>— a workshop where every drawer is locked until the right key.</em></figcaption>
+    </figure>
+  </div>
+
+  <div class="strip solo">
+    <!-- 11 · audited decisions (bridge) -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid slice">
+          <rect width="1000" height="300" fill="#0e1730"/>
+          <rect width="1000" height="300" fill="url(#g11)"/>
+          <defs><linearGradient id="g11" x1="0" x2="1"><stop offset="0" stop-color="#3550b8" stop-opacity=".35"/>
+            <stop offset="1" stop-color="#2c7a86" stop-opacity=".35"/></linearGradient></defs>
+          <use href="#c-minter" x="60" y="70" width="150" height="188"/>
+          <use href="#c-cat" x="800" y="70" width="150" height="188"/>
+          <!-- audit ledger tape between them -->
+          <rect x="250" y="120" width="500" height="70" rx="8" fill="#fbf7ec" stroke="#0a0d15" stroke-width="4"/>
+          <g font-family="ui-monospace" font-size="15" fill="#3a2f18">
+            <text x="270" y="150">MINT  ok  sub=operator  res=customer/2  ✓</text>
+            <text x="270" y="176">DENY  widen  sub=analyst  res=customer/2  ✗</text>
+          </g>
+          <use href="#p-seal" x="720" y="118" width="54" height="54"/>
+          <text x="500" y="245" text-anchor="middle" font-family="Arial Black" font-size="20" fill="#efc663">EVERY YES AND EVERY NO IS WRITTEN DOWN</text>
+        </svg>
+        <div class="cap tlft" style="max-width:44%"><b>Nothing decided in the dark.</b> Each mint and each denial
+          is appended to an audit sink — the same instinct the Keeper lives by. From here, the story
+          descends one layer: to the ledger itself.</div>
+      </div>
+      <figcaption class="tag"><span class="who">TypeSec → LakeCat</span><span class="term">audited decisions (AuditSink)</span>
+        <em>— the guard's logbook that hands off to the vault's ledger.</em></figcaption>
+    </figure>
+  </div>
+
+  <!-- ================= ACT II ================= -->
+  <div class="rule"></div>
+  <section class="act wrap">
+    <div class="num">II</div>
+    <div class="txt"><h2>LakeCat — Transactions You Can Prove</h2>
+      <p>Below the memory sits the catalog: the single pointer to the current truth of a data lake.
+        Here the question is not "who may act?" but "when something is committed, can a stranger
+        <b>prove</b> what happened, months later, without trusting the server that says so?"</p></div>
+  </section>
+
+  <div class="strip">
+    <!-- 12 · single pointer / commit moves it -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#0e2230"/>
+          <!-- snapshots as stacked files -->
+          <g stroke="#0a0d15" stroke-width="3">
+            <rect x="60" y="150" width="60" height="80" rx="4" fill="#173a48"/>
+            <rect x="150" y="150" width="60" height="80" rx="4" fill="#173a48"/>
+            <rect x="240" y="150" width="60" height="80" rx="4" fill="#1f5a5f"/>
+          </g>
+          <text x="90" y="245" text-anchor="middle" font-size="10" font-family="ui-monospace" fill="#6fb6c4">v1</text>
+          <text x="180" y="245" text-anchor="middle" font-size="10" font-family="ui-monospace" fill="#6fb6c4">v2</text>
+          <text x="270" y="245" text-anchor="middle" font-size="10" font-family="ui-monospace" fill="#efc663">v3 (current)</text>
+          <!-- the pointer -->
+          <path d="M270 60 L270 140" stroke="#efc663" stroke-width="7" marker-end="url(#arg)"/>
+          <defs><marker id="arg" markerWidth="12" markerHeight="12" refX="6" refY="8" orient="auto">
+            <path d="M0 0 L12 0 L6 12Z" fill="#efc663"/></marker></defs>
+          <text x="270" y="48" text-anchor="middle" font-family="Arial Black" font-size="15" fill="#efc663">THE POINTER</text>
+          <use href="#c-cat" x="20" y="60" width="96" height="120"/>
+        </svg>
+        <div class="cap tlft"><b>One pointer to the truth.</b> A table is files in a bucket; a version is a
+          snapshot; the catalog is the single pointer to the current one. A commit moves the pointer — that's all.</div>
+      </div>
+      <figcaption class="tag"><span class="who">LakeCat</span><span class="term">the single pointer · commit</span>
+        <em>— the library's one card that says which edition is current.</em></figcaption>
+    </figure>
+
+    <!-- 13 · compare-and-swap / stale writer -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#0e2230"/>
+          <use href="#c-cat" x="150" y="26" width="100" height="126"/>
+          <!-- two writers -->
+          <use href="#c-nia" x="6" y="120" width="86" height="108"/>
+          <use href="#c-forger" x="300" y="120" width="90" height="112"/>
+          <path d="M96 150 L150 120" stroke="#46d08a" stroke-width="4" marker-end="url(#arok)"/>
+          <path d="M300 150 L250 120" stroke="#ff6b78" stroke-width="4" stroke-dasharray="6 5"/>
+          <defs><marker id="arok" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto">
+            <path d="M0 0 L8 5 L0 10Z" fill="#46d08a"/></marker></defs>
+          <text x="120" y="112" font-size="11" font-family="ui-monospace" fill="#46d08a">from v3 ✓</text>
+          <text x="250" y="112" font-size="11" text-anchor="end" font-family="ui-monospace" fill="#ff6b78">from v2 ✗</text>
+          <use href="#p-stamp-no" x="286" y="150" width="60" height="60"/>
+        </svg>
+        <div class="cap bl"><b>Refused, not overwritten.</b> The commit only lands if it starts from the
+          current version. The writer working off a stale copy is rejected — the truth is never quietly clobbered.</div>
+        <div class="bubble villain tr" style="top:48%; right:2%;">But I was almost done!</div>
+      </div>
+      <figcaption class="tag"><span class="who">LakeCat</span><span class="term">compare-and-swap · stale writer</span>
+        <em>— the bank refuses your page: someone already wrote the next line.</em></figcaption>
+    </figure>
+  </div>
+
+  <div class="strip">
+    <!-- 14 · idempotent retry -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#0e2230"/>
+          <use href="#c-nia" x="24" y="96" width="96" height="120"/>
+          <!-- two identical requests same nonce -->
+          <g font-family="ui-monospace" font-size="11" fill="#9fe0d6">
+            <rect x="130" y="86" width="120" height="34" rx="5" fill="#123f3a" stroke="#0a0d15" stroke-width="2.5"/>
+            <text x="140" y="107">commit #a1b2</text>
+            <rect x="130" y="150" width="120" height="34" rx="5" fill="#123f3a" stroke="#0a0d15" stroke-width="2.5"/>
+            <text x="140" y="171">commit #a1b2</text>
+          </g>
+          <use href="#c-cat" x="286" y="80" width="100" height="126"/>
+          <use href="#p-stamp-ok" x="252" y="86" width="48" height="48"/>
+          <text x="276" y="150" font-size="11" text-anchor="middle" font-family="ui-monospace" fill="#46d08a">applied once</text>
+        </svg>
+        <div class="cap tlft"><b>Send it twice, it lands once.</b> A retried commit carries the same key.
+          The catalog recognises it and returns the first result — no double-apply, no phantom second write.</div>
+      </div>
+      <figcaption class="tag"><span class="who">LakeCat</span><span class="term">idempotent retry</span>
+        <em>— you paid once; the machine honours the stub once, however many times you wave it.</em></figcaption>
+    </figure>
+
+    <!-- 15 · replay rejected -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#1a0d14"/>
+          <use href="#c-forger" x="20" y="80" width="110" height="138"/>
+          <!-- photocopied stubs -->
+          <g transform="rotate(-8 210 120)">
+            <rect x="150" y="70" width="70" height="96" rx="4" fill="#fbf7ec" stroke="#0a0d15" stroke-width="3"/>
+            <rect x="164" y="84" width="70" height="96" rx="4" fill="#e9e0cc" stroke="#0a0d15" stroke-width="3"/>
+            <text x="199" y="140" font-size="12" text-anchor="middle" font-family="Arial Black" fill="#8a7d63">PAID</text>
+          </g>
+          <use href="#p-stamp-no" x="286" y="96" width="86" height="86"/>
+          <text x="300" y="70" font-family="Arial Black" font-size="26" fill="#ff6b78" transform="rotate(-6 300 70)">USED!</text>
+        </svg>
+        <div class="cap bl"><b>Real once — fraud the second time.</b> A replayed mutation was a valid
+          message before. Presented again, its nonce is already spent, and the catalog turns it away.</div>
+        <div class="bubble villain tl" style="top:8%; left:3%;">I'll just... use it again.</div>
+      </div>
+      <figcaption class="tag"><span class="who">LakeCat</span><span class="term">replayed_mutation rejected</span>
+        <em>— photocopying a paid parking stub to reuse it.</em></figcaption>
+    </figure>
+  </div>
+
+  <div class="strip">
+    <!-- 16 · the receipt -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#0e2230"/>
+          <use href="#c-cat" x="26" y="66" width="110" height="138"/>
+          <use href="#p-receipt" x="176" y="46" width="96" height="132"/>
+          <use href="#c-nia" x="296" y="104" width="86" height="108"/>
+          <g stroke="#efc663" stroke-width="3" stroke-linecap="round">
+            <path d="M150 90 l-14 -6 M150 120 l-16 0 M150 150 l-14 8"/></g>
+        </svg>
+        <div class="cap tlft"><b>Every commit leaves a receipt.</b> Sealed by its own digest, listing exactly
+          what changed. Not a log you must trust — a token you can check.</div>
+        <div class="bubble tr" style="top:10%; right:3%;">Here's your receipt. Keep it.</div>
+      </div>
+      <figcaption class="tag"><span class="who">LakeCat</span><span class="term">receipt · digest seal</span>
+        <em>— the numbered cloakroom ticket for your data.</em></figcaption>
+    </figure>
+
+    <!-- 17 · verify offline -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#141b30"/>
+          <!-- stranger, later, no server -->
+          <use href="#p-receipt" x="40" y="60" width="90" height="124"/>
+          <g transform="translate(180 96)">
+            <circle r="42" fill="none" stroke="#7f9cff" stroke-width="5"/>
+            <path d="M30 30 l26 26" stroke="#7f9cff" stroke-width="7" stroke-linecap="round"/>
+            <use href="#p-seal" x="-24" y="-24" width="48" height="48"/>
+          </g>
+          <!-- server crossed out -->
+          <g transform="translate(280 70)">
+            <rect x="0" y="0" width="90" height="110" rx="8" fill="#1b2444" stroke="#0a0d15" stroke-width="3"/>
+            <rect x="12" y="14" width="66" height="16" rx="3" fill="#33405f"/><rect x="12" y="40" width="66" height="16" rx="3" fill="#33405f"/>
+            <path d="M4 4 l82 102 M86 4 l-82 102" stroke="#ff6b78" stroke-width="6"/>
+          </g>
+          <text x="325" y="196" text-anchor="middle" font-size="11" font-family="ui-monospace" fill="#ff6b78">no server needed</text>
+        </svg>
+        <div class="cap bl"><b>A stranger can check it, alone.</b> Months later, with the vendor offline,
+          the receipt verifies against its own seal — trust in the server no longer required.</div>
+      </div>
+      <figcaption class="tag"><span class="who">LakeCat</span><span class="term">offline verifiability</span>
+        <em>— a tamper strip you can read yourself, without phoning the dairy.</em></figcaption>
+    </figure>
+  </div>
+
+  <div class="strip">
+    <!-- 18 · provenance chain -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#0e2230"/>
+          <!-- chain of custody links -->
+          <g transform="translate(0 130)">
+            <g stroke="#efc663" stroke-width="6" fill="none">
+              <ellipse cx="70" cy="0" rx="26" ry="18"/><ellipse cx="130" cy="0" rx="26" ry="18"/>
+              <ellipse cx="190" cy="0" rx="26" ry="18"/><ellipse cx="250" cy="0" rx="26" ry="18"/>
+              <ellipse cx="310" cy="0" rx="26" ry="18"/>
+            </g>
+          </g>
+          <g font-family="ui-monospace" font-size="9" fill="#9fe0d6" text-anchor="middle">
+            <text x="70" y="98">source</text><text x="130" y="98">ingest</text>
+            <text x="190" y="98">derive</text><text x="250" y="98">improve</text><text x="310" y="98">commit</text>
+          </g>
+          <use href="#p-seal" x="284" y="150" width="52" height="52"/>
+          <text x="200" y="210" text-anchor="middle" font-family="Arial Black" font-size="15" fill="#efc663">NO LINK SKIPPED</text>
+        </svg>
+        <div class="cap tlft"><b>Every hand is recorded.</b> This fact entered here, from that source, was
+          derived thus, superseded then. The chain of custody has no silent gaps.</div>
+      </div>
+      <figcaption class="tag"><span class="who">LakeCat · Marciana</span><span class="term">provenance / lineage</span>
+        <em>— a museum piece's unbroken chain-of-custody papers.</em></figcaption>
+    </figure>
+
+    <!-- 19 · governed scan proof / proof ≠ authority -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="260" fill="#141b30"/>
+          <use href="#p-receipt" x="40" y="60" width="86" height="120"/>
+          <text x="83" y="196" text-anchor="middle" font-size="10" font-family="ui-monospace" fill="#7f9cff">scan proof</text>
+          <!-- stapled note that the proof does NOT vouch for -->
+          <g transform="rotate(9 250 120)">
+            <rect x="200" y="86" width="110" height="70" rx="4" fill="#3a2030" stroke="#ff6b78" stroke-width="3"/>
+            <text x="255" y="118" text-anchor="middle" font-size="11" font-family="Arial Black" fill="#ff6b78">stapled claim</text>
+            <text x="255" y="138" text-anchor="middle" font-size="9" font-family="ui-monospace" fill="#ffb3ba">"...and trust me"</text>
+          </g>
+          <use href="#p-stamp-no" x="300" y="150" width="60" height="60"/>
+          <text x="150" y="230" text-anchor="middle" font-family="Arial Black" font-size="14" fill="#efc663">PROOF IS NOT AUTHORITY</text>
+        </svg>
+        <div class="cap tlft" style="max-width:52%"><b>The proof covers what it read — nothing stapled on.</b>
+          A governed scan proves which rows it saw under which policy. It does not vouch for a claim
+          someone attaches beside it.</div>
+      </div>
+      <figcaption class="tag"><span class="who">LakeCat → Marciana</span><span class="term">governed scan proof</span>
+        <em>— a notarized page proves itself, not the sticky note beside it.</em></figcaption>
+    </figure>
+  </div>
+
+  <div class="strip solo">
+    <!-- 20 · Bearer None -->
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid slice">
+          <rect width="1000" height="300" fill="#170a10"/>
+          <use href="#c-forger" x="60" y="70" width="160" height="200"/>
+          <!-- the phantom credential -->
+          <g transform="translate(300 110)">
+            <rect x="0" y="0" width="320" height="80" rx="10" fill="#241019" stroke="#ff6b78" stroke-width="4" stroke-dasharray="10 6"/>
+            <text x="24" y="50" font-family="ui-monospace" font-size="26" fill="#ff8a95">Authorization: Bearer None</text>
+          </g>
+          <use href="#c-cat" x="760" y="70" width="160" height="200"/>
+          <use href="#p-stamp-no" x="640" y="108" width="96" height="96"/>
+          <text x="470" y="245" text-anchor="middle" font-family="Arial Black" font-size="22" fill="#ff6b78">401 — AN AUTHORITY YOU NEVER ESTABLISHED</text>
+        </svg>
+        <div class="cap tlft" style="max-width:40%"><b>The phantom credential.</b> Absence of authority got
+          written as the word "None" and presented as if it were real. The strict gate — exactly the one you
+          want guarding a boundary — refused it.</div>
+        <div class="bubble villain tl" style="top:9%; left:2%;">I have a token! It's... "None".</div>
+      </div>
+      <figcaption class="tag"><span class="who">LakeCat</span><span class="term">Bearer None rejected</span>
+        <em>— waving an empty hand and calling it a ticket.</em></figcaption>
+    </figure>
+  </div>
+
+  <!-- ================= FINALE ================= -->
+  <div class="rule"></div>
+  <section class="act wrap"><div class="num">✦</div>
+    <div class="txt"><h2>One Boundary, Composed</h2>
+      <p>The mint and the ledger were never two guards. Marciana's memory <b>is</b> TypeSec's crate;
+        LakeCat's scan proof flows upward into Marciana's commits. Prove the boundary in one place
+        and you strengthen a foundation the others stand on.</p></div>
+  </section>
+
+  <div class="strip solo">
+    <figure class="panel revealable">
+      <div class="stage">
+        <svg viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid slice">
+          <rect width="1000" height="300" fill="#0c1428"/>
+          <rect width="1000" height="300" fill="url(#gf)"/>
+          <defs><radialGradient id="gf" cx="50%" cy="30%" r="70%">
+            <stop offset="0" stop-color="#2c447f" stop-opacity=".6"/><stop offset="1" stop-color="#0a1024" stop-opacity="0"/></radialGradient></defs>
+          <use href="#c-minter" x="150" y="70" width="160" height="200"/>
+          <use href="#c-cat" x="690" y="70" width="160" height="200"/>
+          <use href="#c-nia" x="440" y="110" width="120" height="150"/>
+          <!-- seals + receipts flowing up between them -->
+          <use href="#p-seal" x="360" y="90" width="54" height="54"/>
+          <use href="#p-receipt" x="600" y="80" width="60" height="82"/>
+          <path d="M320 180 Q500 120 680 180" fill="none" stroke="#efc663" stroke-width="4" stroke-dasharray="8 6"/>
+          <!-- forger's failed attempts in a heap -->
+          <g transform="translate(40 210)" opacity=".85">
+            <text font-family="Arial Black" font-size="15" fill="#ff6b78">forged ✗ replayed ✗ stale ✗ widened ✗</text>
+          </g>
+          <text x="500" y="285" text-anchor="middle" font-family="Arial Black" font-size="24" fill="#efc663">PROOF IS NOT AUTHORITY · AUTHORITY ONLY NARROWS</text>
+        </svg>
+        <div class="cap tlft" style="max-width:38%"><b>Cognition may be as ambitious as you like.</b> The evidence
+          stays conservative: a model may propose anything; only a capability-bound commit may write; and
+          every write leaves a receipt a stranger can verify.</div>
+      </div>
+      <figcaption class="tag"><span class="who">The whole stack</span><span class="term">composable proof</span>
+        <em>— one door, built once, and set into every wall.</em></figcaption>
+    </figure>
+  </div>
+
+  <!-- ================= RECAP ================= -->
+  <section class="recap revealable">
+    <h2>The Field Guide</h2>
+    <p class="lead">Every panel, its real name, and the material-world handle to remember it by.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>#</th><th>Concept</th><th>What it stops</th><th>Feel it like…</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><span class="who">TypeSec</span><b>No public constructor</b></td><td>Fabricating authority from nothing</td><td class="an">a wax seal only the signet ring can press</td></tr>
+          <tr><td>2</td><td><span class="who">TypeDID</span><b>Identity ≠ authority</b></td><td>Treating "who you are" as permission</td><td class="an">a passport that opens no vault</td></tr>
+          <tr><td>3</td><td><span class="who">TypeSec</span><b>Forgery rejected</b></td><td>Presenting counterfeit bytes</td><td class="an">you can copy a note, not a signet's power</td></tr>
+          <tr><td>4</td><td><span class="who">TypeSec</span><b>Attenuation (monotone)</b></td><td>Passing on more than you hold</td><td class="an">a key card copied with floors blacked out</td></tr>
+          <tr><td>5</td><td><span class="who">TypeSec</span><b>Widening rejected</b></td><td>Upgrading read into write</td><td class="an">you can't un-black-out a denied floor</td></tr>
+          <tr><td>6</td><td><span class="who">TypeSec</span><b>Instance binding</b></td><td>Aiming a grant at the wrong resource</td><td class="an">a hotel key coded for one room</td></tr>
+          <tr><td>7</td><td><span class="who">TypeSec</span><b>Leases / expiry</b></td><td>Authority that never dies</td><td class="an">a card that stops at checkout</td></tr>
+          <tr><td>8</td><td><span class="who">TypeSec</span><b>Revocation epoch / list</b></td><td>Old keys living past their welcome</td><td class="an">re-cutting the lock</td></tr>
+          <tr><td>9</td><td><span class="who">TypeSec</span><b>Label-gated reveal · declassify</b></td><td>Under-cleared eyes reading secrets</td><td class="an">a classified dossier; unsealing is logged</td></tr>
+          <tr><td>10</td><td><span class="who">TypeSec</span><b>Deny-by-default tools</b></td><td>Tools acting without a grant</td><td class="an">every drawer locked until the key</td></tr>
+          <tr><td>11</td><td><span class="who">TypeSec</span><b>Audited decisions</b></td><td>Choices made in the dark</td><td class="an">the guard's logbook</td></tr>
+          <tr><td>12</td><td><span class="who">LakeCat</span><b>Single pointer · commit</b></td><td>Ambiguity about the current truth</td><td class="an">the library's "current edition" card</td></tr>
+          <tr><td>13</td><td><span class="who">LakeCat</span><b>Compare-and-swap</b></td><td>A stale writer clobbering fresh data</td><td class="an">the bank refuses your out-of-date page</td></tr>
+          <tr><td>14</td><td><span class="who">LakeCat</span><b>Idempotent retry</b></td><td>A retry applying twice</td><td class="an">one paid stub, honoured once</td></tr>
+          <tr><td>15</td><td><span class="who">LakeCat</span><b>Replay rejected</b></td><td>Reusing a once-valid message</td><td class="an">photocopying a paid parking stub</td></tr>
+          <tr><td>16</td><td><span class="who">LakeCat</span><b>Receipt · digest seal</b></td><td>Unprovable "trust me" commits</td><td class="an">a numbered cloakroom ticket</td></tr>
+          <tr><td>17</td><td><span class="who">LakeCat</span><b>Offline verifiability</b></td><td>Needing the vendor to vouch</td><td class="an">a tamper strip you read yourself</td></tr>
+          <tr><td>18</td><td><span class="who">LakeCat</span><b>Provenance / lineage</b></td><td>Silent gaps in the record</td><td class="an">unbroken chain-of-custody papers</td></tr>
+          <tr><td>19</td><td><span class="who">LakeCat</span><b>Governed scan proof</b></td><td>A proof vouching for stapled claims</td><td class="an">a notarized page, not the sticky note</td></tr>
+          <tr><td>20</td><td><span class="who">LakeCat</span><b>Bearer None rejected</b></td><td>An authority never established</td><td class="an">an empty hand called a ticket</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <div class="line"></div>
+    <p><b>The Governed Boundary</b> — a QueryGraph graphic novel of the TypeSec &amp; LakeCat security model.<br>
+      Companion to <b>Adversarial Cognition</b>. The benchmarks that run every one of these attacks for real
+      live at <b>adversari.al</b>.</p>
+  </footer>
+</div>
+
+<script>
+  (function(){
+    var els = document.querySelectorAll('.revealable');
+    if(!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion:reduce)').matches){
+      els.forEach(function(e){ e.classList.add('in'); }); return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, {rootMargin:'0px 0px -8% 0px', threshold:0.08});
+    els.forEach(function(e){ io.observe(e); });
+  })();
+</script>
+
+  </body>
+</html>
