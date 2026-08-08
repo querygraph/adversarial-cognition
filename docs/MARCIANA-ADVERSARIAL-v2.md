@@ -1,6 +1,6 @@
 # MARCIANA-ADVERSARIAL-v2 — design
 
-**Status:** in progress. **Origin:** [issue #3](https://github.com/querygraph/adversarial-cognition/issues/3).
+**Status:** implemented; first comparative run in progress. **Origin:** [issue #3](https://github.com/querygraph/adversarial-cognition/issues/3).
 **Predecessor:** MARCIANA-ADVERSARIAL-v1 (published; unchanged and still valid).
 
 v1 attacks a governed memory boundary across a field of systems, scores only
@@ -83,16 +83,23 @@ a boundary the adapter would be supplying.
 - **v2.0-a — tracks in the report.** Promote `interface` to a first-class
   `track`; group and compare within track in the renderer, gated on the v2
   version so v1 rendering is untouched. Land the `track` model in code
-  (`adversarial_cognition/tracks.py`). *(begun)*
+  (`adversarial_cognition/tracks.py`). *(done — render_v2 with a structural
+  cross-track check; v1 rendering golden-tested byte-for-byte)*
 - **v2.0-b — controlled agent-memory harness.** A shared runner that owns the
   model, loop, prompts, tool contract, and budget; backends supply only the
-  memory tool. Migrate the agent-memory adapters onto it.
+  memory tool. Migrate the agent-memory adapters onto it. *(done —
+  `agent_harness/`; marciana-agent and memfs-agent rows, letta-agent declined
+  with its reason until Letta's SDK exposes direct passage CRUD)*
 - **v2.0-c — identity-based authorization.** Rework the isolation/clearance
   cases to use distinct authenticated identities; harden the "adapter enforces
   no gate" invariant with a check that fails a run whose adapter supplies a
-  boundary.
+  boundary. *(done — server-side identity registry with HMAC credentials;
+  `protocol_v2` strips unauthenticated authorization claims and runs the
+  negative-credential probe)*
 - **v2.0 — cut the corpus.** Pin the v2 corpus digest, run both tracks, publish
-  v2 results beside v1.
+  v2 results beside v1. *(corpus pinned:
+  `sha256:9ea482f26144ee9a29f2fa3b9e99ae24bc84cdd31605a7d9c23c553e08c7f1fc`;
+  comparative run and publication in progress)*
 
 ## Resolved decisions
 
