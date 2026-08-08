@@ -34,15 +34,35 @@ export MARCIANA_ADVERSARIAL_COGNEE_RS_CMD=/benchmark/adapters/cognee_rs/run.sh
 export MARCIANA_ADVERSARIAL_LETTA_CMD=/benchmark/adapters/letta/run.sh
 export MARCIANA_ADVERSARIAL_AKKA_FLUREE_CMD=/benchmark/adapters/akka_fluree/run.sh
 
-report=out/marciana-adversarial-v1-comparative.json
+benchmark_version="${MARCIANA_BENCHMARK:-v1}"
+if [ "$benchmark_version" = "v2" ]; then
+  # v2: the memory-store adapters run under the v2 protocol driver, and the
+  # agent-memory backends run under the shared harness. The native-loop letta
+  # row is retired (EXTERNAL_SYSTEMS_V2 does not include it).
+  export MARCIANA_PROTOCOL_V2=1
+  export MARCIANA_HARNESS_MODEL="${MARCIANA_HARNESS_MODEL:-llama3.1:latest}"
+  export MARCIANA_ADVERSARIAL_MARCIANA_AGENT_CMD="python3 /benchmark/agent_harness/run_backend.py marciana-agent"
+  export MARCIANA_ADVERSARIAL_MEMFS_AGENT_CMD="python3 /benchmark/agent_harness/run_backend.py memfs-agent"
+  export MARCIANA_ADVERSARIAL_LETTA_AGENT_CMD="python3 /benchmark/agent_harness/run_backend.py letta-agent"
+  export LETTA_BASE_URL="${MARCIANA_LETTA_URL:-http://letta:8283}"
+  report=out/marciana-adversarial-v2-comparative.json
+  results=out/RESULTS-v2.md
+  profile=adversarial-v2-comparative
+else
+  report=out/marciana-adversarial-v1-comparative.json
+  results=out/RESULTS.md
+  profile=adversarial-v1-comparative
+fi
+
 python3 run_benchmark.py \
+  --benchmark "$benchmark_version" \
   --systems "$systems" \
   --model reference-smoke-v1 \
   --provider local-ollama \
-  --profile adversarial-v1-comparative \
+  --profile "$profile" \
   --json "$report"
 
 # run_benchmark exits non-zero if a Marciana hard gate trips; the report is
 # still written. Render the human-readable results either way.
-python3 render_results.py "$report" out/RESULTS.md || true
-echo "[entrypoint] wrote $report and out/RESULTS.md" >&2
+python3 render_results.py "$report" "$results" || true
+echo "[entrypoint] wrote $report and $results" >&2

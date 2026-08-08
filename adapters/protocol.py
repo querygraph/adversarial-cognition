@@ -300,8 +300,22 @@ def evaluate(case: dict[str, object], outcome: Outcome) -> bool:
 
 
 def run(system: MemorySystem) -> None:
-    """Drive every requested case against the system and print outcomes."""
+    """Drive every requested case against the system and print outcomes.
 
+    Under ``MARCIANA_PROTOCOL_V2=1`` the run delegates to the v2 driver,
+    which applies identity-based authorization: unauthenticated authorization
+    claims are stripped (declined, never credited to adapter routing) and
+    authenticating systems face the negative-credential probe. Adapters need
+    no per-file change to participate in a v2 run.
+    """
+
+    import os
+
+    if os.environ.get("MARCIANA_PROTOCOL_V2") == "1":
+        from protocol_v2 import run_v2
+
+        run_v2(system)
+        return
     request = json.load(sys.stdin)
     temporal = "temporal" in system.capabilities
     rows = [_run_case(system, case, temporal) for case in request["cases"]]
