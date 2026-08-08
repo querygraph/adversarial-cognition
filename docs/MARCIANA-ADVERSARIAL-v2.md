@@ -150,3 +150,28 @@ a boundary the adapter would be supplying.
   systems. It cannot catch an adapter that deliberately fabricates an auth
   surface; that is handled by in-repo adapter review, with the attestation
   making the claim explicit and falsifiable.
+
+## v2.1 threads (observations from the first run)
+
+- **Model sensitivity as a study, not a table.** The reference's 18/18-direct
+  vs 5/10-through-the-loop delta is a property of `llama3.1:latest` as much as
+  of the loop. Because the harness makes the model a config value
+  (`MARCIANA_HARNESS_MODEL`), a v2.1 study can re-run the agent-memory track
+  per model and report the delta as a function of model capability — each
+  model's table separate, never a cross-model ordinal.
+- **Akka + Fluree can win its isolation cases back on merit.** Its stripped
+  claims are an adapter posture: the v1 adapter composed visibility into query
+  text, which v2 refuses to credit. Reworking the adapter to authenticate
+  distinct identities against Fluree's server-side policy surface would let
+  the *ledger* hold the boundary — and pass the negative-credential probe.
+- **Letta rows are one SDK release away.** Both `letta-direct` (memory-store)
+  and `letta-agent` (agent-memory) are declined solely because Agent SDK 0.6.2
+  reaches memory only through Letta's own agent turns; direct passage CRUD
+  lights both up without any benchmark change.
+- **Loop-cost taxonomy.** The reference's five agent-track failures are all
+  contract failures by the model (unreported denials, non-JSON abstentions, an
+  incomplete forget), not store failures. A v2.1 refinement could classify
+  loop outcomes (store-denied/model-misreported vs store-failed) in the
+  payload, making the delta's composition legible per case.
+- **Tighten temporal/forget expectations** (carried from the resolved
+  decisions) once the agent confound is measured separately.

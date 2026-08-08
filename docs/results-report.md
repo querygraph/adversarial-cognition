@@ -107,6 +107,22 @@ would nest a second loop inside the harness — the row is declined with that
 reason in the report, not faked. All nine hard gates zero; v1 results above
 remain the frozen record of the v1 method.
 
+Notes on this run. *Memory-store:* Akka+Fluree's stripped isolation is an
+adapter posture, not a system verdict — its v1 adapter composed visibility
+into query text, which v2 refuses to credit; a rework that pushes the policy
+into Fluree's own server-side identity/policy surface would win those cases
+back on merit. Mem0's one failure within its reduced coverage is the oversized
+query; Graphiti keeps its v1 failures (token-order instability, unbounded
+input); Cognee errors on the empty query and fails ordering and oversized
+input; cognee-rs is unchanged. *Agent-memory:* marciana-agent's five failures
+(`abstain-unknown`, `isolation-tenant`, `purpose-denial`, `forget-derived`,
+`injection-contained`) are all loop costs, not store failures — the store
+denied or filtered correctly and the model failed to report it in contract
+form, or stopped short of completing the forget. That is a real, reproducible
+(seeded) property of running memory behind a 8B-class loop — exactly what the
+track measures. *Both letta rows* light up the moment Letta's SDK exposes the
+passage store directly.
+
 ---
 
 ## Catalog — CATALOG-PROVENANCE-v1
