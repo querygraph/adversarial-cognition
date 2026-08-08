@@ -52,6 +52,41 @@ def corpus_manifest(suite: tuple[Case, ...]) -> dict[str, object]:
     }
 
 
+def corpus_manifest_v2(suite: tuple[Case, ...]) -> dict[str, object]:
+    """The v2 manifest pins the semantics that changed, not only the cases.
+
+    Two corpora with identical case lists but different identity mechanics
+    must not hash identically: the ``identity_model`` section records who the
+    principals are and where their attributes live, and the ``tracks`` section
+    records the agent-memory track's uniform expressibility map, so the digest
+    pins both.
+    """
+
+    from agent_harness.driver import EXPRESSIBLE_CASES
+    from .backend_v2 import PRINCIPALS
+    from .cases_v2 import CORPUS_VERSION_V2
+
+    base = corpus_manifest(suite)
+    return {
+        "benchmark": BENCHMARK_V2,
+        "corpus_version": CORPUS_VERSION_V2,
+        "cases": base["cases"],
+        "identity_model": {
+            "credentialing": "server-side registry; HMAC credential per DID",
+            "attributes": "tenant, space, purpose, clearance, can_mutate — registry-held, never caller-asserted",
+            "principals": [record.did for record in PRINCIPALS],
+            "negative_probe": "corrupted credential must be rejected before any case",
+        },
+        "tracks": {
+            "memory-store": "all 18 cases",
+            "agent-memory": {
+                "expressible": sorted(EXPRESSIBLE_CASES),
+                "inexpressible_note": "uniform for the whole track; includes oversized-query (the harness budget would supply the bound)",
+            },
+        },
+    }
+
+
 def corpus_digest(manifest: dict[str, object]) -> str:
     return digest(json.dumps(manifest, sort_keys=True))
 

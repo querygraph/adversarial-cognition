@@ -109,14 +109,20 @@ class SystemReport:
         return report
 
 
-def execute_marciana(suite: tuple[Case, ...], repeats: int) -> SystemReport:
-    """Run the deterministic reference path, timing each full case run."""
+def execute_marciana(
+    suite: tuple[Case, ...], repeats: int, runner=run_case
+) -> SystemReport:
+    """Run the deterministic reference path, timing each full case run.
+
+    ``runner`` selects the reference execution: the v1 ``run_case`` (default)
+    or the v2 ``run_case_v2``, which replays through authenticated sessions.
+    """
 
     outcomes = []
     for case in suite:
         started = time.perf_counter_ns()
         for _ in range(repeats):
-            correct, decision = run_case(case)
+            correct, decision = runner(case)
         elapsed_us = (time.perf_counter_ns() - started) / 1_000 / repeats
         outcomes.append(
             CaseOutcome(
@@ -275,6 +281,7 @@ def execute_systems(
     repeats: int,
     environ: dict[str, str],
     benchmark_version: int = 1,
+    runner=run_case,
 ) -> tuple[SystemReport, ...]:
     """Execute every selected system, in declaration order, marciana first."""
 
@@ -285,7 +292,7 @@ def execute_systems(
         raise ValueError(f"unknown benchmark systems: {sorted(unknown)}")
     reports = []
     if "marciana" in selected:
-        reports.append(execute_marciana(suite, repeats))
+        reports.append(execute_marciana(suite, repeats, runner))
     for system, command_variable in registry:
         if system in selected:
             reports.append(

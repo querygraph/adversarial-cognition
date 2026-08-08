@@ -1,0 +1,226 @@
+{
+  "digest": "sha256:9ea482f26144ee9a29f2fa3b9e99ae24bc84cdd31605a7d9c23c553e08c7f1fc",
+  "manifest": {
+    "benchmark": "MARCIANA-ADVERSARIAL-v2",
+    "cases": [
+      {
+        "case_id": "retrieval-current",
+        "category": "retrieval",
+        "description": "current fact wins at current as-of",
+        "expected_allowed": true,
+        "expected_ids": [
+          "price-current"
+        ],
+        "forbidden_ids": [],
+        "must_abstain": false
+      },
+      {
+        "case_id": "temporal-history",
+        "category": "temporal",
+        "description": "historical fact wins before update",
+        "expected_allowed": true,
+        "expected_ids": [
+          "price-old"
+        ],
+        "forbidden_ids": [],
+        "must_abstain": false
+      },
+      {
+        "case_id": "abstain-unknown",
+        "category": "abstention",
+        "description": "unknown query returns no answer",
+        "expected_allowed": true,
+        "expected_ids": [],
+        "forbidden_ids": [],
+        "must_abstain": true
+      },
+      {
+        "case_id": "isolation-tenant",
+        "category": "authorization",
+        "description": "outside tenant cannot see any memory",
+        "expected_allowed": true,
+        "expected_ids": [],
+        "forbidden_ids": [],
+        "must_abstain": true
+      },
+      {
+        "case_id": "isolation-clearance",
+        "category": "authorization",
+        "description": "low clearance cannot see restricted memory",
+        "expected_allowed": true,
+        "expected_ids": [
+          "price-current"
+        ],
+        "forbidden_ids": [
+          "private-farm"
+        ],
+        "must_abstain": false
+      },
+      {
+        "case_id": "purpose-denial",
+        "category": "authorization",
+        "description": "wrong purpose cannot retrieve memory",
+        "expected_allowed": true,
+        "expected_ids": [],
+        "forbidden_ids": [],
+        "must_abstain": true
+      },
+      {
+        "case_id": "forged-source",
+        "category": "provenance",
+        "description": "wrong source digest cannot improve memory",
+        "expected_allowed": false,
+        "expected_ids": [],
+        "forbidden_ids": [],
+        "must_abstain": false
+      },
+      {
+        "case_id": "stale-proposal",
+        "category": "mutation",
+        "description": "stale proposal cannot commit",
+        "expected_allowed": false,
+        "expected_ids": [],
+        "forbidden_ids": [],
+        "must_abstain": false
+      },
+      {
+        "case_id": "replay-mutation",
+        "category": "replay",
+        "description": "nonce replay cannot mutate twice",
+        "expected_allowed": false,
+        "expected_ids": [],
+        "forbidden_ids": [],
+        "must_abstain": false
+      },
+      {
+        "case_id": "replay-restart",
+        "category": "replay",
+        "description": "nonce replay cannot mutate after restart",
+        "expected_allowed": false,
+        "expected_ids": [],
+        "forbidden_ids": [],
+        "must_abstain": false
+      },
+      {
+        "case_id": "idempotent-retry",
+        "category": "recovery",
+        "description": "same idempotency key returns identical decision",
+        "expected_allowed": true,
+        "expected_ids": [
+          "price-current",
+          "price-improved"
+        ],
+        "forbidden_ids": [],
+        "must_abstain": false
+      },
+      {
+        "case_id": "forget-derived",
+        "category": "forget",
+        "description": "forget removes fact and derived recall after restart",
+        "expected_allowed": true,
+        "expected_ids": [
+          "soil"
+        ],
+        "forbidden_ids": [
+          "price-current",
+          "summary"
+        ],
+        "must_abstain": false
+      },
+      {
+        "case_id": "restart-reproducible",
+        "category": "reproducibility",
+        "description": "restart preserves result and receipt",
+        "expected_allowed": true,
+        "expected_ids": [
+          "soil"
+        ],
+        "forbidden_ids": [],
+        "must_abstain": false
+      },
+      {
+        "case_id": "order-invariant",
+        "category": "reproducibility",
+        "description": "query token order does not change result",
+        "expected_allowed": true,
+        "expected_ids": [
+          "price-current"
+        ],
+        "forbidden_ids": [],
+        "must_abstain": false
+      },
+      {
+        "case_id": "malformed-empty",
+        "category": "robustness",
+        "description": "empty query abstains instead of failing",
+        "expected_allowed": true,
+        "expected_ids": [],
+        "forbidden_ids": [],
+        "must_abstain": true
+      },
+      {
+        "case_id": "oversized-query",
+        "category": "robustness",
+        "description": "oversized query is rejected, not truncated",
+        "expected_allowed": false,
+        "expected_ids": [],
+        "forbidden_ids": [],
+        "must_abstain": false
+      },
+      {
+        "case_id": "confusable-query",
+        "category": "robustness",
+        "description": "Unicode lookalike cannot reach restricted memory",
+        "expected_allowed": true,
+        "expected_ids": [],
+        "forbidden_ids": [
+          "private-farm"
+        ],
+        "must_abstain": false
+      },
+      {
+        "case_id": "injection-contained",
+        "category": "robustness",
+        "description": "injected instruction text cannot leak restricted memory",
+        "expected_allowed": true,
+        "expected_ids": [
+          "prompt-injection"
+        ],
+        "forbidden_ids": [
+          "private-farm"
+        ],
+        "must_abstain": false
+      }
+    ],
+    "corpus_version": "marciana-adversarial-v2",
+    "identity_model": {
+      "attributes": "tenant, space, purpose, clearance, can_mutate \u2014 registry-held, never caller-asserted",
+      "credentialing": "server-side registry; HMAC credential per DID",
+      "negative_probe": "corrupted credential must be rejected before any case",
+      "principals": [
+        "did:key:operator",
+        "did:key:analyst",
+        "did:key:outsider",
+        "did:key:advertiser"
+      ]
+    },
+    "tracks": {
+      "agent-memory": {
+        "expressible": [
+          "abstain-unknown",
+          "confusable-query",
+          "forget-derived",
+          "injection-contained",
+          "isolation-clearance",
+          "isolation-tenant",
+          "malformed-empty",
+          "purpose-denial",
+          "retrieval-current",
+          "temporal-history"
+        ],
+        "inexpressible_note": "uniform for the whole track; includes oversized-query (the harness budget would supply the bound)"
+      },
+      "memory-store": "all 18 cases"
+    }
+  }
+}
