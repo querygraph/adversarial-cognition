@@ -67,6 +67,7 @@ class SystemReport:
     error: str = ""
     interface: str = "direct-api"
     outcomes: tuple[CaseOutcome, ...] = ()
+    harness: dict | None = None
 
     def as_dict(self) -> dict[str, object]:
         report: dict[str, object] = {
@@ -84,6 +85,8 @@ class SystemReport:
             report["unsupported_cases"] = sum(
                 not outcome.supported for outcome in self.outcomes
             )
+            if self.harness:
+                report["harness"] = dict(self.harness)
         return report
 
 
@@ -133,26 +136,63 @@ def _external_request(suite: tuple[Case, ...], repeats: int) -> str:
     )
 
 
+HARNESS_KEYS = (
+    "model", "seed", "temperature", "num_ctx", "max_turns",
+    "prompt_digest", "tool_contract",
+)
+
+
+def _parse_harness(parsed: dict, interface: str, benchmark_version: int) -> dict | None:
+    """Validate the harness attestation an agent-loop payload must carry (v2).
+
+    Under v2, ``agent-loop`` is only a valid interface when the shared harness
+    itself stamped the payload with its configuration; a self-declared
+    agent-loop adapter that did not run under the harness would land in the
+    agent-memory track while violating its one-loop premise.
+    """
+
+    harness = parsed.get("harness")
+    if benchmark_version < 2:
+        return None
+    if interface != "agent-loop":
+        return None
+    if not isinstance(harness, dict):
+        raise ValueError("agent-loop declared without a harness attestation")
+    missing = [key for key in HARNESS_KEYS if key not in harness]
+    if missing:
+        raise ValueError(f"harness attestation missing keys: {missing}")
+    bounded: dict[str, object] = {}
+    for key in HARNESS_KEYS:
+        value = harness[key]
+        bounded[key] = str(value)[:128] if isinstance(value, str) else value
+    return bounded
+
+
 def _parse_external_outcomes(
-    payload: str, suite: tuple[Case, ...]
-) -> tuple[str, str, tuple[CaseOutcome, ...]]:
-    """Parse an external adapter's payload into a version, interface, and outcomes.
+    payload: str, suite: tuple[Case, ...], benchmark_version: int = 1
+) -> tuple[str, str, dict | None, tuple[CaseOutcome, ...]]:
+    """Parse an external adapter's payload into version, interface, harness, outcomes.
 
     An adapter may honestly declare a case ``"supported": false`` instead of
     faking a result for a feature its system does not claim; unsupported
-    cases are reported separately, never counted as passes. The optional
-    ``interface`` field records how the adapter reached the system's memory
-    (``direct-api`` or ``agent-loop``); it is metadata, never a score.
+    cases are reported separately, never counted as passes. The ``interface``
+    field records how the adapter reached the system's memory (``direct-api``
+    or ``agent-loop``). Under v1 it is optional metadata defaulting to
+    ``direct-api``; under v2 it is required, and ``agent-loop`` must carry the
+    harness attestation block the shared harness stamps.
     """
 
     parsed = json.loads(payload)
     version = str(parsed.get("adapter_version", ADAPTER_PROTOCOL))[:64]
+    if benchmark_version >= 2 and "interface" not in parsed:
+        raise ValueError("v2 adapter payload must declare its interface")
     interface = str(parsed.get("interface", "direct-api"))[:32]
+    harness = _parse_harness(parsed, interface, benchmark_version)
     rows = parsed["cases"]
     by_id = {row["case_id"]: row for row in rows}
     if set(by_id) != {case.case_id for case in suite}:
         raise ValueError("external adapter did not report every case exactly once")
-    return version, interface, tuple(
+    return version, interface, harness, tuple(
         CaseOutcome(
             case.case_id,
             case.category,
@@ -173,6 +213,7 @@ def execute_external(
     suite: tuple[Case, ...],
     repeats: int,
     environ: dict[str, str],
+    benchmark_version: int = 1,
 ) -> SystemReport:
     """Run one explicitly configured external adapter command.
 
@@ -196,12 +237,17 @@ def execute_external(
             timeout=timeout,
             check=True,
         )
-        version, interface, outcomes = _parse_external_outcomes(completed.stdout, suite)
+        version, interface, harness, outcomes = _parse_external_outcomes(
+            completed.stdout, suite, benchmark_version
+        )
     except Exception as error:  # noqa: BLE001 - adapter failures become reportable errors
         return SystemReport(
             system, ADAPTER_PROTOCOL, "error", error=str(error)[:MAX_ERROR_CHARS]
         )
-    return SystemReport(system, version, "executed", interface=interface, outcomes=outcomes)
+    return SystemReport(
+        system, version, "executed",
+        interface=interface, outcomes=outcomes, harness=harness,
+    )
 
 
 def execute_systems(
@@ -209,6 +255,7 @@ def execute_systems(
     suite: tuple[Case, ...],
     repeats: int,
     environ: dict[str, str],
+    benchmark_version: int = 1,
 ) -> tuple[SystemReport, ...]:
     """Execute every selected system, in declaration order, marciana first."""
 
@@ -221,5 +268,10 @@ def execute_systems(
         reports.append(execute_marciana(suite, repeats))
     for system, command_variable in EXTERNAL_SYSTEMS:
         if system in selected:
-            reports.append(execute_external(system, command_variable, suite, repeats, environ))
+            reports.append(
+                execute_external(
+                    system, command_variable, suite, repeats, environ,
+                    benchmark_version,
+                )
+            )
     return tuple(reports)

@@ -1,3 +1,15 @@
+## Unreleased
+
+- v2.0-a: promote the adapter `interface` to a first-class **track** in v2
+  reports (`build_report(benchmark=...)` stamps `track` per executed system and
+  a `tracks` grouping), and split the renderer into a frozen `render_v1`
+  (byte-for-byte, golden-tested against the published docs/RESULTS.md) and a
+  track-grouped `render_v2` — one systems table and case matrix per track,
+  compared only within a track, with a structural `assert_no_cross_track_table`
+  check the renderer runs on its own output. Under v2, an adapter payload must
+  declare its interface, and `agent-loop` is valid only with the harness
+  attestation block the shared harness stamps.
+
 # Changelog
 
 ## Unreleased
