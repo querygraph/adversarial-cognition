@@ -61,6 +61,52 @@ claims only native retrieval and persistence, declares its dataset name is not
 an authorization boundary, and on this build does not yet hold determinism or
 bound its inputs.
 
+## Cognition — MARCIANA-ADVERSARIAL-v2
+
+**Corpus digest:** `sha256:9ea482f26144ee9a29f2fa3b9e99ae24bc84cdd31605a7d9c23c553e08c7f1fc`
+· **Profile:** adversarial-v2-comparative on local-ollama · **Source of truth:**
+`adversarial-cognition/docs/RESULTS-v2.md` · **Design:**
+`docs/MARCIANA-ADVERSARIAL-v2.md` (issue #3)
+
+v2 runs beside v1 — it never replaces it — and changes the method, not the
+corpus: the same eighteen case intents, re-expressed through **authenticated
+identities** (server-side registry, HMAC credentials, a negative-credential
+probe before any case), split into two **tracks compared only within a track**.
+Systems whose isolation was an adapter-chosen partition (`user_id`,
+`group_id`, query-composed visibility) now *decline* authorization cases
+rather than being credited with them — **coverage moved, correctness didn't.**
+
+**Memory-store track** (storage APIs called directly):
+
+| System | Coverage | Correct within coverage | v1 → v2 coverage note |
+|--------|:--------:|:-----------------------:|------------------------|
+| Marciana | 18/18 | 100% (18/18) | authenticated reference; probe passed |
+| Akka + Fluree | 13/18 | 100% (13/13) | 16→13: query-composed visibility no longer credits isolation |
+| Mem0 | 6/18 | 83% (5/6) | 9→6: `user_id` partition no longer credits isolation |
+| Graphiti | 5/18 | 60% (3/5) | 8→5: `group_id` partition no longer credits isolation |
+| Cognee | 6/18 | 50% (3/6) | dataset tiers are adapter-selected; declined |
+| cognee-rs | 4/18 | 0% (0/4) | unchanged; still no determinism or input bounds |
+
+**Agent-memory track** (one shared harness: `llama3.1:latest`, temperature 0,
+seed 7, num_ctx 8192, max 6 turns — only the memory varies; ten of the
+eighteen cases are expressible in the shared tool contract, uniformly for the
+track):
+
+| System | Coverage | Correct within coverage | Note |
+|--------|:--------:|:-----------------------:|------|
+| marciana-agent | 10/18 | 50% (5/10) | the reference under the shared loop |
+| memfs-agent | 3/18 | 67% (2/3) | flat no-auth floor row |
+
+The headline measurement v2 exists for: **the same governed reference scores
+18/18 through its API and 5/10 through the shared agent loop.** The gap is the
+model's contribution — failed abstention formatting, denials not reported as
+empty answers, a forget the model executed incompletely — isolated from the
+memory system for the first time. Letta appears in neither track this run:
+Agent SDK 0.6.2 exposes its store only through Letta's own agent turns, which
+would nest a second loop inside the harness — the row is declined with that
+reason in the report, not faked. All nine hard gates zero; v1 results above
+remain the frozen record of the v1 method.
+
 ---
 
 ## Catalog — CATALOG-PROVENANCE-v1

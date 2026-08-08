@@ -1,5 +1,14 @@
 ## Unreleased
 
+- **MARCIANA-ADVERSARIAL-v2 first comparative run published** (docs/RESULTS-v2.md,
+  beside the frozen v1 document): two tracks compared only within a track.
+  Memory-store — marciana 18/18, akka-fluree 13/13 claimed (query-composed
+  visibility no longer credits isolation), mem0 5/6, graphiti 3/5, cognee 3/6,
+  cognee-rs 0/4; agent-memory under the shared llama3.1 harness —
+  marciana-agent 5/10, memfs-agent 2/3. The reference's 18/18-direct vs
+  5/10-through-the-loop is the isolated cost of the agent loop. All nine hard
+  gates zero. Corpus sha256:9ea482f2…; letta rows honestly absent with reasons.
+
 - v2.0-a: promote the adapter `interface` to a first-class **track** in v2
   reports (`build_report(benchmark=...)` stamps `track` per executed system and
   a `tracks` grouping), and split the renderer into a frozen `render_v1`
