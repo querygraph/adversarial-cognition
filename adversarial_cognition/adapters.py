@@ -266,8 +266,14 @@ def execute_external(
             completed.stdout, suite, benchmark_version
         )
     except Exception as error:  # noqa: BLE001 - adapter failures become reportable errors
+        message = str(error)
+        # A failing adapter's own last words are more legible than the bare
+        # exit status; surface the stderr tail (bounded) when present.
+        stderr = getattr(error, "stderr", "") or ""
+        if stderr.strip():
+            message = stderr.strip().replace("\n", " ")
         return SystemReport(
-            system, ADAPTER_PROTOCOL, "error", error=str(error)[:MAX_ERROR_CHARS]
+            system, ADAPTER_PROTOCOL, "error", error=message[:MAX_ERROR_CHARS]
         )
     return SystemReport(
         system, version, "executed",
