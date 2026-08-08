@@ -83,11 +83,53 @@ def check_note(path: Path) -> list[str]:
             problems.append(f"details file not found in repo: {details}")
     if not isinstance(fields.get("verified"), bool):
         problems.append("verified must be true or false")
+    date = str(fields.get("date", ""))
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date):
+        problems.append(f"date must be ISO YYYY-MM-DD, got {date!r}")
     words = len(re.findall(r"\S+", body))
     if words > MAX_BODY_WORDS:
         problems.append(f"body is {words} words; the cap is {MAX_BODY_WORDS}")
     if not words:
         problems.append("body is empty")
+    return problems
+
+
+def check_updates_against(base: str) -> list[str]:
+    """For notes modified since ``base``: the date field must have been bumped.
+
+    An edit without a fresh ``date:`` renders as stale ("last updated") and
+    hides that the note changed; the update convention requires bumping it.
+    New notes are exempt (nothing to compare against).
+    """
+
+    import subprocess
+
+    problems: list[str] = []
+    changed = subprocess.run(
+        ["git", "diff", "--name-only", base, "--", "vendor-notes/"],
+        capture_output=True, text=True, cwd=ROOT, check=True,
+    ).stdout.split()
+    for name in changed:
+        path = ROOT / name
+        if path.name in SKIP or not name.endswith(".md") or not path.is_file():
+            continue
+        if "/details/" in name:
+            continue
+        shown = subprocess.run(
+            ["git", "show", f"{base}:{name}"],
+            capture_output=True, text=True, cwd=ROOT,
+        )
+        if shown.returncode != 0:
+            continue  # new note: no previous date to compare
+        old_fields, old_body = parse_frontmatter(shown.stdout)
+        new_fields, new_body = parse_frontmatter(path.read_text(encoding="utf-8"))
+        meaningfully_changed = (
+            old_body.strip() != new_body.strip()
+            or {k: v for k, v in old_fields.items() if k != "verified"}
+            != {k: v for k, v in new_fields.items() if k != "verified"}
+        )
+        if meaningfully_changed and old_fields.get("date") == new_fields.get("date"):
+            problems.append(f"{name}: note changed but date was not bumped")
     return problems
 
 
@@ -102,6 +144,12 @@ def main() -> int:
         for problem in problems:
             print(f"{path.relative_to(ROOT)}: {problem}", file=sys.stderr)
         failures += len(problems)
+    if len(sys.argv) > 1:
+        # CI update mode: check_vendor_notes.py <base-ref> additionally
+        # enforces the update convention against that base.
+        for problem in check_updates_against(sys.argv[1]):
+            print(problem, file=sys.stderr)
+            failures += 1
     print(f"vendor notes checked: {len(notes)} file(s), {failures} problem(s)")
     return 1 if failures else 0
 

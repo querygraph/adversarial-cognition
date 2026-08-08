@@ -22,6 +22,23 @@ outcomes), and a link to a longer document.
    `verified: true`, and merges. Only verified notes render on the site; the
    git history is the provenance.
 
+## Updating your note
+
+Notes are living documents — update them the same way they were created:
+
+1. Edit `vendor-notes/<system>.md` in a PR (the site's popup links straight to
+   the GitHub editor for your file). Update the `date:` field to the day of
+   the edit — the validator requires it to change when the body changes, and
+   the site shows it as "last updated".
+2. Titles for update PRs: `vendor-notes: <system> — update: <what changed>`.
+3. Leave `verified:` exactly as it is; it is not yours to set either way.
+   **A maintainer re-verifies the submitter on every merge that touches a
+   note** — an existing `verified: true` never carries over to an edit by
+   itself, so an update from an unverified account will be flipped to
+   `verified: false` (unpublishing the note) rather than inheriting trust.
+4. The full history of every note — who changed what, when, and which
+   maintainer merged it — is the git log. Nothing is ever silently replaced.
+
 ## Rules
 
 - The published numbers may not be restated differently than the run; a note
