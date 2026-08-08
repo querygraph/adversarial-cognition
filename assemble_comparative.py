@@ -38,10 +38,10 @@ def load_system(system: str, suite: tuple) -> SystemReport:
         variable = dict(EXTERNAL_SYSTEMS)[system]
         return SystemReport(system, "adapter", "unavailable", missing_configuration=(variable,))
     try:
-        version, outcomes = _parse_external_outcomes(path.read_text(), suite)
+        version, interface, outcomes = _parse_external_outcomes(path.read_text(), suite)
     except Exception as error:  # noqa: BLE001 - a bad capture is a reportable error
         return SystemReport(system, "adapter", "error", error=str(error)[:256])
-    return SystemReport(system, version, "executed", outcomes=outcomes)
+    return SystemReport(system, version, "executed", interface=interface, outcomes=outcomes)
 
 
 def main() -> None:

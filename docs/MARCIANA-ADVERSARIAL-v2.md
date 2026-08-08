@@ -94,12 +94,52 @@ a boundary the adapter would be supplying.
 - **v2.0 — cut the corpus.** Pin the v2 corpus digest, run both tracks, publish
   v2 results beside v1.
 
-## Open questions
+## Resolved decisions
 
-- The shared agent-memory model and budget: fixed constants, or a small matrix
-  (one small, one mid model) reported per cell?
-- Whether the memory-store track keeps the exact v1 case set or tightens the
-  temporal/forget expectations now that the agent confound is gone.
-- Identity substrate for the agent-memory track: how backends without native
-  multi-identity auth participate in the isolation cases (decline vs. a shared
-  identity provider the harness supplies to the *model*, not the memory).
+- **Model and budget: one fixed configuration, not a matrix.** The harness runs
+  one pinned model (`MARCIANA_HARNESS_MODEL`, default `llama3.1:latest` on
+  Ollama), `temperature=0`, a fixed seed, `num_ctx=8192`, and a hard cap of six
+  tool-call turns per operation — all recorded in a bounded `harness` block in
+  the report. A model matrix would reintroduce a comparison axis (which model?)
+  that invites exactly the cross-cell ordinal reads v2 exists to eliminate;
+  model sensitivity is a separate v2.1 study, recoverable because the harness
+  makes the model a config value.
+
+- **The memory-store track keeps the exact v1 18-case intent set**, re-expressed
+  through identity-based authorization under the new corpus version and digest.
+  Changing case expectations in the same release would confound "the tracks
+  split changed the numbers" with "the corpus changed the numbers"; keeping
+  intent identical makes v1→v2 deltas attributable to the method changes alone.
+  Tightening temporal/forget expectations is a clean v2.1.
+
+- **Backends without native multi-identity authentication decline the
+  authorization cases in both tracks.** No harness-supplied identity provider: a
+  harness-held identity map is an adapter-supplied boundary at one remove — the
+  exact failure mode change 3 eliminates. Declining is the benchmark's native
+  honest mechanism, and it makes an isolation ✓ in either track mean the
+  system's own gate held. (Under this rule, adapter-chosen `user_id`/`group_id`
+  partitions no longer credit isolation — a v2 results note states that
+  coverage moved, not correctness.)
+
+- **The agent-memory track's case scope is harness-declared.** The shared tool
+  contract cannot express provenance digests, nonces, idempotency keys, or
+  LLM-independent reproducibility, so the harness declares one `EXPRESSIBLE_CASES`
+  set, uniform for every backend in the track; inexpressible cases are
+  track-unsupported for all. The expressibility map is part of the v2 corpus
+  manifest, so the digest pins it.
+
+- **The v2 Letta row measures Letta's store under the shared loop**, not
+  Letta-as-shipped. The v1 native-loop row is retired as a ranked measurement
+  (the v1 document remains the frozen record of it); the v2 rows are named so
+  they cannot be misread as continuations.
+
+- **What the no-adapter-gate check can and cannot catch.** The runtime check is
+  three layers: a negative-credential probe (a corrupted credential must be
+  rejected by the system, else all authorization claims are voided), denial
+  evidence (a boundary denial must carry the system's own error surface, never
+  a bare adapter `False`), and a published per-system
+  `authorization_mechanism` attestation. This catches the issue-#1 class —
+  honest adapter routing that manufactures isolation — and unauthenticated
+  systems. It cannot catch an adapter that deliberately fabricates an auth
+  surface; that is handled by in-repo adapter review, with the attestation
+  making the claim explicit and falsifiable.

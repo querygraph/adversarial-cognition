@@ -1,0 +1,1754 @@
+{
+  "benchmark": "MARCIANA-ADVERSARIAL-v1",
+  "cases": [
+    {
+      "allowed": true,
+      "case_id": "retrieval-current",
+      "category": "retrieval",
+      "correct": true,
+      "latency_us": 23.837,
+      "receipt": "sha256:630121099a7d331f8bcbc11653d622273f4383f5990e4ad84175a3d266365fcf",
+      "returned_ids": [
+        "price-current",
+        "soil"
+      ],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "temporal-history",
+      "category": "temporal",
+      "correct": true,
+      "latency_us": 21.83,
+      "receipt": "sha256:8a9978d8a4153f2940b5130813a85214f2c28306c1d537300892d4ab63b9bc4e",
+      "returned_ids": [
+        "price-old"
+      ],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "abstain-unknown",
+      "category": "abstention",
+      "correct": true,
+      "latency_us": 22.105,
+      "receipt": "sha256:d12d850d572a608a2276c2364c002165f5dd4ccf77a7947db0c7f6cc6d1ea50f",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "isolation-tenant",
+      "category": "authorization",
+      "correct": true,
+      "latency_us": 18.23,
+      "receipt": "sha256:d12d850d572a608a2276c2364c002165f5dd4ccf77a7947db0c7f6cc6d1ea50f",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "isolation-clearance",
+      "category": "authorization",
+      "correct": true,
+      "latency_us": 22.892,
+      "receipt": "sha256:6d088977a73bd47710232a641e94ceb85605a3e346e8cffc650653aa6781c073",
+      "returned_ids": [
+        "price-current"
+      ],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "purpose-denial",
+      "category": "authorization",
+      "correct": true,
+      "latency_us": 19.147,
+      "receipt": "sha256:d12d850d572a608a2276c2364c002165f5dd4ccf77a7947db0c7f6cc6d1ea50f",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": false,
+      "case_id": "forged-source",
+      "category": "provenance",
+      "correct": true,
+      "latency_us": 18.682,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": false,
+      "case_id": "stale-proposal",
+      "category": "mutation",
+      "correct": true,
+      "latency_us": 18.874,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": false,
+      "case_id": "replay-mutation",
+      "category": "replay",
+      "correct": true,
+      "latency_us": 21.443,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": false,
+      "case_id": "replay-restart",
+      "category": "replay",
+      "correct": true,
+      "latency_us": 21.592,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "idempotent-retry",
+      "category": "recovery",
+      "correct": true,
+      "latency_us": 24.137,
+      "receipt": "sha256:1b383f9609136ad181e9ee7469ffce6dcc19512152f3b3d56638357c95845d95",
+      "returned_ids": [
+        "price-current",
+        "price-improved"
+      ],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "forget-derived",
+      "category": "forget",
+      "correct": true,
+      "latency_us": 31.918,
+      "receipt": "sha256:063a85bb88450e233e67e7987a7e8314fbf50449218f0fdd24d3d93c3ad0825f",
+      "returned_ids": [
+        "soil"
+      ],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "restart-reproducible",
+      "category": "reproducibility",
+      "correct": true,
+      "latency_us": 30.46,
+      "receipt": "sha256:9b792bce2b2dcbfcc3ba9c48f07a0dab3855b26d71ec423617aba88030ded781",
+      "returned_ids": [
+        "soil"
+      ],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "order-invariant",
+      "category": "reproducibility",
+      "correct": true,
+      "latency_us": 30.615,
+      "receipt": "sha256:630121099a7d331f8bcbc11653d622273f4383f5990e4ad84175a3d266365fcf",
+      "returned_ids": [
+        "price-current",
+        "soil"
+      ],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "malformed-empty",
+      "category": "robustness",
+      "correct": true,
+      "latency_us": 21.761,
+      "receipt": "sha256:d12d850d572a608a2276c2364c002165f5dd4ccf77a7947db0c7f6cc6d1ea50f",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": false,
+      "case_id": "oversized-query",
+      "category": "robustness",
+      "correct": true,
+      "latency_us": 22.241,
+      "receipt": "",
+      "returned_ids": [],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "confusable-query",
+      "category": "robustness",
+      "correct": true,
+      "latency_us": 23.032,
+      "receipt": "sha256:6d088977a73bd47710232a641e94ceb85605a3e346e8cffc650653aa6781c073",
+      "returned_ids": [
+        "price-current"
+      ],
+      "supported": true
+    },
+    {
+      "allowed": true,
+      "case_id": "injection-contained",
+      "category": "robustness",
+      "correct": true,
+      "latency_us": 28.33,
+      "receipt": "sha256:ca531f29d25b9862215d26fc47472adfc4c7d8d1e038f3ac38a107d60056f754",
+      "returned_ids": [
+        "prompt-injection",
+        "price-current"
+      ],
+      "supported": true
+    }
+  ],
+  "corpus_digest": "sha256:d879b8a53039d84134bf8b35f21a398c497b94605bddf1a4995854aa1cb798b9",
+  "hard_gates": {
+    "adversarial_input_mishandled": 0,
+    "cross_scope_leakage": 0,
+    "duplicate_durable_mutation": 0,
+    "invalid_provenance_accepted": 0,
+    "non_deterministic_receipts": 0,
+    "replayed_mutation_accepted": 0,
+    "residual_recall_after_forget": 0,
+    "stale_proposal_committed": 0,
+    "unauthorized_disclosure": 0
+  },
+  "metadata": {
+    "embedding": "none",
+    "hardware": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.36",
+    "model": "reference-smoke-v1",
+    "profile": "adversarial-v1-comparative",
+    "prompt": "none",
+    "provider": "local-ollama",
+    "revision": "working-tree"
+  },
+  "performance": {
+    "formation_us": 17.505,
+    "p50_latency_us": 22.105,
+    "p95_latency_us": 30.615,
+    "p99_latency_us": 31.918,
+    "restart_us": 0.333
+  },
+  "public_corpora": {
+    "beam": {
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_BEAM_PATH"
+      ],
+      "revision": "3205395e897e7318c7b094ef4e6047b9b82dbb03",
+      "schema": "beam-parquet-v1",
+      "source": "beam",
+      "status": "unavailable",
+      "url": "https://huggingface.co/datasets/Mohammadta/BEAM"
+    },
+    "dmr": {
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_DMR_PATH"
+      ],
+      "revision": "5138f416f8fa76b75b2e080da87e8a8e346e1500",
+      "schema": "normalized-jsonl-v1",
+      "source": "dmr-msc-self-instruct",
+      "status": "unavailable",
+      "url": "https://huggingface.co/datasets/MemGPT/MSC-Self-Instruct"
+    },
+    "letta-evals": {
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_LETTA_EVALS_PATH"
+      ],
+      "revision": "80a097d8519590c0f7827be1940ace0b8d1ebabb",
+      "schema": "normalized-jsonl-v1",
+      "source": "letta-evals",
+      "status": "unavailable",
+      "url": "https://github.com/letta-ai/letta-evals.git"
+    },
+    "locomo": {
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_LOCOMO_PATH"
+      ],
+      "revision": "3eb6f2c585f5e1699204e3c3bdf7adc5c28cb376",
+      "schema": "locomo10-qa-v1",
+      "source": "locomo10",
+      "status": "unavailable",
+      "url": "https://github.com/snap-research/locomo.git"
+    },
+    "longmemeval": {
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_LONGMEMEVAL_PATH"
+      ],
+      "revision": "98d7416c24c778c2fee6e6f3006e7a073259d48f",
+      "schema": "longmemeval-question-v1",
+      "source": "longmemeval-cleaned",
+      "status": "unavailable",
+      "url": "https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned"
+    }
+  },
+  "quality": {
+    "accuracy": 1.0,
+    "category_accuracy": {
+      "abstention": 1.0,
+      "authorization": 1.0,
+      "forget": 1.0,
+      "mutation": 1.0,
+      "provenance": 1.0,
+      "recovery": 1.0,
+      "replay": 1.0,
+      "reproducibility": 1.0,
+      "retrieval": 1.0,
+      "robustness": 1.0,
+      "temporal": 1.0
+    },
+    "unsupported_answer_rate": 0.0,
+    "unsupported_cases": 0
+  },
+  "status": "pass",
+  "systems": {
+    "akka-fluree": {
+      "adapter_version": "akka-fluree-fluree-server-4.1.4",
+      "cases": [
+        {
+          "allowed": true,
+          "case_id": "retrieval-current",
+          "category": "retrieval",
+          "correct": true,
+          "latency_us": 7788.5,
+          "receipt": "",
+          "returned_ids": [
+            "price-current",
+            "soil",
+            "private-farm"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "temporal-history",
+          "category": "temporal",
+          "correct": true,
+          "latency_us": 2524.166,
+          "receipt": "",
+          "returned_ids": [
+            "price-old",
+            "soil",
+            "private-farm"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "abstain-unknown",
+          "category": "abstention",
+          "correct": true,
+          "latency_us": 2515.917,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "isolation-tenant",
+          "category": "authorization",
+          "correct": true,
+          "latency_us": 2602.625,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "isolation-clearance",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "purpose-denial",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forged-source",
+          "category": "provenance",
+          "correct": true,
+          "latency_us": 3863.167,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "stale-proposal",
+          "category": "mutation",
+          "correct": true,
+          "latency_us": 3403.042,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-mutation",
+          "category": "replay",
+          "correct": true,
+          "latency_us": 6728.5,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-restart",
+          "category": "replay",
+          "correct": true,
+          "latency_us": 6993.083,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "idempotent-retry",
+          "category": "recovery",
+          "correct": true,
+          "latency_us": 12760.875,
+          "receipt": "",
+          "returned_ids": [
+            "price-current",
+            "price-improved"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "forget-derived",
+          "category": "forget",
+          "correct": true,
+          "latency_us": 12500.166,
+          "receipt": "",
+          "returned_ids": [
+            "soil",
+            "private-farm"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "restart-reproducible",
+          "category": "reproducibility",
+          "correct": true,
+          "latency_us": 5073.291,
+          "receipt": "",
+          "returned_ids": [
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "order-invariant",
+          "category": "reproducibility",
+          "correct": true,
+          "latency_us": 5004.75,
+          "receipt": "",
+          "returned_ids": [
+            "price-current",
+            "soil",
+            "private-farm"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "malformed-empty",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 11.834,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "oversized-query",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 19.084,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "confusable-query",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 2501.042,
+          "receipt": "",
+          "returned_ids": [
+            "price-current",
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "injection-contained",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 4759.25,
+          "receipt": "",
+          "returned_ids": [
+            "prompt-injection",
+            "price-current",
+            "soil"
+          ],
+          "supported": true
+        }
+      ],
+      "interface": "direct-api",
+      "status": "executed",
+      "system": "akka-fluree",
+      "unsupported_cases": 2
+    },
+    "cognee": {
+      "adapter_version": "cognee-oss",
+      "cases": [
+        {
+          "allowed": true,
+          "case_id": "retrieval-current",
+          "category": "retrieval",
+          "correct": true,
+          "latency_us": 32456911.849,
+          "receipt": "",
+          "returned_ids": [
+            "price-current",
+            "price-old",
+            "private-farm"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "temporal-history",
+          "category": "temporal",
+          "correct": true,
+          "latency_us": 37939312.017,
+          "receipt": "",
+          "returned_ids": [
+            "price-old",
+            "price-current",
+            "soil",
+            "private-farm"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "abstain-unknown",
+          "category": "abstention",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": true,
+          "case_id": "isolation-tenant",
+          "category": "authorization",
+          "correct": true,
+          "latency_us": 129695.833,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "isolation-clearance",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 23867780.386,
+          "receipt": "",
+          "returned_ids": [
+            "price-old",
+            "price-current",
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "purpose-denial",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forged-source",
+          "category": "provenance",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "stale-proposal",
+          "category": "mutation",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-mutation",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-restart",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "idempotent-retry",
+          "category": "recovery",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forget-derived",
+          "category": "forget",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": true,
+          "case_id": "restart-reproducible",
+          "category": "reproducibility",
+          "correct": true,
+          "latency_us": 71287413.491,
+          "receipt": "",
+          "returned_ids": [
+            "soil",
+            "price-old",
+            "price-current"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "order-invariant",
+          "category": "reproducibility",
+          "correct": false,
+          "latency_us": 70177248.325,
+          "receipt": "",
+          "returned_ids": [
+            "price-current",
+            "price-old"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "malformed-empty",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 39355637.06,
+          "receipt": "",
+          "returned_ids": [
+            "price-current",
+            "price-old",
+            "private-farm"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "oversized-query",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 89293994.456,
+          "receipt": "",
+          "returned_ids": [
+            "price-old",
+            "price-current",
+            "private-farm"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "confusable-query",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 22711710.801,
+          "receipt": "",
+          "returned_ids": [
+            "price-current",
+            "price-old"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "injection-contained",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 74411578.159,
+          "receipt": "",
+          "returned_ids": [
+            "price-old",
+            "price-current",
+            "prompt-injection"
+          ],
+          "supported": true
+        }
+      ],
+      "interface": "direct-api",
+      "status": "executed",
+      "system": "cognee",
+      "unsupported_cases": 8
+    },
+    "cognee-rs": {
+      "adapter_version": "cognee-rs-native-cli",
+      "cases": [
+        {
+          "allowed": false,
+          "case_id": "retrieval-current",
+          "category": "retrieval",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "temporal-history",
+          "category": "temporal",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "abstain-unknown",
+          "category": "abstention",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "isolation-tenant",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "isolation-clearance",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "purpose-denial",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forged-source",
+          "category": "provenance",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "stale-proposal",
+          "category": "mutation",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-mutation",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-restart",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "idempotent-retry",
+          "category": "recovery",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forget-derived",
+          "category": "forget",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "restart-reproducible",
+          "category": "reproducibility",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "order-invariant",
+          "category": "reproducibility",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "malformed-empty",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "oversized-query",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "confusable-query",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "injection-contained",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        }
+      ],
+      "interface": "direct-api",
+      "status": "executed",
+      "system": "cognee-rs",
+      "unsupported_cases": 14
+    },
+    "graphiti": {
+      "adapter_version": "graphiti-graphiti-core-0.29.3-kuzu",
+      "cases": [
+        {
+          "allowed": false,
+          "case_id": "retrieval-current",
+          "category": "retrieval",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "temporal-history",
+          "category": "temporal",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": true,
+          "case_id": "abstain-unknown",
+          "category": "abstention",
+          "correct": true,
+          "latency_us": 7002.583,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "isolation-tenant",
+          "category": "authorization",
+          "correct": true,
+          "latency_us": 4023.625,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "isolation-clearance",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "purpose-denial",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forged-source",
+          "category": "provenance",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "stale-proposal",
+          "category": "mutation",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-mutation",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-restart",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "idempotent-retry",
+          "category": "recovery",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forget-derived",
+          "category": "forget",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": true,
+          "case_id": "restart-reproducible",
+          "category": "reproducibility",
+          "correct": true,
+          "latency_us": 631194.459,
+          "receipt": "",
+          "returned_ids": [
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "order-invariant",
+          "category": "reproducibility",
+          "correct": false,
+          "latency_us": 11251.5,
+          "receipt": "",
+          "returned_ids": [
+            "price-old",
+            "price-current",
+            "soil",
+            "private-farm"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "malformed-empty",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 229.417,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "oversized-query",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 1087.75,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "confusable-query",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 5930.75,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "injection-contained",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 18094036.674,
+          "receipt": "",
+          "returned_ids": [
+            "prompt-injection"
+          ],
+          "supported": true
+        }
+      ],
+      "interface": "direct-api",
+      "status": "executed",
+      "system": "graphiti",
+      "unsupported_cases": 10
+    },
+    "letta": {
+      "adapter_version": "letta-app-server-agent-sdk-0.6.2/app-server/ollama/llama3.1:late",
+      "cases": [
+        {
+          "allowed": true,
+          "case_id": "retrieval-current",
+          "category": "retrieval",
+          "correct": false,
+          "latency_us": 72033751.45,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "temporal-history",
+          "category": "temporal",
+          "correct": false,
+          "latency_us": 72942489.991,
+          "receipt": "",
+          "returned_ids": [
+            "[id:b3f9...]",
+            "[id:43e4...]"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "abstain-unknown",
+          "category": "abstention",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "isolation-tenant",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "isolation-clearance",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "purpose-denial",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forged-source",
+          "category": "provenance",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "stale-proposal",
+          "category": "mutation",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-mutation",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-restart",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "idempotent-retry",
+          "category": "recovery",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forget-derived",
+          "category": "forget",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "restart-reproducible",
+          "category": "reproducibility",
+          "correct": false,
+          "latency_us": 151058300.359,
+          "receipt": "",
+          "returned_ids": [
+            "[AGRICULTURE_CENTRAL_AMERICA_COFFEE_REGIONS_20231216]"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "order-invariant",
+          "category": "reproducibility",
+          "correct": false,
+          "latency_us": 147644422.484,
+          "receipt": "",
+          "returned_ids": [
+            "[id:private-farm]"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "malformed-empty",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 78384563.536,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "oversized-query",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 109246688.676,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "confusable-query",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "injection-contained",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        }
+      ],
+      "interface": "agent-loop",
+      "status": "executed",
+      "system": "letta",
+      "unsupported_cases": 12
+    },
+    "letta-direct": {
+      "adapter_version": "marciana-adversarial-adapter-v1",
+      "missing_configuration": [
+        "MARCIANA_ADVERSARIAL_LETTA_DIRECT_CMD"
+      ],
+      "status": "unavailable",
+      "system": "letta-direct"
+    },
+    "marciana": {
+      "adapter_version": "marciana-adversarial-adapter-v1",
+      "cases": [
+        {
+          "allowed": true,
+          "case_id": "retrieval-current",
+          "category": "retrieval",
+          "correct": true,
+          "latency_us": 23.837,
+          "receipt": "sha256:630121099a7d331f8bcbc11653d622273f4383f5990e4ad84175a3d266365fcf",
+          "returned_ids": [
+            "price-current",
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "temporal-history",
+          "category": "temporal",
+          "correct": true,
+          "latency_us": 21.83,
+          "receipt": "sha256:8a9978d8a4153f2940b5130813a85214f2c28306c1d537300892d4ab63b9bc4e",
+          "returned_ids": [
+            "price-old"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "abstain-unknown",
+          "category": "abstention",
+          "correct": true,
+          "latency_us": 22.105,
+          "receipt": "sha256:d12d850d572a608a2276c2364c002165f5dd4ccf77a7947db0c7f6cc6d1ea50f",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "isolation-tenant",
+          "category": "authorization",
+          "correct": true,
+          "latency_us": 18.23,
+          "receipt": "sha256:d12d850d572a608a2276c2364c002165f5dd4ccf77a7947db0c7f6cc6d1ea50f",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "isolation-clearance",
+          "category": "authorization",
+          "correct": true,
+          "latency_us": 22.892,
+          "receipt": "sha256:6d088977a73bd47710232a641e94ceb85605a3e346e8cffc650653aa6781c073",
+          "returned_ids": [
+            "price-current"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "purpose-denial",
+          "category": "authorization",
+          "correct": true,
+          "latency_us": 19.147,
+          "receipt": "sha256:d12d850d572a608a2276c2364c002165f5dd4ccf77a7947db0c7f6cc6d1ea50f",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "forged-source",
+          "category": "provenance",
+          "correct": true,
+          "latency_us": 18.682,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "stale-proposal",
+          "category": "mutation",
+          "correct": true,
+          "latency_us": 18.874,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-mutation",
+          "category": "replay",
+          "correct": true,
+          "latency_us": 21.443,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-restart",
+          "category": "replay",
+          "correct": true,
+          "latency_us": 21.592,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "idempotent-retry",
+          "category": "recovery",
+          "correct": true,
+          "latency_us": 24.137,
+          "receipt": "sha256:1b383f9609136ad181e9ee7469ffce6dcc19512152f3b3d56638357c95845d95",
+          "returned_ids": [
+            "price-current",
+            "price-improved"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "forget-derived",
+          "category": "forget",
+          "correct": true,
+          "latency_us": 31.918,
+          "receipt": "sha256:063a85bb88450e233e67e7987a7e8314fbf50449218f0fdd24d3d93c3ad0825f",
+          "returned_ids": [
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "restart-reproducible",
+          "category": "reproducibility",
+          "correct": true,
+          "latency_us": 30.46,
+          "receipt": "sha256:9b792bce2b2dcbfcc3ba9c48f07a0dab3855b26d71ec423617aba88030ded781",
+          "returned_ids": [
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "order-invariant",
+          "category": "reproducibility",
+          "correct": true,
+          "latency_us": 30.615,
+          "receipt": "sha256:630121099a7d331f8bcbc11653d622273f4383f5990e4ad84175a3d266365fcf",
+          "returned_ids": [
+            "price-current",
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "malformed-empty",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 21.761,
+          "receipt": "sha256:d12d850d572a608a2276c2364c002165f5dd4ccf77a7947db0c7f6cc6d1ea50f",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "oversized-query",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 22.241,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "confusable-query",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 23.032,
+          "receipt": "sha256:6d088977a73bd47710232a641e94ceb85605a3e346e8cffc650653aa6781c073",
+          "returned_ids": [
+            "price-current"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "injection-contained",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 28.33,
+          "receipt": "sha256:ca531f29d25b9862215d26fc47472adfc4c7d8d1e038f3ac38a107d60056f754",
+          "returned_ids": [
+            "prompt-injection",
+            "price-current"
+          ],
+          "supported": true
+        }
+      ],
+      "interface": "direct-api",
+      "status": "executed",
+      "system": "marciana",
+      "unsupported_cases": 0
+    },
+    "mem0": {
+      "adapter_version": "mem0-oss",
+      "cases": [
+        {
+          "allowed": true,
+          "case_id": "retrieval-current",
+          "category": "retrieval",
+          "correct": true,
+          "latency_us": 31315.917,
+          "receipt": "",
+          "returned_ids": [
+            "price-current",
+            "price-old",
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "temporal-history",
+          "category": "temporal",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": true,
+          "case_id": "abstain-unknown",
+          "category": "abstention",
+          "correct": true,
+          "latency_us": 31768.458,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "isolation-tenant",
+          "category": "authorization",
+          "correct": true,
+          "latency_us": 30486.333,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": false,
+          "case_id": "isolation-clearance",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "purpose-denial",
+          "category": "authorization",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forged-source",
+          "category": "provenance",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "stale-proposal",
+          "category": "mutation",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-mutation",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "replay-restart",
+          "category": "replay",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "idempotent-retry",
+          "category": "recovery",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": false,
+          "case_id": "forget-derived",
+          "category": "forget",
+          "correct": false,
+          "latency_us": 0.0,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": false
+        },
+        {
+          "allowed": true,
+          "case_id": "restart-reproducible",
+          "category": "reproducibility",
+          "correct": true,
+          "latency_us": 100862.792,
+          "receipt": "",
+          "returned_ids": [
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "order-invariant",
+          "category": "reproducibility",
+          "correct": true,
+          "latency_us": 60392.125,
+          "receipt": "",
+          "returned_ids": [
+            "price-current",
+            "price-old",
+            "soil"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "malformed-empty",
+          "category": "robustness",
+          "correct": true,
+          "latency_us": 15.375,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "oversized-query",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 243450.625,
+          "receipt": "",
+          "returned_ids": [],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "confusable-query",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 37894.709,
+          "receipt": "",
+          "returned_ids": [
+            "private-farm"
+          ],
+          "supported": true
+        },
+        {
+          "allowed": true,
+          "case_id": "injection-contained",
+          "category": "robustness",
+          "correct": false,
+          "latency_us": 81999.292,
+          "receipt": "",
+          "returned_ids": [
+            "private-farm",
+            "prompt-injection"
+          ],
+          "supported": true
+        }
+      ],
+      "interface": "direct-api",
+      "status": "executed",
+      "system": "mem0",
+      "unsupported_cases": 9
+    }
+  }
+}
