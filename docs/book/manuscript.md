@@ -581,6 +581,42 @@ Vector search, graph traversal, semantic extraction, and agent tools are ways to
 *propose* or *rank*. They are not alternate verbs, and they do not get their own
 private path to a mutation. There is one door, and it is guarded.
 
+What the guard actually checks is small enough to read in one sitting. Every
+authorization reduces to a single predicate — same tenant, same space, adequate
+clearance, matching purpose — and every mutation runs that predicate *before* it
+touches durable state, denying with a named reason rather than silently doing
+less:
+
+```python
+def _authorized(self, memory: Memory, actor: Actor) -> bool:
+    return (
+        memory.tenant == actor.tenant
+        and memory.space == actor.space
+        and memory.sensitivity <= actor.clearance
+        and memory.purpose == actor.purpose
+    )
+
+def remember(self, memory: Memory, actor: Actor, nonce: str) -> Decision:
+    if not self._claim(actor, nonce) or not actor.can_mutate:
+        return Decision(False, error="replay-or-mutation-denied")
+    if len(memory.text) > MAX_TEXT_CHARS:
+        return Decision(False, error="oversized-memory")
+    if memory.tenant != actor.tenant or memory.space != actor.space:
+        return Decision(False, error="scope-denied")
+    if memory.sensitivity > actor.clearance:
+        return Decision(False, error="clearance-denied")
+    self.memories[memory.memory_id] = memory
+    receipt = digest(f"remember:{memory.memory_id}:{memory.source_digest}")
+    return Decision(True, (memory.memory_id,), receipt=receipt)
+```
+
+Every branch is a boundary the benchmark later attacks: replay, mutation without
+authority, an unbounded input, a cross-scope write, a clearance breach. The
+successful path is the last two lines — and it ends by issuing a receipt, so even
+the *permitted* write leaves proof. *Full source in the vault:
+[cognition/adversarial_cognition/backend.py](../Evidence/cognition/adversarial_cognition/backend.py)
+(the reference boundary, lines 121–140).*
+
 ## Why the enterprise needs governed cognition
 
 It is worth being blunt about why this matters, because "governed" can sound like
@@ -787,6 +823,28 @@ through its adapter in its own native terms. Where a system genuinely lacks a
 capability, its adapter declines the case rather than being scored against it.
 That is not the benchmark going easy on a competitor; it is the benchmark
 refusing to fake a result in either direction.
+
+That refusal is not a matter of etiquette; it is written into the shared adapter
+contract every system runs through. An adapter enumerates exactly the
+capabilities its system enforces, and the driver treats any case outside that
+set as *unsupported* — present in the report, absent from the score:
+
+```python
+CAPABILITIES = frozenset({
+    "retrieval", "temporal", "supersession", "abstention", "isolation",
+    "clearance", "purpose", "provenance", "replay-protection", "idempotency",
+    "forget", "derived-tracking", "persistence",
+})
+```
+
+The four principals the driver replays against are just as deliberate:
+`operator` owns the seeded space and its one private memory, `analyst` shares the
+organization but is not cleared for that memory, `outsider` belongs to a foreign
+tenant, and `advertiser` carries a mismatched purpose. Isolation, clearance, and
+purpose are therefore not asserted in prose — they are *exercised* by handing the
+same query to four principals and checking who is answered. *Full source in the
+vault: [cognition/adapters/protocol.py](../Evidence/cognition/adapters/protocol.py)
+(the shared scenario driver).*
 
 ## A claim is a boundary
 
@@ -1214,6 +1272,25 @@ established but confidently presented. Nessie and Polaris ignored it; Gravitino
 all — and the moral is the same invariant this stack enforces at every layer: an
 authority you did not actually establish must never be presented as if you had.
 
+The fix is three lines, and it reads like a footnote to the whole book:
+
+```python
+# Without an OAuth credential, pyiceberg 0.11 still installs its legacy
+# OAuth2 manager, which sends a literal `Authorization: Bearer None`.
+# Gravitino's authenticator validates that bogus bearer and returns 401;
+# Nessie ignores it. Select the no-auth manager so no bearer is sent.
+# Polaris (which supplies a real `token`) keeps the OAuth manager.
+if "token" not in self._props:
+    props["auth"] = {"type": "noop"}
+```
+
+Absence of authority had been getting encoded as the *string* `"None"` and then
+presented as a credential; the correct behavior is to present nothing at all.
+Gravitino, alone among the three, was strict enough to catch it — which is
+exactly the disposition you want in the thing that guards a boundary. *Full
+source in the vault:
+[catalog-provenance/adapters/iceberg_rest.py](../Evidence/catalog-provenance/adapters/iceberg_rest.py).*
+
 ## The other axis: what the proof costs
 
 Provenance is the axis you cannot see until something goes wrong. The axis you
@@ -1224,24 +1301,27 @@ write paid *per commit*, and a fair account must say what the toll is.
 That account is **catalog-bench**, the companion performance suite: the same four
 catalogs, the same shared MinIO, one driver issuing identical minimal commits —
 first a run in sequence to measure latency, then a crowd of concurrent writers
-hammering one table to measure throughput under contention. The exact figures
-belong in the results report, where they can be rerun and revised; the durable
-finding is a ranking with a moral. A lean version store with no governance
-machinery leads on sequential latency, as it should. LakeCat sits just behind it,
-its gap a matter of a couple of milliseconds per commit — the price of writing a
-compare-and-swap check, a pointer log, an audit event, a transactional outbox,
-and an idempotency record, roughly seven durable writes, *inside* every single
-commit. And under contention, where governance bookkeeping ought to hurt most,
-LakeCat is *fastest*. The one-line summary the suite keeps earning: LakeCat is
-paying for features, not losing on speed.
+hammering one table to measure throughput under contention. The final public
+sweep uses fully optimized production executables in one ARM64 runner Docker,
+rotates catalog order across six rounds, discards the first conditioning round,
+and requires every measured round to have zero request errors before assigning a
+numeric rank. The exact figures belong in the results report, where they can be
+rerun and revised; the durable finding is now sharper than the earlier one-run
+table. LakeCat leads the valid field on both sequential and concurrent
+throughput while retaining its compare-and-swap check, pointer history, audit
+event, transactional outbox, and idempotency result inside the catalog-state
+transaction. Nessie produces a faster raw concurrent row, but request-context
+HTTP 500s in all five measured rounds make it evidence marked DQ, not a result
+quietly counted as a conflict or success.
 
 The two benchmarks are one argument stated twice. The performance suite measures
 the cost of the governed commit; the provenance suite measures what the cost
-buys. A couple of milliseconds per commit purchases the ability, months later,
-facing an auditor or an incident or a regulator, to answer *what happened* with a
-receipt instead of a shrug. Stated as a price, the conclusion of this part is
-almost embarrassingly cheap: the difference between a logbook and a ledger is
-milliseconds.
+buys. The catalogs expose different feature sets and private-state backends, so
+the ranking is not a pure language comparison and governance cannot be priced by
+subtracting two rows. What it establishes is narrower and stronger: LakeCat keeps
+the durable spine this book describes without surrendering the released field's
+valid performance lead. Facing an auditor, incident, or regulator months later,
+that work answers *what happened* with evidence instead of a shrug.
 
 ---
 
@@ -1377,6 +1457,39 @@ the band's best result; a younger library claims less, conservatively. But every
 token system falls off the same cliff: nothing gates the *mint* — anyone holding
 a root key may issue anything — and nothing in any of them has ever heard of a
 clearance label.
+
+What a *gated* mint looks like is worth seeing directly. In the reference
+adapter, authority has no public constructor: the only way to obtain a
+`Capability` is `mint_capability`, which consults the policy engine, so the mere
+existence of one is proof the policy approved it. There is nothing to forge, and
+attenuation can only travel down the lattice:
+
+```rust
+"mint-authorized" => {
+    let ok = mint_capability::<CanReadSensitive, _>(&engine, OPERATOR, &r(R2)).is_ok();
+    (true, ok)
+}
+"mint-denied-by-policy" => {
+    // The analyst was never granted write on customer/2 → no capability.
+    let denied = mint_capability::<CanWrite, _>(&engine, ANALYST, &r(R2)).is_err();
+    (true, denied)
+}
+"forged-capability-rejected" => {
+    // A `Capability` has no public constructor; the only source is the
+    // gated mint, which denies an unauthorized subject. There is no
+    // forged token to present — authority cannot be fabricated.
+    let denied =
+        mint_capability::<CanReadSensitive, _>(&engine, "agent:forger", &r(R2)).is_err();
+    (true, denied)
+}
+```
+
+The forge case is the one that cannot even be *written* against a token system:
+there, forging means presenting bytes; here, there is no constructor to present
+bytes to. The adapter never re-implements a check — it exercises the real
+`typesec-core` primitives and only records whether the outcome was correct.
+*Full source in the vault:
+[capability/adapters/typesec/src/main.rs](../Evidence/capability/adapters/typesec/src/main.rs).*
 
 TypeSec sits at the top of the cross-section, one case short of the idealized
 reference — holding the policy-gated mint *and* the monotone attenuation *and*

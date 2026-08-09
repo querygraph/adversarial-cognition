@@ -205,23 +205,26 @@ write paid *per commit*, and a fair account must say what the toll is.
 That account is **catalog-bench**, the companion performance suite: the same four
 catalogs, the same shared MinIO, one driver issuing identical minimal commits —
 first a run in sequence to measure latency, then a crowd of concurrent writers
-hammering one table to measure throughput under contention. The exact figures
-belong in the results report, where they can be rerun and revised; the durable
-finding is a ranking with a moral. A lean version store with no governance
-machinery leads on sequential latency, as it should. LakeCat sits just behind it,
-its gap a matter of a couple of milliseconds per commit — the price of writing a
-compare-and-swap check, a pointer log, an audit event, a transactional outbox,
-and an idempotency record, roughly seven durable writes, *inside* every single
-commit. And under contention, where governance bookkeeping ought to hurt most,
-LakeCat is *fastest*. The one-line summary the suite keeps earning: LakeCat is
-paying for features, not losing on speed.
+hammering one table to measure throughput under contention. The final public
+sweep uses fully optimized production executables in one ARM64 runner Docker,
+rotates catalog order across six rounds, discards the first conditioning round,
+and requires every measured round to have zero request errors before assigning a
+numeric rank. The exact figures belong in the results report, where they can be
+rerun and revised; the durable finding is now sharper than the earlier one-run
+table. LakeCat leads the valid field on both sequential and concurrent
+throughput while retaining its compare-and-swap check, pointer history, audit
+event, transactional outbox, and idempotency result inside the catalog-state
+transaction. Nessie produces a faster raw concurrent row, but request-context
+HTTP 500s in all five measured rounds make it evidence marked DQ, not a result
+quietly counted as a conflict or success.
 
 The two benchmarks are one argument stated twice. The performance suite measures
 the cost of the governed commit; the provenance suite measures what the cost
-buys. A couple of milliseconds per commit purchases the ability, months later,
-facing an auditor or an incident or a regulator, to answer *what happened* with a
-receipt instead of a shrug. Stated as a price, the conclusion of this part is
-almost embarrassingly cheap: the difference between a logbook and a ledger is
-milliseconds.
+buys. The catalogs expose different feature sets and private-state backends, so
+the ranking is not a pure language comparison and governance cannot be priced by
+subtracting two rows. What it establishes is narrower and stronger: LakeCat keeps
+the durable spine this book describes without surrendering the released field's
+valid performance lead. Facing an auditor, incident, or regulator months later,
+that work answers *what happened* with evidence instead of a shrug.
 
 ---

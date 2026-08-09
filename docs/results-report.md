@@ -144,19 +144,26 @@ gate zero. Unity Catalog OSS is excluded: its Iceberg REST surface is read-only.
 
 ### Catalog speed — catalog-bench (companion performance suite)
 
-**Source of truth:** `catalog-bench/RESULTS.md`. Same four catalogs, one shared
-MinIO, identical minimal commits — 1000 sequential for latency, then 8 concurrent
-writers for throughput.
+**Source of truth:** `catalog-bench@e7ca8c7/RESULTS.md`. Same four catalogs,
+one shared MinIO, one ARM64 runner Docker, locked production builds, and
+identical minimal commits. Six rounds rotated run order; round one conditioned
+the stack, and the table reports medians of rounds two through six. Each run used
+50 warmups, 1,000 sequential commits, then eight same-table writers for six
+seconds.
 
-| Catalog | Seq throughput | Seq p50 | Concurrent (8w) | Conflict rate |
-|---------|:--------------:|:-------:|:---------------:|:-------------:|
-| Nessie 0.107.5 | 170.6 /s | 4.87 ms | 136.3 /s | 82.1% |
-| LakeCat 0.2.1 | 148.6 /s | 5.34 ms | 288.0 /s | 70.2% |
-| Gravitino | 132.4 /s | 6.34 ms | 272.6 /s | 0% |
-| Polaris 1.5.0 | 84.0 /s | 10.40 ms | 61.5 /s | 7.5% |
+| Raw order | Rank | Catalog | Valid rounds | Concurrent (8w) | Sequential | p50 | p99 | Conflicts | Error rate | Errors |
+|----------:|:----:|---------|:------------:|----------------:|-----------:|----:|----:|----------:|-----------:|-------:|
+| 1 | **DQ** | Nessie 0.108.4 | 0 / 5 | 190.0 /s | 312.3 /s | 2.986 ms | 5.602 ms | 81.00% | 0.366% | 97 |
+| 2 | **1** | **LakeCat 0.3.0** | **5 / 5** | **153.0 /s** | **335.5 /s** | **2.697 ms** | **5.641 ms** | 85.42% | **0%** | **0** |
+| 3 | **2** | Polaris 1.5.0 | **5 / 5** | 129.1 /s | 135.0 /s | 7.115 ms | 11.533 ms | 4.04% | **0%** | **0** |
+| 4 | **3** | Gravitino 1.1.0 | **5 / 5** | 116.9 /s | 74.2 /s | 12.838 ms | 19.225 ms | 1.10% | **0%** | **0** |
 
-LakeCat: #2 sequential, #1 concurrent — paying for features, not losing on speed.
-Absolute figures are per-run; read them within a run, not across rounds.
+The table is sorted by successful concurrent throughput. A numeric rank requires
+zero request errors in every measured round, so Nessie's faster raw row remains
+visible but is disqualified: all five measured rounds returned request-context
+HTTP 500s, 97 in total. LakeCat is the valid concurrent and sequential leader.
+All 24 MinIO object audits passed, and LakeCat's object growth exactly covered
+every accepted commit in every round.
 
 ---
 

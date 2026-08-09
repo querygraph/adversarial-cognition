@@ -1,5 +1,12 @@
 ## Unreleased
 
+- Replace the companion catalog-speed table and book narrative with the final
+  six-round, production-build sweep. The report now ranks by concurrent
+  throughput, requires five error-free measured rounds for a numeric rank,
+  records LakeCat as the valid concurrent and sequential leader, and preserves
+  Nessie's faster raw row as DQ with its HTTP 500 count instead of treating it
+  as a success or conflict.
+
 - **MARCIANA-ADVERSARIAL-v2 first comparative run published** (docs/RESULTS-v2.md,
   beside the frozen v1 document): two tracks compared only within a track.
   Memory-store — marciana 18/18, akka-fluree 13/13 claimed (query-composed
