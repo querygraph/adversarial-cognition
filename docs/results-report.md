@@ -144,26 +144,29 @@ gate zero. Unity Catalog OSS is excluded: its Iceberg REST surface is read-only.
 
 ### Catalog speed — catalog-bench (companion performance suite)
 
-**Source of truth:** `catalog-bench@e7ca8c7/RESULTS.md`. Same four catalogs,
+**Source of truth:** `catalog-bench/RESULTS.md` (final sweep, ranked among error-free rows). Same four catalogs,
 one shared MinIO, one ARM64 runner Docker, locked production builds, and
 identical minimal commits. Six rounds rotated run order; round one conditioned
 the stack, and the table reports medians of rounds two through six. Each run used
 50 warmups, 1,000 sequential commits, then eight same-table writers for six
 seconds.
 
-| Raw order | Rank | Catalog | Valid rounds | Concurrent (8w) | Sequential | p50 | p99 | Conflicts | Error rate | Errors |
-|----------:|:----:|---------|:------------:|----------------:|-----------:|----:|----:|----------:|-----------:|-------:|
-| 1 | **DQ** | Nessie 0.108.4 | 0 / 5 | 190.0 /s | 312.3 /s | 2.986 ms | 5.602 ms | 81.00% | 0.366% | 97 |
-| 2 | **1** | **LakeCat 0.3.0** | **5 / 5** | **153.0 /s** | **335.5 /s** | **2.697 ms** | **5.641 ms** | 85.42% | **0%** | **0** |
-| 3 | **2** | Polaris 1.5.0 | **5 / 5** | 129.1 /s | 135.0 /s | 7.115 ms | 11.533 ms | 4.04% | **0%** | **0** |
-| 4 | **3** | Gravitino 1.1.0 | **5 / 5** | 116.9 /s | 74.2 /s | 12.838 ms | 19.225 ms | 1.10% | **0%** | **0** |
+| Rank | Catalog | Valid rounds | Concurrent (8w) | Sequential | p50 | p99 | Conflicts | Error rate | Errors |
+|:----:|---------|:------------:|----------------:|-----------:|----:|----:|----------:|-----------:|-------:|
+| **1** | **LakeCat 0.3.0** | **5 / 5** | **153.0 /s** | **335.5 /s** | **2.697 ms** | **5.641 ms** | 85.42% | **0%** | **0** |
+| **2** | Polaris 1.5.0 | **5 / 5** | 129.1 /s | 135.0 /s | 7.115 ms | 11.533 ms | 4.04% | **0%** | **0** |
+| **3** | Gravitino 1.1.0 | **5 / 5** | 116.9 /s | 74.2 /s | 12.838 ms | 19.225 ms | 1.10% | **0%** | **0** |
+| **[Err](https://github.com/querygraph/catalog-bench/blob/main/docs/NESSIE-ERROR.md)** | Nessie 0.108.4 (raw #1 by successful throughput) | 0 / 5 | 190.0 /s | 312.3 /s | 2.986 ms | 5.602 ms | 81.00% | 0.366% | 97 |
 
-The table is sorted by successful concurrent throughput. A numeric rank requires
-zero request errors in every measured round, so Nessie's faster raw row remains
-visible but is disqualified: all five measured rounds returned request-context
-HTTP 500s, 97 in total. LakeCat is the valid concurrent and sequential leader.
-All 24 MinIO object audits passed, and LakeCat's object growth exactly covered
-every accepted commit in every round.
+Ranked by successful concurrent throughput among error-free rows. A numeric
+rank requires zero request errors in every measured round; an HTTP 500 is
+neither a success nor a conflict, so Nessie's row — all five measured rounds
+returned request-context 500s, 97 in total — is listed last and marked **Err**
+(not "DQ": the server errored under load, which is a measured result, not a
+rules violation). Its raw numbers stay visible; the [full account](https://github.com/querygraph/catalog-bench/blob/main/docs/NESSIE-ERROR.md)
+covers the forensics and what restores a rank. LakeCat is the error-free
+concurrent and sequential leader. All 24 MinIO object audits passed, and
+LakeCat's object growth exactly covered every accepted commit in every round.
 
 ---
 
