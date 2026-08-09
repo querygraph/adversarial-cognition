@@ -7,6 +7,9 @@
   Nessie's faster raw row as DQ with its HTTP 500 count instead of treating it
   as a success or conflict.
 
+- Replace four vault-relative book citations with immutable public source links,
+  keeping the PDF, EPUB, and HTML artifacts self-contained and link-valid.
+
 - **MARCIANA-ADVERSARIAL-v2 first comparative run published** (docs/RESULTS-v2.md,
   beside the frozen v1 document): two tracks compared only within a track.
   Memory-store — marciana 18/18, akka-fluree 13/13 claimed (query-composed
