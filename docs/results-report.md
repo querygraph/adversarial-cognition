@@ -167,6 +167,10 @@ rules violation). Its raw numbers stay visible; the [full account](https://githu
 covers the forensics and what restores a rank. LakeCat is the error-free
 concurrent and sequential leader. All 24 MinIO object audits passed, and
 LakeCat's object growth exactly covered every accepted commit in every round.
+Unity Catalog OSS has no row at all — a different absence from Nessie's: it
+could not enter, because released builds serve Iceberg REST read-only (no
+commit handler to measure); the [same note](https://github.com/querygraph/catalog-bench/blob/main/docs/NESSIE-ERROR.md#and-why-unity-catalog-oss-is-not-in-the-table-at-all)
+covers it.
 
 ---
 
