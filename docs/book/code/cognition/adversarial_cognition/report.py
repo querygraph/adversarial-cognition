@@ -13,8 +13,10 @@ from .adapters import CaseOutcome, SystemReport
 from .backend import digest
 from .cases import CORPUS_VERSION, Case
 from .metrics import percentile
+from .tracks import group_by_track, track_for_interface
 
 BENCHMARK = "MARCIANA-ADVERSARIAL-v1"
+BENCHMARK_V2 = "MARCIANA-ADVERSARIAL-v2"
 MAX_REPORT_TEXT = 256
 
 CATEGORY_GATES = {
@@ -47,6 +49,41 @@ def corpus_manifest(suite: tuple[Case, ...]) -> dict[str, object]:
             }
             for case in suite
         ],
+    }
+
+
+def corpus_manifest_v2(suite: tuple[Case, ...]) -> dict[str, object]:
+    """The v2 manifest pins the semantics that changed, not only the cases.
+
+    Two corpora with identical case lists but different identity mechanics
+    must not hash identically: the ``identity_model`` section records who the
+    principals are and where their attributes live, and the ``tracks`` section
+    records the agent-memory track's uniform expressibility map, so the digest
+    pins both.
+    """
+
+    from agent_harness.driver import EXPRESSIBLE_CASES
+    from .backend_v2 import PRINCIPALS
+    from .cases_v2 import CORPUS_VERSION_V2
+
+    base = corpus_manifest(suite)
+    return {
+        "benchmark": BENCHMARK_V2,
+        "corpus_version": CORPUS_VERSION_V2,
+        "cases": base["cases"],
+        "identity_model": {
+            "credentialing": "server-side registry; HMAC credential per DID",
+            "attributes": "tenant, space, purpose, clearance, can_mutate — registry-held, never caller-asserted",
+            "principals": [record.did for record in PRINCIPALS],
+            "negative_probe": "corrupted credential must be rejected before any case",
+        },
+        "tracks": {
+            "memory-store": "all 18 cases",
+            "agent-memory": {
+                "expressible": sorted(EXPRESSIBLE_CASES),
+                "inexpressible_note": "uniform for the whole track; includes oversized-query (the harness budget would supply the bound)",
+            },
+        },
     }
 
 
@@ -152,21 +189,34 @@ def build_report(
     formation_us: float,
     restart_us: float,
     corpora: dict[str, object],
+    benchmark: str = BENCHMARK,
 ) -> dict[str, object]:
     marciana = next((report for report in systems if report.system == "marciana"), None)
     outcomes = marciana.outcomes if marciana and marciana.status == "executed" else ()
     gates = hard_gates(outcomes, receipt_mismatch_count)
+    system_entries = {system.system: system.as_dict() for system in systems}
     report = {
-        "benchmark": BENCHMARK,
+        "benchmark": benchmark,
         "corpus_digest": manifest_digest,
         "status": overall_status(gates, systems),
         "metadata": metadata,
         "hard_gates": gates,
-        "systems": {system.system: system.as_dict() for system in systems},
+        "systems": system_entries,
         "cases": [outcome.as_dict() for outcome in outcomes],
         "quality": quality(outcomes) if outcomes else {},
         "performance": performance(outcomes, formation_us, restart_us) if outcomes else {},
         "public_corpora": corpora,
     }
+    if benchmark == BENCHMARK_V2:
+        # v2 promotes the interface to a first-class track: every executed
+        # system is stamped with its track, and the report carries the
+        # grouping so the renderer compares only within a track. The v1 path
+        # emits none of these keys and stays byte-for-byte stable.
+        for entry in system_entries.values():
+            if entry.get("status") == "executed":
+                entry["track"] = track_for_interface(
+                    entry.get("interface", "direct-api")
+                )
+        report["tracks"] = group_by_track(system_entries)
     assert_bounded(report)
     return report

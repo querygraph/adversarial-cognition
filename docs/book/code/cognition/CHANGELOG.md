@@ -1,3 +1,31 @@
+## Unreleased
+
+- Replace the companion catalog-speed table and book narrative with the final
+  six-round, production-build sweep. The report now ranks by concurrent
+  throughput, requires five error-free measured rounds for a numeric rank,
+  records LakeCat as the valid concurrent and sequential leader, and preserves
+  Nessie's faster raw row as DQ with its HTTP 500 count instead of treating it
+  as a success or conflict.
+
+- **MARCIANA-ADVERSARIAL-v2 first comparative run published** (docs/RESULTS-v2.md,
+  beside the frozen v1 document): two tracks compared only within a track.
+  Memory-store — marciana 18/18, akka-fluree 13/13 claimed (query-composed
+  visibility no longer credits isolation), mem0 5/6, graphiti 3/5, cognee 3/6,
+  cognee-rs 0/4; agent-memory under the shared llama3.1 harness —
+  marciana-agent 5/10, memfs-agent 2/3. The reference's 18/18-direct vs
+  5/10-through-the-loop is the isolated cost of the agent loop. All nine hard
+  gates zero. Corpus sha256:9ea482f2…; letta rows honestly absent with reasons.
+
+- v2.0-a: promote the adapter `interface` to a first-class **track** in v2
+  reports (`build_report(benchmark=...)` stamps `track` per executed system and
+  a `tracks` grouping), and split the renderer into a frozen `render_v1`
+  (byte-for-byte, golden-tested against the published docs/RESULTS.md) and a
+  track-grouped `render_v2` — one systems table and case matrix per track,
+  compared only within a track, with a structural `assert_no_cross_track_table`
+  check the renderer runs on its own output. Under v2, an adapter payload must
+  declare its interface, and `agent-loop` is valid only with the harness
+  attestation block the shared harness stamps.
+
 # Changelog
 
 ## Unreleased
