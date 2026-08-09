@@ -161,8 +161,8 @@ The forge case is the one that cannot even be *written* against a token system:
 there, forging means presenting bytes; here, there is no constructor to present
 bytes to. The adapter never re-implements a check — it exercises the real
 `typesec-core` primitives and only records whether the outcome was correct.
-*Full source in the vault:
-[capability/adapters/typesec/src/main.rs](../Evidence/capability/adapters/typesec/src/main.rs).*
+*Full source:
+[capability/adapters/typesec/src/main.rs](https://github.com/querygraph/adversarial-capability/blob/bdf31623d49d9168a25482fdc87df585cf36ba1f/adapters/typesec/src/main.rs).*
 
 TypeSec sits at the top of the cross-section, one case short of the idealized
 reference — holding the policy-gated mint *and* the monotone attenuation *and*

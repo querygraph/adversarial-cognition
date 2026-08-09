@@ -166,8 +166,8 @@ The four principals the driver replays against are just as deliberate:
 organization but is not cleared for that memory, `outsider` belongs to a foreign
 tenant, and `advertiser` carries a mismatched purpose. Isolation, clearance, and
 purpose are therefore not asserted in prose — they are *exercised* by handing the
-same query to four principals and checking who is answered. *Full source in the
-vault: [cognition/adapters/protocol.py](../Evidence/cognition/adapters/protocol.py)
+same query to four principals and checking who is answered. *Full source:
+[cognition/adapters/protocol.py](https://github.com/querygraph/adversarial-cognition/blob/614a981987bf55247632827dac309453b3153e1c/adapters/protocol.py)
 (the shared scenario driver).*
 
 ## A claim is a boundary
@@ -244,4 +244,3 @@ tested — in memory, in time, in autonomy, in every domain where a system says
 *trust me* and an adversary answers *prove it.*
 
 ---
-

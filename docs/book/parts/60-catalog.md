@@ -192,8 +192,8 @@ Absence of authority had been getting encoded as the *string* `"None"` and then
 presented as a credential; the correct behavior is to present nothing at all.
 Gravitino, alone among the three, was strict enough to catch it — which is
 exactly the disposition you want in the thing that guards a boundary. *Full
-source in the vault:
-[catalog-provenance/adapters/iceberg_rest.py](../Evidence/catalog-provenance/adapters/iceberg_rest.py).*
+source:
+[catalog-provenance/adapters/iceberg_rest.py](https://github.com/querygraph/catalog-provenance/blob/1d85617d53b920045feea646f20d45f426a474ee/adapters/iceberg_rest.py).*
 
 ## The other axis: what the proof costs
 

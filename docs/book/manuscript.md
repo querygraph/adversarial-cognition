@@ -613,8 +613,8 @@ def remember(self, memory: Memory, actor: Actor, nonce: str) -> Decision:
 Every branch is a boundary the benchmark later attacks: replay, mutation without
 authority, an unbounded input, a cross-scope write, a clearance breach. The
 successful path is the last two lines — and it ends by issuing a receipt, so even
-the *permitted* write leaves proof. *Full source in the vault:
-[cognition/adversarial_cognition/backend.py](../Evidence/cognition/adversarial_cognition/backend.py)
+the *permitted* write leaves proof. *Full source:
+[cognition/adversarial_cognition/backend.py](https://github.com/querygraph/adversarial-cognition/blob/614a981987bf55247632827dac309453b3153e1c/adversarial_cognition/backend.py)
 (the reference boundary, lines 121–140).*
 
 ## Why the enterprise needs governed cognition
@@ -672,7 +672,6 @@ derived summary behind would pass a naive test while being dangerous. Governed
 forgetting threads that needle, and it proves that it did.
 
 ---
-
 
 # Part IV — Benchmarking the boundary
 
@@ -842,8 +841,8 @@ The four principals the driver replays against are just as deliberate:
 organization but is not cleared for that memory, `outsider` belongs to a foreign
 tenant, and `advertiser` carries a mismatched purpose. Isolation, clearance, and
 purpose are therefore not asserted in prose — they are *exercised* by handing the
-same query to four principals and checking who is answered. *Full source in the
-vault: [cognition/adapters/protocol.py](../Evidence/cognition/adapters/protocol.py)
+same query to four principals and checking who is answered. *Full source:
+[cognition/adapters/protocol.py](https://github.com/querygraph/adversarial-cognition/blob/614a981987bf55247632827dac309453b3153e1c/adapters/protocol.py)
 (the shared scenario driver).*
 
 ## A claim is a boundary
@@ -920,7 +919,6 @@ tested — in memory, in time, in autonomy, in every domain where a system says
 *trust me* and an adversary answers *prove it.*
 
 ---
-
 
 # Part V — What the benchmark reveals
 
@@ -1288,8 +1286,8 @@ Absence of authority had been getting encoded as the *string* `"None"` and then
 presented as a credential; the correct behavior is to present nothing at all.
 Gravitino, alone among the three, was strict enough to catch it — which is
 exactly the disposition you want in the thing that guards a boundary. *Full
-source in the vault:
-[catalog-provenance/adapters/iceberg_rest.py](../Evidence/catalog-provenance/adapters/iceberg_rest.py).*
+source:
+[catalog-provenance/adapters/iceberg_rest.py](https://github.com/querygraph/catalog-provenance/blob/1d85617d53b920045feea646f20d45f426a474ee/adapters/iceberg_rest.py).*
 
 ## The other axis: what the proof costs
 
@@ -1488,8 +1486,8 @@ The forge case is the one that cannot even be *written* against a token system:
 there, forging means presenting bytes; here, there is no constructor to present
 bytes to. The adapter never re-implements a check — it exercises the real
 `typesec-core` primitives and only records whether the outcome was correct.
-*Full source in the vault:
-[capability/adapters/typesec/src/main.rs](../Evidence/capability/adapters/typesec/src/main.rs).*
+*Full source:
+[capability/adapters/typesec/src/main.rs](https://github.com/querygraph/adversarial-capability/blob/bdf31623d49d9168a25482fdc87df585cf36ba1f/adapters/typesec/src/main.rs).*
 
 TypeSec sits at the top of the cross-section, one case short of the idealized
 reference — holding the policy-gated mint *and* the monotone attenuation *and*

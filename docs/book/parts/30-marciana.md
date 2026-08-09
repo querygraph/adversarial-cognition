@@ -83,8 +83,8 @@ def remember(self, memory: Memory, actor: Actor, nonce: str) -> Decision:
 Every branch is a boundary the benchmark later attacks: replay, mutation without
 authority, an unbounded input, a cross-scope write, a clearance breach. The
 successful path is the last two lines — and it ends by issuing a receipt, so even
-the *permitted* write leaves proof. *Full source in the vault:
-[cognition/adversarial_cognition/backend.py](../Evidence/cognition/adversarial_cognition/backend.py)
+the *permitted* write leaves proof. *Full source:
+[cognition/adversarial_cognition/backend.py](https://github.com/querygraph/adversarial-cognition/blob/614a981987bf55247632827dac309453b3153e1c/adversarial_cognition/backend.py)
 (the reference boundary, lines 121–140).*
 
 ## Why the enterprise needs governed cognition
@@ -142,4 +142,3 @@ derived summary behind would pass a naive test while being dangerous. Governed
 forgetting threads that needle, and it proves that it did.
 
 ---
-
