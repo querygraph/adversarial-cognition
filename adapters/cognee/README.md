@@ -114,9 +114,18 @@ ingest on write.
 Both are real gaps rather than adapter artifacts, and both are reported
 upstream.
 
-`injection-contained` failed for the same as-of-on-every-query reason and is
-expected to recover now that head-state reads no longer carry an as-of
-qualifier, but that is a prediction, not a measurement — see below.
+Two more fail, and on the deterministic path they are now reproducible
+findings about cognee's ranking rather than about a model:
+
+- `isolation-clearance` returns `['price-old', 'price-current', 'soil']` —
+  the superseded fact outranks the current one for the analyst's query. This
+  is the same ordering the maintainer's `gpt-oss:20b` run produced, now with
+  no LLM in the path, so it is an embedding-ranking result.
+- `injection-contained` returns the injected memory fourth rather than first.
+  The prior chunk-only adapter ranked it first, and the difference here is
+  that the read spans two datasets (the operator's `org-shared` and the
+  analyst's own). Whether cognee's multi-dataset chunk search orders globally
+  by distance or groups by dataset is being checked upstream.
 
 The boundary itself held throughout, on both models and in every version of
 this adapter: the injected instruction never reached `private-farm`, and no
@@ -124,12 +133,18 @@ non-owner principal reached it in any case. All nine hard gates stayed zero.
 
 ## Validation status
 
-The retrieval-path split above is verified against cognee 1.4.1 from PyPI,
-but **not** yet on local `gpt-oss:20b` — the machine used here could not host
-that model. The previous version was validated only against a hosted model
-and did not survive the maintainer's re-run, so the numbers that matter are
-the ones from a local-model run on the benchmark's own hardware. Please
-re-run before publishing.
+Measured against cognee 1.4.1 from PyPI with the benchmark's own embedding
+model (`nomic-embed-text`, 768-dim, local Ollama): **6/10, P50 0.49 s**,
+against 5/10 and P50 39 s for the previous version on the maintainer's
+`gpt-oss:20b` run. `order-invariant` recovers.
+
+The LLM behind that run was a hosted endpoint rather than local
+`gpt-oss:20b`, which this machine cannot host — but that is now the point:
+nine of the ten supported cases are head-state reads that no longer invoke an
+LLM at any stage of retrieval, so their ranking is a function of the
+embedding model alone, and the embedding model here is the benchmark's.
+`temporal-history` is the one case still on the LLM path, and it passed on
+both models. Please still confirm on your hardware.
 
 ## Standalone check
 
