@@ -47,6 +47,7 @@ PRINCIPALS = ("operator", "analyst", "outsider")
 # A single recall is bounded so one non-returning query fails its own case
 # rather than stalling the whole run. Override for slower local models.
 RECALL_TIMEOUT_SECONDS = float(os.environ.get("MARCIANA_COGNEE_RECALL_TIMEOUT", "180"))
+INGEST_TIMEOUT_SECONDS = float(os.environ.get("MARCIANA_COGNEE_INGEST_TIMEOUT", "600"))
 
 
 def _configure() -> None:
@@ -104,6 +105,9 @@ class CogneeSystem(MemorySystem):
         _configure()
         self.loop = asyncio.new_event_loop()
         self.users: dict[str, object] = {}
+        # Validity windows that have since closed, recorded as they are
+        # written. See _is_historical.
+        self.closed_windows: list[tuple[date | None, date]] = []
 
     # -- principals and datasets ------------------------------------------
 
@@ -165,6 +169,7 @@ class CogneeSystem(MemorySystem):
 
         self.loop.run_until_complete(_reset())
         self.users = {}
+        self.closed_windows = []
 
     def remember(self, memory_id, text, principal, valid_from=None,
                  valid_until=None, private=False, nonce=None, supersedes=None,
@@ -174,6 +179,8 @@ class CogneeSystem(MemorySystem):
         import cognee
 
         dataset = self._dataset(private)
+        if valid_until is not None:
+            self.closed_windows.append((valid_from, valid_until))
         tagged = f"[{memory_id}] {text}{_validity_clause(valid_from, valid_until)}"
 
         async def _write():
@@ -188,23 +195,41 @@ class CogneeSystem(MemorySystem):
             if principal == "operator":
                 await self._grant_shared_read()
 
-        self.loop.run_until_complete(_write())
+        # Bounded like recall: a cognify that never returns fails its own
+        # case instead of being retried three times without a ceiling.
+        self.loop.run_until_complete(
+            asyncio.wait_for(_write(), timeout=INGEST_TIMEOUT_SECONDS)
+        )
         return True
+
+    def _is_historical(self, as_of: date | None) -> bool:
+        """Would this as-of date resolve to something other than head state?
+
+        Only when the date falls inside a validity window that has since
+        closed — i.e. some fact was true then and is not true now. Reading
+        the current state is not a point-in-time query, and reconstructing
+        it as one is both slower and less stable, so head-state reads go
+        down the ordinary retrieval path.
+        """
+        if as_of is None:
+            return False
+        return any(valid_from is None or valid_from <= as_of < valid_until
+                   for valid_from, valid_until in self.closed_windows)
 
     def recall(self, query, principal, as_of=None):
         import cognee
+        from cognee import SearchType
 
         if principal not in PRINCIPALS:
             raise Unsupported(f"principal {principal}")
 
+        historical = self._is_historical(as_of)
         # cognee's temporal retriever extracts the as-of interval from the
-        # query itself, so the harness's as_of is expressed in the query.
-        query_text = f"{query} as of {as_of.isoformat()}" if as_of else query
+        # query itself, so a point-in-time read expresses it in the query.
+        query_text = f"{query} as of {as_of.isoformat()}" if historical else query
 
         async def _read():
             user = await self._user(principal)
-            # auto_route lets cognee's own classifier pick the retrieval
-            # strategy per query rather than the adapter pinning one.
             # No dataset list is passed: cognee resolves the readable set
             # from the caller's permissions, so a principal cannot name a
             # dataset it has no grant on. That is the boundary under test.
@@ -212,16 +237,26 @@ class CogneeSystem(MemorySystem):
             # Bounded so that a query cognee never returns from fails its
             # own case instead of hanging the suite: an empty query routes
             # to the temporal retriever and does not come back.
-            return await asyncio.wait_for(
-                cognee.recall(
+            if historical:
+                call = cognee.search(
                     query_text=query_text,
-                    auto_route=True,
+                    query_type=SearchType.TEMPORAL,
                     top_k=15,
                     include_references=True,
                     user=user,
-                ),
-                timeout=RECALL_TIMEOUT_SECONDS,
-            )
+                )
+            else:
+                # Head-state reads use chunk retrieval: ranking is the
+                # vector order, with no LLM in the path, so the same query
+                # ranks the same way twice and paraphrases do not reorder
+                # it through a generated answer.
+                call = cognee.search(
+                    query_text=query_text,
+                    query_type=SearchType.CHUNKS,
+                    top_k=15,
+                    user=user,
+                )
+            return await asyncio.wait_for(call, timeout=RECALL_TIMEOUT_SECONDS)
 
         results = self.loop.run_until_complete(_read())
         return self._ranked_ids(results)

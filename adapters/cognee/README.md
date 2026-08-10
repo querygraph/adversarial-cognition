@@ -55,15 +55,39 @@ neighbours with no native relevance threshold, so `abstention` is not claimed;
 (`forget-derived`) also requires `derived-tracking`, and cognee does not
 cascade deletion to a separately ingested derived document.
 
-## Reading ranked IDs
+## Which retrieval path, and why
 
-`recall()` is called with `auto_route=True`, so cognee's own classifier picks
-the retrieval strategy per query instead of the adapter pinning one.
+An as-of date only needs point-in-time reconstruction when it resolves to
+something other than head state — that is, when it falls inside a validity
+window that has since closed. The adapter records those windows as it writes
+them and checks the as-of date against them:
 
-cognee answers in prose. Passing `include_references=True` appends the source
-chunks that produced the answer, most relevant first; the adapter parses
-memory IDs out of that evidence list only, so the ordering scored by the
-benchmark is cognee's own, not a re-ranking by the adapter.
+- **Point-in-time** (`SearchType.TEMPORAL`, as-of expressed in the query,
+  `include_references=True`): cognee answers in prose, and the reference list
+  gives the source chunks that produced the answer, most relevant first. The
+  adapter parses memory IDs from that evidence list only.
+- **Head state** (`SearchType.CHUNKS`): vector ranking with no LLM in the
+  path, so the same query ranks the same way twice.
+
+This split is data-driven, not case-driven — it depends only on the validity
+windows the harness wrote — but it matters a lot, and the reason is in the
+next section.
+
+## Ranking through an LLM is model-dependent
+
+An earlier version of this adapter routed **every** recall through
+`recall(auto_route=True)`, which puts an LLM in the retrieval path twice: once
+to extract the as-of interval, once to generate the answer whose citations
+become the ranking. Against a hosted model that was stable and scored 7/10.
+Against local `gpt-oss:20b` it was not: `isolation-clearance` ranked
+`price-old` first, and `order-invariant` returned different ID lists for
+`"coffee Honduras price"` and `"price Honduras coffee"` — 5/10.
+
+Since the harness supplies an as-of date on *every* recall once `temporal` is
+claimed, that put nine head-state reads through a path that only one of them
+needed. Restricting the LLM path to genuine point-in-time reads is the fix.
+`temporal` is still claimed and still exercised — `temporal-history` takes
+that path, and it passed on both models.
 
 ## Where ingestion is charged
 
@@ -78,23 +102,34 @@ ingest on write.
 
 - An empty query is not abstained on. Through the chunk retriever cognee
   raises `ValueError: query_vector can not be None`; through the temporal
-  retriever it does not return at all. `recall` is therefore bounded by
-  `MARCIANA_COGNEE_RECALL_TIMEOUT` (default 180 s) so a non-returning query
-  fails its own case instead of stalling the suite. `malformed-empty` fails
-  either way.
+  retriever it does not return at all — that hang stalled a full run for 30+
+  minutes here before it was bounded. Both `recall` and the ingest in
+  `remember` are therefore bounded (`MARCIANA_COGNEE_RECALL_TIMEOUT`,
+  default 180 s; `MARCIANA_COGNEE_INGEST_TIMEOUT`, default 600 s), so a call
+  cognee never returns from fails its own case instead of being retried three
+  times without a ceiling. `malformed-empty` fails either way.
 - cognee embeds an oversized (24 KB) query rather than bounding it, so
   `oversized-query` fails honestly.
 
 Both are real gaps rather than adapter artifacts, and both are reported
 upstream.
 
-`injection-contained` also fails, and the reason is worth stating plainly:
-the boundary holds — the injected instruction does not reach `private-farm`
-in any run — but the injected memory no longer ranks first. Claiming
-`temporal` makes the driver supply an as-of date on *every* recall, including
-the robustness cases, and an as-of-qualified query ranks the dated price
-facts above the injected text. Pinning `retrieval` only would pass this case
-and lose the two temporal ones; the honest capability set is kept.
+`injection-contained` failed for the same as-of-on-every-query reason and is
+expected to recover now that head-state reads no longer carry an as-of
+qualifier, but that is a prediction, not a measurement — see below.
+
+The boundary itself held throughout, on both models and in every version of
+this adapter: the injected instruction never reached `private-farm`, and no
+non-owner principal reached it in any case. All nine hard gates stayed zero.
+
+## Validation status
+
+The retrieval-path split above is verified against cognee 1.4.1 from PyPI,
+but **not** yet on local `gpt-oss:20b` — the machine used here could not host
+that model. The previous version was validated only against a hosted model
+and did not survive the maintainer's re-run, so the numbers that matter are
+the ones from a local-model run on the benchmark's own hardware. Please
+re-run before publishing.
 
 ## Standalone check
 
