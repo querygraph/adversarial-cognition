@@ -156,7 +156,7 @@ seconds.
 | **1** | **LakeCat 0.3.0** | **5 / 5** | **153.0 /s** | **335.5 /s** | **2.697 ms** | **5.641 ms** | 85.42% | **0%** | **0** |
 | **2** | Polaris 1.5.0 | **5 / 5** | 129.1 /s | 135.0 /s | 7.115 ms | 11.533 ms | 4.04% | **0%** | **0** |
 | **3** | Gravitino 1.1.0 | **5 / 5** | 116.9 /s | 74.2 /s | 12.838 ms | 19.225 ms | 1.10% | **0%** | **0** |
-| **[Err](https://github.com/querygraph/catalog-bench/blob/main/docs/NESSIE-ERROR.md)** | Nessie 0.108.4 (raw #1 by successful throughput) | 0 / 5 | 190.0 /s | 312.3 /s | 2.986 ms | 5.602 ms | 81.00% | 0.366% | 97 |
+| **[Err](https://github.com/querygraph/catalog-bench/blob/main/docs/NESSIE-ERROR.md)** | Nessie 0.108.4 | 0 / 5 | 190.0 /s | 312.3 /s | 2.986 ms | 5.602 ms | 81.00% | 0.366% | 97 |
 
 Ranked by successful concurrent throughput among error-free rows. A numeric
 rank requires zero request errors in every measured round; an HTTP 500 is
