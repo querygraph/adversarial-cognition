@@ -291,6 +291,23 @@ class CogneeSystem(MemorySystem):
         return self._ranked_ids(results, point_in_time)
 
     @staticmethod
+    def _chunk_items(results):
+        """Flatten cognee's per-dataset wrappers into chunk payloads.
+
+        With backend access control on, ``cognee.search`` returns one
+        wrapper per readable dataset — ``{"dataset_id": ..., "dataset_name":
+        ..., "search_result": [...]}`` — with the retriever's payload list
+        inside. Without it, the payload list comes back directly. Wrapper
+        order is dataset order, so cross-dataset ranking is dataset-grouped,
+        matching what the serialized-blob parse read before.
+        """
+        for item in (results or ()):
+            if isinstance(item, dict) and isinstance(item.get("search_result"), list):
+                yield from item["search_result"]
+            else:
+                yield item
+
+    @staticmethod
     def _chunk_text(item) -> str:
         if isinstance(item, str):
             return item
@@ -329,7 +346,7 @@ class CogneeSystem(MemorySystem):
                           re.finditer(r"\[([a-z0-9-]+)\]", evidence))
         else:
             leading = (re.match(r"\s*\[([a-z0-9-]+)\]", cls._chunk_text(item))
-                       for item in (results or ()))
+                       for item in cls._chunk_items(results))
             candidates = (match.group(1) for match in leading if match)
         found, seen = [], set()
         for memory_id in candidates:
