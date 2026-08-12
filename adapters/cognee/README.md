@@ -58,16 +58,21 @@ cascade deletion to a separately ingested derived document.
 ## Which retrieval path, and why
 
 An as-of date only needs point-in-time reconstruction when it resolves to
-something other than head state — that is, when it falls inside a validity
-window that has since closed. The adapter records those windows as it writes
-them and checks the as-of date against them:
+something other than head state. The adapter records every validity window as
+its write completes and asks whether the as-of date sits inside each window
+exactly when that window is still open: a closed window covering the date
+(true then, not now) or a window starting after it (not yet true then) both
+mean the date is a genuine point-in-time read.
 
 - **Point-in-time** (`SearchType.TEMPORAL`, as-of expressed in the query,
   `include_references=True`): cognee answers in prose, and the reference list
   gives the source chunks that produced the answer, most relevant first. The
-  adapter parses memory IDs from that evidence list only.
+  adapter parses memory IDs from that evidence list only — a response
+  without the evidence section is an error, never re-ranked from the prose.
 - **Head state** (`SearchType.CHUNKS`): vector ranking with no LLM in the
-  path, so the same query ranks the same way twice.
+  path, so the same query ranks the same way twice. Each chunk contributes
+  only its own leading `[memory-id]` tag to the ranking, so bracketed IDs
+  inside a memory's text (an injected instruction, say) cannot add entries.
 
 This split is data-driven, not case-driven — it depends only on the validity
 windows the harness wrote — but it matters a lot, and the reason is in the
@@ -105,9 +110,13 @@ ingest on write.
   retriever it does not return at all — that hang stalled a full run for 30+
   minutes here before it was bounded. Both `recall` and the ingest in
   `remember` are therefore bounded (`MARCIANA_COGNEE_RECALL_TIMEOUT`,
-  default 180 s; `MARCIANA_COGNEE_INGEST_TIMEOUT`, default 600 s), so a call
-  cognee never returns from fails its own case instead of being retried three
-  times without a ceiling. `malformed-empty` fails either way.
+  default 180 s; `MARCIANA_COGNEE_INGEST_TIMEOUT`, default 600 s). Two honest
+  limits on that bound: `asyncio.wait_for` can only cancel at an await point,
+  so a hang inside synchronous code is not preemptible; and the driver treats
+  a timeout as transient infrastructure, so a persistently hanging case can
+  still cost up to three bounded attempts (plus their reseeds) before its
+  error row is recorded. The bound is a per-call ceiling, not a per-case
+  one. `malformed-empty` fails either way.
 - cognee embeds an oversized (24 KB) query rather than bounding it, so
   `oversized-query` fails honestly.
 
