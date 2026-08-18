@@ -29,8 +29,10 @@ way the stack itself grew: by discovering that the same boundary, and the same
 adversary, reappear at every layer. The catalog that anchors a data lake faces
 the same questions as the memory that anchors an agent — *who may change this,
 and can you prove what happened?* — and so does the authorization layer beneath
-them both. So this book now holds three benchmarks, one for each layer, each
-attacked the same way and scored by the same unforgiving rules.
+them both, and so, finally, does the agent itself, the orchestrator that crosses
+all of these boundaries in a single run. So this book now holds four benchmarks,
+one for each layer, each attacked the same way and scored by the same unforgiving
+rules.
 
 If you have never heard of QueryGraph, you are the reader this book is written
 for, and nothing here presumes prior acquaintance with any of it. The
@@ -44,8 +46,13 @@ VI descends to the catalog — beginning with what a table in a data lake even
 costs. Part VII descends further still, to authority itself, and runs ten
 authorization systems — from the humble signed token to policy engines,
 relationship graphs, capability tokens, and TypeSec — through the same
-adversarial mill. Each part is self-contained and explains every term it uses; a
-glossary and an index at the back hold the whole vocabulary in one place.
+adversarial mill. Part VIII rises back to the surface, to the agent that crosses
+every one of these boundaries at once, and asks the question the whole stack was
+built to answer: when a framework hands a model a tool, what keeps its authority
+impossible to confuse — and how far can two of the industry's real policy
+engines carry that burden before the ground gives way beneath them? Each part is
+self-contained and explains every term it uses; a glossary and an index at the
+back hold the whole vocabulary in one place.
 
 The thesis is simple and, I hope, by the end, unavoidable: in the enterprise,
 cognition may be as ambitious as you like, but the evidence must remain

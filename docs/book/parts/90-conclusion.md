@@ -1,15 +1,18 @@
 # Conclusion — One boundary, composed
 
-This book has been three descents. From an agent's memory to the catalog beneath
-a data lake to the raw question of authority itself, each part began with a
-humble object — a throwaway sentence, a file in a bucket, a login — and built
-from it, in its own vocabulary, to a benchmark that went looking for the seam
-where a promise tears. Read that way, the three are neighbors: adjacent chapters
-about adjacent systems that happen to rhyme.
+This book has been three descents and a return. From an agent's memory to the
+catalog beneath a data lake to the raw question of authority itself, each part
+began with a humble object — a throwaway sentence, a file in a bucket, a login —
+and built from it, in its own vocabulary, to a benchmark that went looking for
+the seam where a promise tears; and then the last part climbed back to the
+surface, to the agent that crosses all three seams in a single run, and watched
+two of the industry's real policy engines hold nine doors of fourteen. Read that
+way, the four are neighbors: adjacent chapters about adjacent systems that happen
+to rhyme.
 
 They do more than rhyme. Ascend now, look back down the way we came, and the same
 few figures are standing in every part, wearing the local costume. They are not
-echoes. They are the same characters, because underneath the three domains there
+echoes. They are the same characters, because underneath the four domains there
 is one boundary, built once and composed everywhere — and the composition, not
 any single benchmark, is the real argument of the book.
 
@@ -18,10 +21,12 @@ any single benchmark, is the real argument of the book.
 **One adversary.** The attacker in Part IV, planting instruction-shaped memories
 and replaying nonces across a restart, is the attacker in Part VI, racing the
 metadata pointer and editing a receipt, is the attacker in Part VII, forging a
-capability and aiming it at the wrong resource. Grant this single character
-control of content, of the request path, and of the clock, and every part of the
-stack must answer the same three questions: can it be forged, can it be replayed,
-can a stale thing overwrite a newer one? A benchmark is just that character, made
+capability and aiming it at the wrong resource, is the attacker in Part VIII,
+steering a model through every one of those doors at once and hiding the payload
+on the plane the request cannot show. Grant this single character control of
+content, of the request path, and of the clock, and every part of the stack must
+answer the same three questions: can it be forged, can it be replayed, can a
+stale thing overwrite a newer one? A benchmark is just that character, made
 deterministic and let loose.
 
 **One artifact of trust: the receipt.** Every layer's promise resolves to the
