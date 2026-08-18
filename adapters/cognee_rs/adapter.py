@@ -19,7 +19,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from protocol import MemorySystem, Unsupported, run
+from protocol import MEMORY_IDS, MemorySystem, Unsupported, run
 
 ID_RE = re.compile(r"\[([A-Za-z0-9][A-Za-z0-9_-]{0,63})\]")
 
@@ -69,7 +69,7 @@ class CogneeRustSystem(MemorySystem):
         found: list[str] = []
         for match in ID_RE.finditer(output):
             value = match.group(1)
-            if value not in found and value in {"price-old", "price-current", "soil", "private-farm", "prompt-injection"}:
+            if value not in found and value in MEMORY_IDS:
                 found.append(value)
         return tuple(found[:8])
 

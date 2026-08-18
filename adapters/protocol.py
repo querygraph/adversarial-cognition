@@ -37,6 +37,14 @@ SEED = (
      None, None, False),
 )
 
+# Every memory ID the driver can write: the seed corpus plus the scenario
+# writes below. Adapters that tag stored text with a leading ``[memory-id]``
+# parse rankings against this one registry instead of keeping private copies.
+MEMORY_IDS = tuple(entry[0] for entry in SEED) + (
+    "prompt-injection", "summary", "replay-fact", "replay-fact-2",
+    "durable-fact", "durable-fact-2",
+)
+
 CAPABILITIES = frozenset({
     "retrieval", "temporal", "supersession", "abstention", "isolation",
     "clearance", "purpose", "provenance", "replay-protection", "idempotency",
