@@ -929,9 +929,10 @@
         }
       ],
       "interface": "direct-api",
-      "status": "executed",
+      "status": "error",
       "system": "cognee-rs",
-      "unsupported_cases": 14
+      "unsupported_cases": 14,
+      "error": "native CLI did not build (unresolved ONNX Runtime C++ symbols); no case executed. See adapters/cognee_rs/BUILD_NOTES.md."
     },
     "graphiti": {
       "adapter_version": "graphiti-graphiti-core-0.29.3-kuzu",

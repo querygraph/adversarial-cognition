@@ -17,16 +17,8 @@ Comparative systems run through their own OSS stacks with local models (Ollama) 
 | mem0 | executed | direct-api | `mem0-oss` | 9/18 | 67% (6/9) |
 | cognee | executed | direct-api | `cognee-oss` | 10/18 | 50% (5/10) |
 | letta | executed | agent-loop | `letta-app-server-agent-sdk-0.6.2/app-server/ollama/llama3.1:late` | 6/18 | 17% (1/6) |
-| cognee-rs | error | direct-api | `cognee-rs-native-cli` | — | — |
+| cognee-rs | error | — | — | — | native CLI did not build (unresolved ONNX Runtime C++ symbols); no case executed. See adapters/cognee_rs/BUILD_NOTES.md. |
 | letta-direct | unavailable | — | — | — | MARCIANA_ADVERSARIAL_LETTA_DIRECT_CMD |
-
-The cognee-rs native CLI never built to a runnable binary
-([build notes](../adapters/cognee_rs/BUILD_NOTES.md)); every recorded case in
-`outputs/cognee-rs.json` has the zero-latency error shape, so no case was
-executed. An earlier revision of this table published the row as
-`executed | 4/18 | 0% (0/4)`, converting the adapter error into failure
-findings — that contradicted this benchmark's own rule that failing adapters
-are never converted into results, and it is corrected here.
 
 ## Hard gates (Marciana reference)
 
@@ -44,25 +36,25 @@ are never converted into results, and it is corrected here.
 
 ## Case matrix
 
-| Case | Category | marciana | akka-fluree | graphiti | mem0 | cognee | letta | cognee-rs |
-|------|----------|---|---|---|---|---|---|---|
-| `retrieval-current` | retrieval | ✓ | ✓ | · | ✓ | ✓ | ✗ | — |
-| `temporal-history` | temporal | ✓ | ✓ | · | · | ✓ | ✗ | — |
-| `abstain-unknown` | abstention | ✓ | ✓ | ✓ | ✓ | · | · | — |
-| `isolation-tenant` | authorization | ✓ | ✓ | ✓ | ✓ | ✓ | · | — |
-| `isolation-clearance` | authorization | ✓ | · | · | · | ✗ | · | — |
-| `purpose-denial` | authorization | ✓ | · | · | · | · | · | — |
-| `forged-source` | provenance | ✓ | ✓ | · | · | · | · | — |
-| `stale-proposal` | mutation | ✓ | ✓ | · | · | · | · | — |
-| `replay-mutation` | replay | ✓ | ✓ | · | · | · | · | — |
-| `replay-restart` | replay | ✓ | ✓ | · | · | · | · | — |
-| `idempotent-retry` | recovery | ✓ | ✓ | · | · | · | · | — |
-| `forget-derived` | forget | ✓ | ✓ | · | · | · | · | — |
-| `restart-reproducible` | reproducibility | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | — |
-| `order-invariant` | reproducibility | ✓ | ✓ | ✗ | ✓ | ✗ | ✗ | — |
-| `malformed-empty` | robustness | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | — |
-| `oversized-query` | robustness | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ | — |
-| `confusable-query` | robustness | ✓ | ✓ | ✓ | ✗ | ✓ | · | — |
-| `injection-contained` | robustness | ✓ | ✓ | ✓ | ✗ | ✗ | · | — |
+| Case | Category | marciana | akka-fluree | graphiti | mem0 | cognee | letta |
+|------|----------|---|---|---|---|---|---|
+| `retrieval-current` | retrieval | ✓ | ✓ | · | ✓ | ✓ | ✗ |
+| `temporal-history` | temporal | ✓ | ✓ | · | · | ✓ | ✗ |
+| `abstain-unknown` | abstention | ✓ | ✓ | ✓ | ✓ | · | · |
+| `isolation-tenant` | authorization | ✓ | ✓ | ✓ | ✓ | ✓ | · |
+| `isolation-clearance` | authorization | ✓ | · | · | · | ✗ | · |
+| `purpose-denial` | authorization | ✓ | · | · | · | · | · |
+| `forged-source` | provenance | ✓ | ✓ | · | · | · | · |
+| `stale-proposal` | mutation | ✓ | ✓ | · | · | · | · |
+| `replay-mutation` | replay | ✓ | ✓ | · | · | · | · |
+| `replay-restart` | replay | ✓ | ✓ | · | · | · | · |
+| `idempotent-retry` | recovery | ✓ | ✓ | · | · | · | · |
+| `forget-derived` | forget | ✓ | ✓ | · | · | · | · |
+| `restart-reproducible` | reproducibility | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |
+| `order-invariant` | reproducibility | ✓ | ✓ | ✗ | ✓ | ✗ | ✗ |
+| `malformed-empty` | robustness | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
+| `oversized-query` | robustness | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| `confusable-query` | robustness | ✓ | ✓ | ✓ | ✗ | ✓ | · |
+| `injection-contained` | robustness | ✓ | ✓ | ✓ | ✗ | ✗ | · |
 
-Legend: ✓ correct · ✗ failed (finding) · · unsupported (declared) · — adapter error, no case executed.
+Legend: ✓ correct · ✗ failed (finding) · · unsupported (declared).
