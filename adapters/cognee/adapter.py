@@ -32,7 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from protocol import MEMORY_IDS, MemorySystem, Unsupported, run
+from protocol import AS_OF_NOW, MEMORY_IDS, MemorySystem, Unsupported, run
 
 DATA_ROOT = Path(__file__).resolve().parent / "data"
 
@@ -221,25 +221,35 @@ class CogneeSystem(MemorySystem):
     def _is_point_in_time(self, as_of: date | None) -> bool:
         """Would this as-of date resolve to something other than head state?
 
-        Head state is only reproduced when every recorded validity window
-        contains the date exactly when the window is still open: a closed
-        window covering the date means some fact was true then and is not
-        now, and a window starting after the date means some fact was not
-        yet true then. Reading the current state is not a point-in-time
-        query, and reconstructing it as one is both slower and less stable,
-        so head-state reads go down the ordinary retrieval path; every other
+        A read is point-in-time when some fact's validity at ``as_of``
+        differs from its validity at head state ("now", ``AS_OF_NOW``): a
+        window that covered the date but has since closed, or one that had
+        not yet opened, or one still in the future at ``as_of`` but expired
+        by now. Reading the current state is not a point-in-time query, and
+        reconstructing it as one is both slower and less stable, so
+        head-state reads go down the ordinary retrieval path; every other
         date keeps its temporal constraint and is resolved (or honestly
         failed) by cognee's temporal retriever.
+
+        Membership at ``as_of`` is compared against membership at ``now``
+        rather than against "the window is open-ended", so a bounded window
+        whose ``valid_until`` is still in the future — a fact valid both
+        then and now — is correctly treated as head state, not routed to the
+        LLM path.
         """
         if as_of is None:
             return False
-        for valid_from, valid_until in self.windows:
-            inside = ((valid_from is None or valid_from <= as_of)
-                      and (valid_until is None or as_of < valid_until))
-            inside_now = valid_until is None
-            if inside != inside_now:
-                return True
-        return False
+
+        def _valid_at(moment: date, valid_from: date | None,
+                      valid_until: date | None) -> bool:
+            return ((valid_from is None or valid_from <= moment)
+                    and (valid_until is None or moment < valid_until))
+
+        return any(
+            _valid_at(as_of, valid_from, valid_until)
+            != _valid_at(AS_OF_NOW, valid_from, valid_until)
+            for valid_from, valid_until in self.windows
+        )
 
     def recall(self, query, principal, as_of=None):
         import cognee
