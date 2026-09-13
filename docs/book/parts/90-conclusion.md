@@ -4,15 +4,18 @@ This book has been three descents and a return. From an agent's memory to the
 catalog beneath a data lake to the raw question of authority itself, each part
 began with a humble object — a throwaway sentence, a file in a bucket, a login —
 and built from it, in its own vocabulary, to a benchmark that went looking for
-the seam where a promise tears; and then the last part climbed back to the
+the seam where a promise tears; and then the agent benchmark climbed back to the
 surface, to the agent that crosses all three seams in a single run, and watched
 two of the industry's real policy engines hold nine doors of fourteen. Read that
-way, the four are neighbors: adjacent chapters about adjacent systems that happen
-to rhyme.
+way, those four are neighbors: adjacent chapters about adjacent systems that happen
+to rhyme. The graph chapter adds a different test of the evidence itself: whether
+two measured operations actually promise the same output. Its contract is about
+computational work, rather than authority, but it shares the requirement that a
+claim remain bound to something a reader can independently verify.
 
 They do more than rhyme. Ascend now, look back down the way we came, and the same
 few figures are standing in every part, wearing the local costume. They are not
-echoes. They are the same characters, because underneath the four domains there
+echoes. They are the same characters, because underneath the four governance domains there
 is one boundary, built once and composed everywhere — and the composition, not
 any single benchmark, is the real argument of the book.
 

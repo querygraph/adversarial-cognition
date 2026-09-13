@@ -62,3 +62,5 @@ verify without trusting the model, the operator, or the vendor who sold it.
 
 ---
 
+
+The graph experiments add another boundary: the output contract itself. The new graph-algorithm chapter follows five implementations through an equivalent full-path workload, while keeping the extensive query suite and strain ledger as separate experiments.

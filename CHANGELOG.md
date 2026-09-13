@@ -1,3 +1,7 @@
+## 2026-09-13 — Book 0.2.0
+
+- Add the graph-benchmark chapter: separate query/strain suites, equivalent full-path algorithm outputs, five-way Docker evidence, and Grustcat Cypher execution boundaries.
+
 ## Unreleased
 
 - Replace the companion catalog-speed table and book narrative with the final

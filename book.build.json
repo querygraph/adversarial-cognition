@@ -9,7 +9,7 @@
   "headboardImage": "docs/book/cover/adversarial-cognition-headboard.png",
   "version": {
     "source": "literal",
-    "value": "0.1.0"
+    "value": "0.2.0"
   },
   "kindleName": "${stem} (${versionStamp})",
   "dist": "docs/book/dist",
