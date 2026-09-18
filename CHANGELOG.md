@@ -11,6 +11,11 @@
 - Record the correctness defect the performance work uncovered: results bound to
   nodes by snapshot position rather than identity, invisible under bulk loading,
   and undetectable by a verifier that compares sorted records.
+- Record the one change that did not pay off, and why it is the same finding: the
+  fold shape the compared engine's query uses is correct but four to six times
+  slower, because work accounting was made lock-free while byte accounting was
+  not, and because the value of removing the row expansion rose from about four
+  per cent to about half the query once the other costs were gone.
 - Correct the chapter's reproduction command, which predated current sources
   becoming the runner default and therefore no longer reproduced the published
   measurement.

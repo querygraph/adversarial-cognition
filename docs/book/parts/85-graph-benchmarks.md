@@ -289,6 +289,31 @@ loads began running over several writer connections with a checkpoint between
 rounds. The ledger keeps the earlier cells and names the run that superseded each
 one, so the improvement is visible as a history rather than asserted as a state.
 
+## What did not get fixed, and why that is the same finding
+
+One result stayed stubborn, and it is the most instructive of them. The query
+language gained the fold that the compared engine's own query uses — the shape
+that expresses "touch every entry" without expanding a row per entry. It returns
+identical aggregates, so the feature is correct. It is also about four to six
+times slower than the expansion it was meant to replace.
+
+The reason is the chapter's own subject, moved one axis across. Work accounting
+had been made lock-free; byte accounting had not. Each folded element still
+evaluates through the general scoped evaluator, and every variable reference
+clones a value and charges its bytes through a memory account that takes the
+state mutex — two lock round-trips per element, on top of a string allocation
+that follows from path identifiers being strings. The budget has two meters, and
+only one of them was made cheap.
+
+There is a second-order lesson in the arithmetic. When clock reads dominated,
+removing the row expansion was worth about four per cent, so the query's shape
+did not matter and the missing language feature was easy to dismiss. After three
+rounds of removing everything else, the same measurement is 1,533 milliseconds
+against 718 without the expansion: the shape is now worth about half the query.
+The case for the feature became strong only after the reasons to dismiss it were
+removed, which is a general property of optimization work and a reason to record
+what was declined as carefully as what was accepted.
+
 ## Two boundaries, one discipline
 
 The two graph experiments test different boundaries. One asks what must exist
