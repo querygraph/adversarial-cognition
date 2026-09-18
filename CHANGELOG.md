@@ -1,3 +1,20 @@
+## Unreleased — graph chapter
+
+- Extend the graph chapter with both graph experiments. The algorithms strand
+  adds what measuring current upstream sources found: a cooperative work meter
+  that cost more than the work it guarded, a deadline checked per unit against a
+  compared engine that samples its own, a streaming call that copied each path
+  list per row, and the two regressions those fixes introduced before they were
+  caught. The strain strand is new to the book: qualification before comparison,
+  six question groups, nine zero-tolerance gates, and the reach, speed and memory
+  standings with their supersession history.
+- Record the correctness defect the performance work uncovered: results bound to
+  nodes by snapshot position rather than identity, invisible under bulk loading,
+  and undetectable by a verifier that compares sorted records.
+- Correct the chapter's reproduction command, which predated current sources
+  becoming the runner default and therefore no longer reproduced the published
+  measurement.
+
 ## 2026-09-13 — Book 0.2.0
 
 - Add the graph-benchmark chapter: separate query/strain suites, equivalent full-path algorithm outputs, five-way Docker evidence, and Grustcat Cypher execution boundaries.
