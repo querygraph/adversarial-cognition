@@ -11,6 +11,11 @@
 - Record the correctness defect the performance work uncovered: results bound to
   nodes by snapshot position rather than identity, invisible under bulk loading,
   and undetectable by a verifier that compares sorted records.
+- Add the comparison that needed no new code: the two frozen implementations
+  differ by a factor that widens with the work, which profiling attributes to
+  allocation forced by a function returning a container by value rather than to
+  anything about the languages. It is the chapter's fourth instance of an
+  interface compelling work per item.
 - Record the one change that did not pay off, and why it is the same finding: the
   fold shape the compared engine's query uses is correct but four to six times
   slower, because work accounting was made lock-free while byte accounting was

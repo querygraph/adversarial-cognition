@@ -314,6 +314,41 @@ The case for the feature became strong only after the reasons to dismiss it were
 removed, which is a general property of optimization work and a reason to record
 what was declined as carefully as what was accepted.
 
+## The most expensive thing was a function signature
+
+One comparison in this experiment needed no new code at all, and it is the one
+that best explains what benchmarks are for. Two of the implementations are
+frozen: the C++ update of the original library, and the Rust rewrite of it. They
+never changed across any run, which is what qualifies them as the control. The
+distance between them is nonetheless a finding.
+
+On the largest chain the Rust implementation finishes in about eleven seconds and
+the C++ one in about thirty. At a sixteenth of the size the ratio is not three
+but one and a half. A gap that widens with the work is the signature of something
+other than a language: compilers produce constant factors, not growing ones.
+
+Profiling both settles it. A quarter of the C++ run is the memory allocator and
+the kernel handling its requests — page faults, memory locks, allocation
+routines — while the Rust run shows no allocator or kernel cost worth naming. The
+structural difference is that the older library stores each node's predecessors
+in its own heap block and hands back a freshly grown array for every
+reconstructed path, where the rewrite walks one flat array into two buffers it
+allocates once and reuses.
+
+The part worth carrying out of this chapter is why that happened. The function
+returns a container by value. A caller cannot pass in a buffer to fill, so the
+allocation is not a choice the implementation made carelessly; it is compelled by
+the signature. The library's own generality is implicated too: predecessors are
+stored as lists because the library supports returning every shortest path, a
+feature this workload never asks for and pays for anyway.
+
+That is the same shape as three other findings in this chapter — a lock taken per
+unit of work, a value copied per row, a clock read per charge. In each case the
+expensive thing was an interface that forced work per item, and in each case no
+amount of care inside the implementation could recover it. A benchmark that
+reported only which column was faster would have recorded the number and missed
+every one of them.
+
 ## Two boundaries, one discipline
 
 The two graph experiments test different boundaries. One asks what must exist
